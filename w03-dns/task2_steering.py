@@ -522,17 +522,64 @@ def report():
     # ---- second network
     if len(labels) > 1:
         w("### Between networks (B3)\n")
-        w("| resolver | " + " | ".join(f"{a}≠{b}" for a, b in
-                                      [(labels[0], l) for l in labels[1:]]) + " |")
-        w("|---|" + "---|" * (len(labels) - 1))
-        for r in real:
-            cells = []
-            for l in labels[1:]:
-                d = [s for s in cdn if l in data[s]["observations"]
-                     and not addrs(s, r) & addrs(s, r, l)]
-                cells.append(f"{len(d)} of {n}")
-            w(f"| {r} | " + " | ".join(cells) + " |")
-        w("")
+        w("Same three resolvers, same sites, asked from each network. A site counts as "
+          "different when the two address sets share no address (CDN sites only).\n")
+        for other in labels[1:]:
+            w(f"**{primary}  vs  {other}**\n")
+            w("| resolver | sites with disjoint answers | which |")
+            w("|---|---|---|")
+            for r in real:
+                d = [s for s in cdn if other in data[s]["observations"]
+                     and not addrs(s, r) & addrs(s, r, other)]
+                w(f"| {r} | {len(d)} of {n} | {', '.join(d) or '-'} |")
+            # a different answer is only informative if it is stable inside each network
+            movers = sorted({s for s in cdn for l in (primary, other) if l in data[s]["observations"]
+                             for r in real if len({tuple(x) for x in
+                                                   obs(s, l)["resolvers"][r]["runs"]}) > 1})
+            w(f"\nInside a single network, the answer moved between the {RUNS} runs for: "
+              f"{', '.join(movers) or 'no site'}. A difference on those sites cannot be told "
+              "from the CDN's own rotation with this data.\n")
+            shifts = []
+            for site in SITES:
+                for r in real:
+                    a = obs(site, primary)["resolvers"][r]["rtt_ms"]
+                    b = obs(site, other)["resolvers"][r]["rtt_ms"]
+                    shifts += [b[ip] - a[ip] for ip in set(a) & set(b) if a[ip] and b[ip]]
+            if shifts:
+                shifts.sort()
+                med = shifts[len(shifts) // 2]
+                w(f"For the {len(shifts)} addresses that were timed from both, the median "
+                  f"handshake time changed by **{med:+.1f} ms** "
+                  f"(range {shifts[0]:+.1f} to {shifts[-1]:+.1f}). "
+                  + ("A shift like that is present for every site, including a university "
+                     "server in Korea, so it is the access link and not a nearer or farther "
+                     "replica. Handshake times are only comparable *within* a network.\n"
+                     if abs(med) >= 5 else
+                     "No systematic shift, so the two runs saw the same distances.\n"))
+        if {"system", "quad9"} <= set(real):
+            # Handshake times cannot be compared between networks, but a gap INSIDE one
+            # collection can: whatever the access link adds, it adds to both resolvers.
+            gap = {}
+            for site in cdn:
+                gap[site] = {}
+                for l in labels:
+                    o = obs(site, l)["resolvers"]
+                    a = [v for v in o["quad9"]["rtt_ms"].values() if v is not None]
+                    b = [v for v in o["system"]["rtt_ms"].values() if v is not None]
+                    if a and b:
+                        gap[site][l] = min(a) - min(b)
+            show = [s for s in cdn if any(abs(v) >= 50 for v in gap[s].values())]
+            if show:
+                w("**Does a far answer follow the resolver?** Fastest replica Quad9 gave minus "
+                  "fastest replica the system resolver gave, in ms, measured inside each "
+                  "collection (so the access link cancels out). Sites where any collection "
+                  "differs by 50 ms or more:\n")
+                w("| site | " + " | ".join(labels) + " |")
+                w("|---|" + "---|" * len(labels))
+                for site in show:
+                    w(f"| {site} | " + " | ".join(
+                        f"{gap[site][l]:+.0f}" if l in gap[site] else "-" for l in labels) + " |")
+                w("")
     else:
         w("### Between networks (B3)\n")
         w(f"**Not measured.** Only one network was available (`{primary}`), so claim (b) has "

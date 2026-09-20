@@ -1,6 +1,6 @@
 # Week 3 · Task 2 report
 
-Collected 2026-09-20T07:22:41+00:00 from network(s): network-A. Resolvers: system, google, quad9, each asked 3 times per site, 1 s apart.
+Collected 2026-09-20T07:22:41+00:00 from network(s): KT GiGA Wi-Fi, KT mobile tethering, KT GiGA Wi-Fi (recheck), Wi-Fi 2 + Cloudflare WARP (ICN). Resolvers: system, google, quad9, each asked 3 times per site, 1 s apart.
 
 ## 1. Who serves each site (B1, B4)
 
@@ -26,7 +26,7 @@ Chains (each hop is one CNAME):
 - `www.microsoft.com -> www.microsoft.com-c-3.edgekey.net -> e13678.dscb.akamaiedge.net`  
   owner of the addresses: AS16625 AKAMAI-AS - Akamai Technologies, Inc., US
 - `www.netflix.com -> www.prod.ftl.netflix.com`  
-  owner of the addresses: AS2906 AS-SSI - Netflix Streaming Services Inc., US; AS40027 NETFLIX-ASN - Netflix Streaming Services Inc., US
+  owner of the addresses: AS40027 NETFLIX-ASN - Netflix Streaming Services Inc., US
 - `www.adobe.com -> www.adobe.com.edgesuite.net -> a1319.dscr.akamai.net`  
   owner of the addresses: AS20940 AKAMAI-ASN1 - Akamai International B.V., NL
 - `www.cnn.com -> cnn-tls.map.fastly.net`  
@@ -109,7 +109,51 @@ Same resolver (Google), told the client is in Korea or in the US. 0 of 8 CDN sit
 
 ### Between networks (B3)
 
-**Not measured.** Only one network was available (`network-A`), so claim (b) has not been tested from two places. What stands in for it here: three resolvers at different distances, and the ECS probe. That weakens the conclusion: resolvers differ in *where they are*, but also in how they are configured, so a difference between them does not isolate location. To add the real thing, run `python3 task2_steering.py --collect --label "phone tethering"` on the other network and re-run `--report`.
+Same three resolvers, same sites, asked from each network. A site counts as different when the two address sets share no address (CDN sites only).
+
+**KT GiGA Wi-Fi  vs  KT mobile tethering**
+
+| resolver | sites with disjoint answers | which |
+|---|---|---|
+| system | 2 of 8 | www.adobe.com, www.apple.com |
+| google | 1 of 8 | www.adobe.com |
+| quad9 | 0 of 8 | - |
+
+Inside a single network, the answer moved between the 3 runs for: www.adobe.com, www.apple.com. A difference on those sites cannot be told from the CDN's own rotation with this data.
+
+For the 64 addresses that were timed from both, the median handshake time changed by **+26.4 ms** (range -52.6 to +73.4). A shift like that is present for every site, including a university server in Korea, so it is the access link and not a nearer or farther replica. Handshake times are only comparable *within* a network.
+
+**KT GiGA Wi-Fi  vs  KT GiGA Wi-Fi (recheck)**
+
+| resolver | sites with disjoint answers | which |
+|---|---|---|
+| system | 2 of 8 | www.adobe.com, www.apple.com |
+| google | 1 of 8 | www.apple.com |
+| quad9 | 0 of 8 | - |
+
+Inside a single network, the answer moved between the 3 runs for: www.adobe.com, www.apple.com. A difference on those sites cannot be told from the CDN's own rotation with this data.
+
+For the 65 addresses that were timed from both, the median handshake time changed by **+0.3 ms** (range -50.1 to +22.0). No systematic shift, so the two runs saw the same distances.
+
+**KT GiGA Wi-Fi  vs  Wi-Fi 2 + Cloudflare WARP (ICN)**
+
+| resolver | sites with disjoint answers | which |
+|---|---|---|
+| system | 7 of 8 | www.microsoft.com, www.adobe.com, www.cnn.com, www.apple.com, www.bbc.co.uk, www.spotify.com, www.nytimes.com |
+| google | 3 of 8 | www.microsoft.com, www.adobe.com, www.apple.com |
+| quad9 | 3 of 8 | www.microsoft.com, www.adobe.com, www.apple.com |
+
+Inside a single network, the answer moved between the 3 runs for: www.adobe.com, www.apple.com, www.microsoft.com. A difference on those sites cannot be told from the CDN's own rotation with this data.
+
+For the 50 addresses that were timed from both, the median handshake time changed by **+97.7 ms** (range +45.7 to +188.1). A shift like that is present for every site, including a university server in Korea, so it is the access link and not a nearer or farther replica. Handshake times are only comparable *within* a network.
+
+**Does a far answer follow the resolver?** Fastest replica Quad9 gave minus fastest replica the system resolver gave, in ms, measured inside each collection (so the access link cancels out). Sites where any collection differs by 50 ms or more:
+
+| site | KT GiGA Wi-Fi | KT mobile tethering | KT GiGA Wi-Fi (recheck) | Wi-Fi 2 + Cloudflare WARP (ICN) |
+|---|---|---|---|---|
+| www.microsoft.com | +145 | +176 | +161 | -5 |
+| www.adobe.com | +124 | +118 | +132 | -7 |
+| www.apple.com | +196 | +40 | +147 | +0 |
 
 ## 4. On the wire (Part A)
 

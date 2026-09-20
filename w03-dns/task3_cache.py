@@ -70,14 +70,96 @@ class YourCache:
     `upstream(name)` costs a network round trip and returns (address, ttl).
     The TTL is in seconds and it is the authoritative answer's own TTL -
     the baseline throws it away.
+
+    The baseline has one root cause with two symptoms: it keeps every record for
+    a fixed 60 s instead of for the TTL the record came with. A 20 s record is
+    then served for 40 s after it expired (correctness); a 24 h record is
+    thrown away and re-fetched every minute (performance). Its linear scan is a
+    third, smaller problem: it changes the cost of a lookup, not the number of
+    upstream queries.
+
+    The fix is to store *when the answer stops being valid* and nothing else.
     """
 
     def __init__(self, upstream):
         self.upstream = upstream
-        raise NotImplementedError("write your cache")
+        self.entries = {}                # name -> (address, valid until)
+        self.hits = self.misses = 0
 
     def lookup(self, name, now):
-        raise NotImplementedError("write your cache")
+        entry = self.entries.get(name)
+        if entry is not None and now < entry[1]:     # strict: at expiry it is gone
+            self.hits += 1
+            return entry[0]
+        self.misses += 1
+        address, ttl = self.upstream(name)
+        # The clock starts when we ASKED, not when the reply landed. The reply
+        # arrives later, so this can only expire early - never late.
+        if ttl > 0:
+            self.entries[name] = (address, now + ttl)
+        else:
+            self.entries.pop(name, None)             # TTL 0: do not keep it
+        return address
 
     def stats(self):
-        return {}
+        return {"entries": len(self.entries), "hits": self.hits,
+                "misses": self.misses}
+
+
+def floor():
+    """Fewest upstream queries ANY correct cache can make on the bench workload.
+
+    A fetch made at time t is valid for exactly [t, t + ttl). A query that lands
+    outside every window already fetched for its name must be answered by a new
+    fetch, and that fetch cannot be made in the future. Making it any earlier
+    than the query only ends its window earlier. So the best schedule is: fetch
+    at the first uncovered query, and again at the next one that lands after the
+    window closes. That is the classic greedy interval cover, and it is optimal.
+
+    It is set by the workload and the TTLs. It is not set by the data structure,
+    and no cleverness gets under it without serving an expired record.
+    """
+    import bench
+    valid_until, count = {}, 0
+    for t, name in bench.workload():
+        if t >= valid_until.get(name, float("-inf")):
+            count += 1
+            valid_until[name] = t + bench.FIXTURE[name][1]
+    return count
+
+
+def per_name(cache_cls):
+    """Replays the bench workload and counts, per name, upstream queries and
+    stale answers - using the same rule as bench.run(). Read-only."""
+    import bench
+    from collections import Counter
+    up = bench.Upstream()
+    up.now = 0.0
+    cache = cache_cls(up)
+    asked, stale, fresh_until = Counter(), Counter(), {}
+    for t, name in bench.workload():
+        up.now, before = t, up.calls
+        cache.lookup(name, t)
+        if up.calls > before:
+            asked[name] += 1
+            fresh_until[name] = t + bench.FIXTURE[name][1]
+        elif t > fresh_until.get(name, -1):
+            stale[name] += 1
+    return asked, stale
+
+
+if __name__ == "__main__":
+    import bench
+    from collections import Counter
+    b_asked, b_stale = per_name(BaselineCache)
+    y_asked, y_stale = per_name(YourCache)
+    seen = Counter(name for _, name in bench.workload())
+    print(f"\n  {'name':<20}{'ttl':>7}{'queries':>9}{'baseline':>10}{'stale':>7}"
+          f"{'yours':>7}{'stale':>7}")
+    for name, (_, ttl) in bench.FIXTURE.items():
+        print(f"  {name:<20}{ttl:>7}{seen[name]:>9}{b_asked[name]:>10}"
+              f"{b_stale[name]:>7}{y_asked[name]:>7}{y_stale[name]:>7}")
+    print(f"\n  {'total':<20}{'':>7}{sum(seen.values()):>9}{sum(b_asked.values()):>10}"
+          f"{sum(b_stale.values()):>7}{sum(y_asked.values()):>7}"
+          f"{sum(y_stale.values()):>7}")
+    print(f"\n  floor: {floor()} upstream queries - no correct cache can make fewer\n")

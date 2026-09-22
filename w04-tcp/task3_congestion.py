@@ -53,12 +53,27 @@ class YourControl:
       That distinction has a name in the textbook.
     """
 
+    DECREASE = 0.75    # gentler than Reno's 0.5 - see observation.md
+
     def __init__(self):
-        self.window = 1
-        raise NotImplementedError("write your congestion control")
+        self.window = 1.0
+        self.ssthresh = 16.0     # a guess at where the pipe is; slow start stops here
+        self.since_cut = 0       # acks since the last decrease - our stand-in for "one RTT"
 
     def on_ack(self):
-        raise NotImplementedError
+        self.since_cut += 1
+        if self.window < self.ssthresh:
+            self.window += 1                  # slow start: doubles every RTT
+        else:
+            self.window += 1 / self.window    # congestion avoidance: +1 per RTT
 
     def on_loss(self):
-        raise NotImplementedError
+        # A burst of drops from one full queue produces several timeouts back
+        # to back, all before an RTT's worth of ACKs has come in. Cutting on
+        # every one of them compounds a single event into several - so only
+        # the first on_loss per "RTT" (measured in ACKs since the last cut)
+        # actually cuts the window. The rest are the same event, still landing.
+        if self.since_cut >= self.window:
+            self.ssthresh = max(2.0, self.window * self.DECREASE)
+            self.window = self.ssthresh
+            self.since_cut = 0

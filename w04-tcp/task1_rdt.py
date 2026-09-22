@@ -55,38 +55,98 @@ class UnreliableChannel:
 class Sender:
     """Your sender.
 
-    Requirements are in task1.md. The short version:
+    Selective-repeat sliding window. A packet on the wire is `(seq, payload)`;
+    an ACK on the wire is just `seq` (an int) - the receiver acks whatever it
+    got, in order or not, so a lost ACK never blocks anything but its own seq.
 
-      - break `data` into PAYLOAD-sized pieces and number them
-      - retransmit what is not acknowledged
-      - do not assume an ACK means what you think it means until you have
-        checked the number on it
-
-    You choose the protocol: stop-and-wait is the easiest to get right and the
-    slowest; a sliding window is the point of §3.4.3. Say which you chose and
-    why in observation.md.
+    `base` is the oldest seq not yet acked - the left edge of the window. We
+    are allowed `next_seq` up to `base + WINDOW`. Anything unacked that has sat
+    longer than TIMEOUT gets resent on its own, independent of the others -
+    that is the point of selective repeat over stop-and-wait: one loss does
+    not stall the rest of the window.
     """
 
+    WINDOW = 8
+    TIMEOUT = 20   # in units of Sender.step() calls - generous, see task1.md
+
     def __init__(self, data_channel, ack_channel, data):
-        raise NotImplementedError("write your sender")
+        self.dc, self.ac = data_channel, ack_channel
+        self.chunks = [data[i:i + PAYLOAD] for i in range(0, len(data), PAYLOAD)]
+        self.total = len(self.chunks)
+        self.time = 0
+        self.next_seq = 0
+        self.acked = set()
+        self.sent_at = {}   # seq -> time of its last (re)send, unacked only
+
+    def _base(self):
+        seq = 0
+        while seq in self.acked:
+            seq += 1
+        return seq
 
     def step(self):
         """Do one unit of work. Return False when you believe you are done."""
-        raise NotImplementedError
+        self.time += 1
+
+        # drain every ACK the channel currently has for us
+        while True:
+            ack = self.ac.receive()
+            if ack is None:
+                break
+            seq = ack
+            if isinstance(seq, int) and 0 <= seq < self.total:
+                self.acked.add(seq)
+                self.sent_at.pop(seq, None)   # a dup ACK for an acked seq: no-op
+
+        # anything unacked that has waited too long goes again
+        for seq in list(self.sent_at):
+            if self.time - self.sent_at[seq] >= self.TIMEOUT:
+                self.dc.send((seq, self.chunks[seq]))
+                self.sent_at[seq] = self.time
+
+        # fill the window with new packets
+        base = self._base()
+        while self.next_seq < self.total and self.next_seq - base < self.WINDOW:
+            seq = self.next_seq
+            self.dc.send((seq, self.chunks[seq]))
+            self.sent_at[seq] = self.time
+            self.next_seq += 1
+
+        return len(self.acked) < self.total
 
 
 class Receiver:
-    """Your receiver. Hands back the reassembled bytes via `.data()`."""
+    """Your receiver. Hands back the reassembled bytes via `.data()`.
+
+    Buffers whatever arrives (in-order or not) keyed by seq, acks every packet
+    it sees - including a second copy of one it already has, since that ACK
+    may be the one that survives the channel - and pops off the front of the
+    buffer into the assembled output whenever it becomes contiguous.
+    """
 
     def __init__(self, data_channel, ack_channel):
-        raise NotImplementedError("write your receiver")
+        self.dc, self.ac = data_channel, ack_channel
+        self.buffer = {}          # seq -> payload, for seqs received out of order
+        self.next_expected = 0
+        self.assembled = bytearray()
 
     def step(self):
-        raise NotImplementedError
+        while True:
+            packet = self.dc.receive()
+            if packet is None:
+                break
+            seq, payload = packet
+            if seq not in self.buffer and seq >= self.next_expected:
+                self.buffer[seq] = payload
+            self.ac.send(seq)   # ack it either way - R3: a dup must not corrupt anything
+
+        while self.next_expected in self.buffer:
+            self.assembled.extend(self.buffer.pop(self.next_expected))
+            self.next_expected += 1
 
     def data(self):
         """The bytes reassembled so far."""
-        raise NotImplementedError
+        return bytes(self.assembled)
 
 
 # ------------------------------------------------------------------- harness

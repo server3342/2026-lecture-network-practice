@@ -17,6 +17,8 @@ Correctness first: `bench.py` checks every one of your answers against the
 linear table. A fast router that forwards to the wrong next hop is not a
 router, it is an outage.
 """
+from array import array
+from bisect import bisect_left, insort
 
 
 class LinearTable:
@@ -55,10 +57,48 @@ class YourTable:
     """
 
     def __init__(self):
-        raise NotImplementedError("write your table")
+        # DIR-24-8 style. `first` has one slot per /24 (2**24 of them) holding the
+        # index of the best next hop for that whole /24, so a lookup is one array read.
+        self.first = array("I", [0]) * (1 << 24)      # 0 = no route; 64 MB
+        self.hops = [None]                            # index -> next hop
+        self.index = {}                               # next hop -> index
+        self.seen = {}                                # plen -> {network: index}   (plen <= 24)
+        self.sorted_nets = {}                         # plen -> sorted list of /24 numbers
+        self.long = {}                                # plen -> {network: hop}     (plen 25..32)
+        self.long_lens = []                           # 25..32 lengths in use, longest first
+
+    def _fill(self, net, plen, idx):
+        lo = net >> 8
+        n = 1 << (24 - plen)
+        self.first[lo:lo + n] = array("I", [idx]) * n
 
     def add(self, network, prefix_len, next_hop):
-        raise NotImplementedError
+        if prefix_len > 24:                           # rare: too long for the first level
+            bucket = self.long.setdefault(prefix_len, {})
+            bucket.setdefault(network, next_hop)      # first add wins, like LinearTable
+            self.long_lens = sorted(self.long, reverse=True)
+            return
+        if network in self.seen.get(prefix_len, {}):
+            return
+        idx = self.index.get(next_hop)
+        if idx is None:
+            idx = self.index[next_hop] = len(self.hops)
+            self.hops.append(next_hop)
+        self.seen.setdefault(prefix_len, {})[network] = idx
+        insort(self.sorted_nets.setdefault(prefix_len, []), network >> 8)
+
+        # Write this prefix over its whole range - then put back every longer prefix
+        # that lives inside that range, shortest first, so the longest always wins.
+        self._fill(network, prefix_len, idx)
+        lo, hi = network >> 8, (network >> 8) + (1 << (24 - prefix_len))
+        for plen in sorted(p for p in self.seen if p > prefix_len):
+            nets = self.sorted_nets[plen]
+            for slot in nets[bisect_left(nets, lo):bisect_left(nets, hi)]:
+                self._fill(slot << 8, plen, self.seen[plen][slot << 8])
 
     def lookup(self, address):
-        raise NotImplementedError
+        for plen in self.long_lens:                   # empty here: nothing is longer than /24
+            hop = self.long[plen].get(address & ((0xFFFFFFFF << (32 - plen)) & 0xFFFFFFFF))
+            if hop is not None:
+                return hop
+        return self.hops[self.first[address >> 8]]

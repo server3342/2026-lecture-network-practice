@@ -67,26 +67,62 @@ class Sender:
     why in observation.md.
     """
 
+    WINDOW = 8              # packets allowed in flight
+    TIMEOUT = 40            # steps before an unacknowledged packet is sent again
+
     def __init__(self, data_channel, ack_channel, data):
-        raise NotImplementedError("write your sender")
+        self.out, self.acks = data_channel, ack_channel
+        self.chunks = [data[i:i + PAYLOAD] for i in range(0, len(data), PAYLOAD)]
+        self.acked = [False] * len(self.chunks)
+        self.sent_at = [None] * len(self.chunks)    # step of the last transmission
+        self.base = 0                               # lowest unacknowledged seq
+        self.now = 0
 
     def step(self):
-        """Do one unit of work. Return False when you believe you are done."""
-        raise NotImplementedError
+        """Selective repeat: per-packet ACKs, per-packet timers, window of 8."""
+        self.now += 1
+        pkt = self.acks.receive()
+        if pkt is not None and pkt[0] == "A" and 0 <= pkt[1] < len(self.chunks):
+            self.acked[pkt[1]] = True               # a duplicate ACK just sets it again
+        while self.base < len(self.chunks) and self.acked[self.base]:
+            self.base += 1                          # slide the window
+        if self.base == len(self.chunks):
+            return False
+        for seq in range(self.base, min(self.base + self.WINDOW, len(self.chunks))):
+            if self.acked[seq]:
+                continue
+            last = self.sent_at[seq]
+            if last is None or self.now - last >= self.TIMEOUT:
+                self.sent_at[seq] = self.now
+                self.out.send(("D", seq, self.chunks[seq]))
+                break                               # one transmission per step
+        return True
 
 
 class Receiver:
     """Your receiver. Hands back the reassembled bytes via `.data()`."""
 
     def __init__(self, data_channel, ack_channel):
-        raise NotImplementedError("write your receiver")
+        self.inp, self.acks = data_channel, ack_channel
+        self.buf = {}                               # seq -> payload, out of order is fine
+        self.next = 0                               # first seq not yet delivered in order
+        self.out = bytearray()
 
     def step(self):
-        raise NotImplementedError
+        pkt = self.inp.receive()
+        if pkt is None or pkt[0] != "D":
+            return
+        _, seq, payload = pkt
+        self.acks.send(("A", seq))                  # ACK every arrival, duplicates too:
+        if seq >= self.next:                        # the earlier ACK may have been lost
+            self.buf.setdefault(seq, payload)       # a duplicate must not change anything
+        while self.next in self.buf:
+            self.out += self.buf.pop(self.next)
+            self.next += 1
 
     def data(self):
         """The bytes reassembled so far."""
-        raise NotImplementedError
+        return bytes(self.out)
 
 
 # ------------------------------------------------------------------- harness

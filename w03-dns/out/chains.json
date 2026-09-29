@@ -1,0 +1,2976 @@
+{
+  "www.microsoft.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.206.40"
+          ],
+          "addrs_again": [
+            "23.49.206.40"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.206.40"
+          ],
+          "addrs_again": [
+            "23.49.206.40"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.199.22.71"
+          ],
+          "addrs_again": [
+            "23.63.226.92"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "104.94.218.45"
+          ],
+          "addrs_again": [
+            "104.94.218.45"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "104.94.218.45"
+          ],
+          "addrs_again": [
+            "104.94.218.45"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "184.28.10.89"
+          ],
+          "addrs_again": [
+            "184.28.10.89"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.206.40"
+          ],
+          "addrs_again": [
+            "23.49.206.40"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.206.40"
+          ],
+          "addrs_again": [
+            "23.49.206.40"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.microsoft.com",
+              "CNAME",
+              "www.microsoft.com-c-3.edgekey.net"
+            ],
+            [
+              "www.microsoft.com-c-3.edgekey.net",
+              "CNAME",
+              "e13678.dscb.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "184.28.10.89"
+          ],
+          "addrs_again": [
+            "23.63.226.92"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.microsoft.com",
+        "CNAME",
+        "www.microsoft.com-c-3.edgekey.net"
+      ],
+      [
+        "www.microsoft.com-c-3.edgekey.net",
+        "CNAME",
+        "e13678.dscb.akamaiedge.net"
+      ]
+    ]
+  },
+  "www.netflix.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "40027",
+              "netflix-asn - netflix streaming services inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "40027",
+              "netflix-asn - netflix streaming services inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "40027",
+              "netflix-asn - netflix streaming services inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "2906",
+              "as-ssi - netflix streaming services inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "2906",
+              "as-ssi - netflix streaming services inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "2906",
+              "as-ssi - netflix streaming services inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "2906",
+              "as-ssi - netflix streaming services inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "2906",
+              "as-ssi - netflix streaming services inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.netflix.com",
+              "CNAME",
+              "www.prod.ftl.netflix.com"
+            ]
+          ],
+          "addrs": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "addrs_again": [
+            "207.45.72.1",
+            "207.45.73.1"
+          ],
+          "asn": [
+            [
+              "2906",
+              "as-ssi - netflix streaming services inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.netflix.com",
+        "CNAME",
+        "www.prod.ftl.netflix.com"
+      ]
+    ]
+  },
+  "www.adobe.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "addrs_again": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "addrs_again": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.215.106.160",
+            "23.215.106.161"
+          ],
+          "addrs_again": [
+            "23.46.228.135",
+            "23.46.228.138"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.67.53.168",
+            "23.67.53.176"
+          ],
+          "addrs_again": [
+            "23.67.53.168",
+            "23.67.53.176"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.32.4.104",
+            "23.32.4.105",
+            "23.32.4.107",
+            "23.32.4.121",
+            "23.32.4.136",
+            "23.32.4.138",
+            "23.32.4.97",
+            "23.32.4.98",
+            "23.32.4.99"
+          ],
+          "addrs_again": [
+            "23.32.4.34",
+            "23.32.4.40",
+            "23.32.4.48",
+            "23.32.4.56",
+            "23.32.4.66",
+            "23.32.4.72",
+            "23.32.4.74",
+            "23.32.4.75",
+            "23.32.4.80"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.46.228.10",
+            "23.46.228.12"
+          ],
+          "addrs_again": [
+            "23.46.228.10",
+            "23.46.228.12"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "addrs_again": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "addrs_again": [
+            "23.76.153.115",
+            "23.76.153.121"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.adobe.com",
+              "CNAME",
+              "www.adobe.com.edgesuite.net"
+            ],
+            [
+              "www.adobe.com.edgesuite.net",
+              "CNAME",
+              "a1319.dscr.akamai.net"
+            ]
+          ],
+          "addrs": [
+            "23.46.228.10",
+            "23.46.228.12"
+          ],
+          "addrs_again": [
+            "23.215.106.160",
+            "23.215.106.161"
+          ],
+          "asn": [
+            [
+              "20940",
+              "akamai-asn1 - akamai international b.v., nl"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.adobe.com",
+        "CNAME",
+        "www.adobe.com.edgesuite.net"
+      ],
+      [
+        "www.adobe.com.edgesuite.net",
+        "CNAME",
+        "a1319.dscr.akamai.net"
+      ]
+    ]
+  },
+  "www.cnn.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.51.5"
+          ],
+          "addrs_again": [
+            "146.75.51.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "addrs_again": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "addrs_again": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.51.5"
+          ],
+          "addrs_again": [
+            "146.75.51.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "addrs_again": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "addrs_again": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.51.5"
+          ],
+          "addrs_again": [
+            "146.75.51.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "addrs_again": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.cnn.com",
+              "CNAME",
+              "cnn-tls.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "addrs_again": [
+            "151.101.131.5",
+            "151.101.195.5",
+            "151.101.3.5",
+            "151.101.67.5"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.cnn.com",
+        "CNAME",
+        "cnn-tls.map.fastly.net"
+      ]
+    ]
+  },
+  "www.apple.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.205.28"
+          ],
+          "addrs_again": [
+            "23.49.205.28"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.205.28"
+          ],
+          "addrs_again": [
+            "23.217.180.246"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.63.77.47"
+          ],
+          "addrs_again": [
+            "23.63.77.47"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "104.94.216.37"
+          ],
+          "addrs_again": [
+            "104.94.216.37"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "104.94.216.37"
+          ],
+          "addrs_again": [
+            "104.94.216.37"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "184.28.3.43"
+          ],
+          "addrs_again": [
+            "23.217.180.246"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.205.28"
+          ],
+          "addrs_again": [
+            "23.49.205.28"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.49.205.28"
+          ],
+          "addrs_again": [
+            "23.49.205.28"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.apple.com",
+              "CNAME",
+              "www-apple-com.v.aaplimg.com"
+            ],
+            [
+              "www-apple-com.v.aaplimg.com",
+              "CNAME",
+              "www.apple.com.edgekey.net"
+            ],
+            [
+              "www.apple.com.edgekey.net",
+              "CNAME",
+              "e6858.dsce9.akamaiedge.net"
+            ]
+          ],
+          "addrs": [
+            "23.63.77.47"
+          ],
+          "addrs_again": [
+            "184.31.228.249"
+          ],
+          "asn": [
+            [
+              "16625",
+              "akamai-as - akamai technologies, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.apple.com",
+        "CNAME",
+        "www-apple-com.v.aaplimg.com"
+      ],
+      [
+        "www-apple-com.v.aaplimg.com",
+        "CNAME",
+        "www.apple.com.edgekey.net"
+      ],
+      [
+        "www.apple.com.edgekey.net",
+        "CNAME",
+        "e6858.dsce9.akamaiedge.net"
+      ]
+    ]
+  },
+  "www.korea.ac.kr": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [],
+          "addrs": [
+            "163.152.6.10"
+          ],
+          "addrs_again": [
+            "163.152.6.10"
+          ],
+          "asn": [
+            [
+              "9452",
+              "kunet-as-kr - korea university, kr"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": []
+  },
+  "www.stanford.edu": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.stanford.edu",
+              "CNAME",
+              "stanford.netlifyglobalcdn.com"
+            ]
+          ],
+          "addrs": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "addrs_again": [
+            "15.197.167.90",
+            "3.33.186.135"
+          ],
+          "asn": [
+            [
+              "16509",
+              "amazon-02 - amazon.com, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.stanford.edu",
+        "CNAME",
+        "stanford.netlifyglobalcdn.com"
+      ]
+    ]
+  },
+  "www.bbc.co.uk": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.48.81"
+          ],
+          "addrs_again": [
+            "146.75.48.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "addrs_again": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "addrs_again": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.48.81"
+          ],
+          "addrs_again": [
+            "146.75.48.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "addrs_again": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "addrs_again": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.48.81"
+          ],
+          "addrs_again": [
+            "146.75.48.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "addrs_again": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.bbc.co.uk",
+              "CNAME",
+              "www.bbc.co.uk.pri.bbc.co.uk"
+            ],
+            [
+              "www.bbc.co.uk.pri.bbc.co.uk",
+              "CNAME",
+              "bbc.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "addrs_again": [
+            "151.101.0.81",
+            "151.101.128.81",
+            "151.101.192.81",
+            "151.101.64.81"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.bbc.co.uk",
+        "CNAME",
+        "www.bbc.co.uk.pri.bbc.co.uk"
+      ],
+      [
+        "www.bbc.co.uk.pri.bbc.co.uk",
+        "CNAME",
+        "bbc.map.fastly.net"
+      ]
+    ]
+  },
+  "www.spotify.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.51.42"
+          ],
+          "addrs_again": [
+            "146.75.51.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "addrs_again": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "addrs_again": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.51.42"
+          ],
+          "addrs_again": [
+            "146.75.51.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "addrs_again": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "addrs_again": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.51.42"
+          ],
+          "addrs_again": [
+            "146.75.51.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "addrs_again": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.spotify.com",
+              "CNAME",
+              "atc.spotify.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "addrs_again": [
+            "151.101.131.42",
+            "151.101.195.42",
+            "151.101.3.42",
+            "151.101.67.42"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.spotify.com",
+        "CNAME",
+        "atc.spotify.map.fastly.net"
+      ]
+    ]
+  },
+  "www.github.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.200.245.247"
+          ],
+          "addrs_again": [
+            "20.200.245.247"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.200.245.247"
+          ],
+          "addrs_again": [
+            "20.200.245.247"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.27.177.113"
+          ],
+          "addrs_again": [
+            "20.27.177.113"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.200.245.247"
+          ],
+          "addrs_again": [
+            "20.200.245.247"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.200.245.247"
+          ],
+          "addrs_again": [
+            "20.200.245.247"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.27.177.113"
+          ],
+          "addrs_again": [
+            "20.27.177.113"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.200.245.247"
+          ],
+          "addrs_again": [
+            "20.200.245.247"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.200.245.247"
+          ],
+          "addrs_again": [
+            "20.200.245.247"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.github.com",
+              "CNAME",
+              "github.com"
+            ]
+          ],
+          "addrs": [
+            "20.27.177.113"
+          ],
+          "addrs_again": [
+            "20.27.177.113"
+          ],
+          "asn": [
+            [
+              "8075",
+              "microsoft-corp-msn-as-block - microsoft corporation, us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.github.com",
+        "CNAME",
+        "github.com"
+      ]
+    ]
+  },
+  "www.wikipedia.org": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.wikipedia.org",
+              "CNAME",
+              "dyna.wikimedia.org"
+            ]
+          ],
+          "addrs": [
+            "103.102.166.224"
+          ],
+          "addrs_again": [
+            "103.102.166.224"
+          ],
+          "asn": [
+            [
+              "14907",
+              "wikimedia - wikimedia foundation inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.wikipedia.org",
+        "CNAME",
+        "dyna.wikimedia.org"
+      ]
+    ]
+  },
+  "www.nytimes.com": {
+    "networks": {
+      "KUWIFI Sejong": {
+        "system": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.49.164"
+          ],
+          "addrs_again": [
+            "146.75.49.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "addrs_again": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "addrs_again": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "phone hotspot": {
+        "system": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.49.164"
+          ],
+          "addrs_again": [
+            "146.75.49.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "addrs_again": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "addrs_again": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      },
+      "KUWIFI Sejong (after)": {
+        "system": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "146.75.49.164"
+          ],
+          "addrs_again": [
+            "146.75.49.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "google": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "addrs_again": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        },
+        "quad9": {
+          "chain": [
+            [
+              "www.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.com"
+            ],
+            [
+              "www.prd.map.nytimes.com",
+              "CNAME",
+              "www.prd.map.nytimes.xovr.nyt.net"
+            ],
+            [
+              "www.prd.map.nytimes.xovr.nyt.net",
+              "CNAME",
+              "nytimes.map.fastly.net"
+            ]
+          ],
+          "addrs": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "addrs_again": [
+            "151.101.1.164",
+            "151.101.129.164",
+            "151.101.193.164",
+            "151.101.65.164"
+          ],
+          "asn": [
+            [
+              "54113",
+              "fastly - fastly, inc., us"
+            ]
+          ]
+        }
+      }
+    },
+    "chain": [
+      [
+        "www.nytimes.com",
+        "CNAME",
+        "www.prd.map.nytimes.com"
+      ],
+      [
+        "www.prd.map.nytimes.com",
+        "CNAME",
+        "www.prd.map.nytimes.xovr.nyt.net"
+      ],
+      [
+        "www.prd.map.nytimes.xovr.nyt.net",
+        "CNAME",
+        "nytimes.map.fastly.net"
+      ]
+    ]
+  }
+}

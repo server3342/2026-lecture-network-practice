@@ -53,12 +53,28 @@ class YourControl:
       That distinction has a name in the textbook.
     """
 
+    BACKOFF = 0.5            # multiplicative decrease on a congestion event
+    GROW = 0.25              # additive increase: GROW packets per round trip
+    QUIET = 3                # acks (x window) during which further losses are ignored
+
     def __init__(self):
-        self.window = 1
-        raise NotImplementedError("write your congestion control")
+        self.window = 1.0
+        self.slow_start = True      # before the first loss we do not know where the pipe ends
+        self.quiet = 0              # acks still to come before another loss counts
 
     def on_ack(self):
-        raise NotImplementedError
+        if self.quiet > 0:
+            self.quiet -= 1
+        if self.slow_start:
+            self.window += 1        # +1 per ack = double per round trip
+        else:
+            self.window += self.GROW / self.window   # ~ +GROW per round trip
 
     def on_loss(self):
-        raise NotImplementedError
+        # One queue overflow drops a burst, and the timeouts trickle in one by one.
+        # That is one congestion event, so it earns one cut, not one per packet.
+        if self.quiet > 0:
+            return
+        self.slow_start = False
+        self.window = max(2.0, self.window * self.BACKOFF)
+        self.quiet = int(self.window) * self.QUIET

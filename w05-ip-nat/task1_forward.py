@@ -16,6 +16,28 @@ exactly the thing you are supposed to understand this week.
 import argparse
 
 
+def _to_int(addr):
+    """'163.152.6.10' -> 32-bit int. Four decimal octets, nothing else accepted."""
+    parts = addr.split(".")
+    if len(parts) != 4:
+        raise ValueError(f"not a dotted quad: {addr!r}")
+    value = 0
+    for part in parts:
+        if not part.isascii() or not part.isdigit() or int(part) > 255:
+            raise ValueError(f"bad octet {part!r} in {addr!r}")
+        value = (value << 8) | int(part)
+    return value
+
+
+def _to_str(value):
+    return ".".join(str((value >> shift) & 0xFF) for shift in (24, 16, 8, 0))
+
+
+def _mask(plen):
+    """plen ones followed by (32 - plen) zeros. plen == 0 must give 0, not 2**32-1."""
+    return (0xFFFFFFFF << (32 - plen)) & 0xFFFFFFFF
+
+
 def parse_cidr(cidr):
     """'163.152.6.0/24' -> (network as int, prefix length).
 
@@ -23,7 +45,19 @@ def parse_cidr(cidr):
     whose host bits are set when they should not be (163.152.6.5/24 is a
     common way to write a host, but it is not a network).
     """
-    raise NotImplementedError("parse a CIDR block")
+    if cidr.count("/") != 1:
+        raise ValueError(f"expected address/prefix: {cidr!r}")
+    addr, plen_text = cidr.split("/")
+    if not plen_text.isascii() or not plen_text.isdigit():
+        raise ValueError(f"bad prefix length {plen_text!r}")
+    plen = int(plen_text)
+    if not 0 <= plen <= 32:                                   # R1
+        raise ValueError(f"prefix length {plen} outside 0-32")
+    net = _to_int(addr)
+    if net & ~_mask(plen) & 0xFFFFFFFF:                       # R2: host bits set
+        raise ValueError(f"{cidr} has host bits set; network would be "
+                         f"{_to_str(net & _mask(plen))}/{plen}")
+    return net, plen
 
 
 def network_range(cidr):
@@ -31,8 +65,19 @@ def network_range(cidr):
 
     Careful at the edges. /31 and /32 do not have a usable host range in the
     ordinary sense - decide what you return and say so in observation.md.
+
+    My choice (RFC 3021):
+      /31  both addresses are hosts on a point-to-point link: (net, net+1, None)
+      /32  a single host, no range: (addr, addr, None)
+    "None" for broadcast: there is no broadcast address to give in either case.
     """
-    raise NotImplementedError("compute the range")
+    net, plen = parse_cidr(cidr)
+    last = net | (~_mask(plen) & 0xFFFFFFFF)                  # all host bits set
+    if plen == 32:
+        return _to_str(net), _to_str(net), None
+    if plen == 31:
+        return _to_str(net), _to_str(last), None
+    return _to_str(net + 1), _to_str(last - 1), _to_str(last)
 
 
 class ForwardingTable:
@@ -43,13 +88,30 @@ class ForwardingTable:
     The default route 0.0.0.0/0 matches everything and is the shortest prefix,
     so it must lose to any other match. If two entries have the same prefix
     length, the table is malformed - say what you do.
+
+    What I do: two entries with the same network *and* prefix length but different
+    next hops are ambiguous, so add() raises ValueError. The same entry added twice
+    with the same next hop is harmless. (Different networks of equal length can
+    never both match one address, so they are fine.)
     """
 
+    def __init__(self):
+        self.by_len = {}          # prefix length -> {network int: next hop}
+
     def add(self, cidr, next_hop):
-        raise NotImplementedError
+        net, plen = parse_cidr(cidr)
+        bucket = self.by_len.setdefault(plen, {})
+        if net in bucket and bucket[net] != next_hop:
+            raise ValueError(f"{cidr} already routes to {bucket[net]!r}, not {next_hop!r}")
+        bucket[net] = next_hop
 
     def lookup(self, address):
-        raise NotImplementedError
+        addr = _to_int(address)
+        for plen in sorted(self.by_len, reverse=True):        # longest first, stop at a hit
+            hop = self.by_len[plen].get(addr & _mask(plen))
+            if hop is not None:
+                return hop
+        return None
 
 
 # ------------------------------------------------------------------- harness

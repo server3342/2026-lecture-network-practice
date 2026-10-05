@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4주차 TCP</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body class="wk-tcp">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="a-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker>
+  <marker id="a-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-tcp"/></marker>
+  <marker id="a-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-ok"/></marker>
+  <marker id="a-w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-warn"/></marker>
+</defs></svg>
+
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <nav class="nav">
+    <a href="index.html">개요</a>
+    <a href="w03-dns.html">3주 DNS</a>
+    <a class="on" href="w04-tcp.html">4주 TCP</a>
+    <a href="w05-ip-nat.html">5주 IP·NAT</a>
+  </nav>
+  <button class="theme-btn" type="button">테마</button>
+</div></header>
+
+<div class="layout">
+<aside class="toc">
+  <b>4주차 목차</b>
+  <ol>
+    <li><a href="#place"><span class="n">2.1</span>전송 계층의 자리</a></li>
+    <li><a href="#mux"><span class="n">2.2</span>포트와 다중화</a></li>
+    <li><a href="#udp"><span class="n">2.3</span>UDP</a></li>
+    <li><a href="#rdt"><span class="n">2.4</span>신뢰적 전송의 문제</a></li>
+    <li><a href="#pipe"><span class="n">2.5</span>파이프라이닝, GBN, SR</a></li>
+    <li><a href="#seg"><span class="n">2.6</span>TCP 세그먼트와 ISN</a></li>
+    <li><a href="#hs"><span class="n">2.7</span>3-way handshake</a></li>
+    <li><a href="#rtt"><span class="n">2.8</span>RTT와 타임아웃</a></li>
+    <li><a href="#flow"><span class="n">2.9</span>흐름 제어</a></li>
+    <li><a href="#bdp"><span class="n">2.10</span>처리량과 BDP</a></li>
+    <li><a href="#cong"><span class="n">2.11</span>혼잡</a></li>
+    <li><a href="#cc"><span class="n">2.12</span>슬로 스타트와 AIMD</a></li>
+    <li><a href="#quic"><span class="n">2.13</span>QUIC</a></li>
+    <li><a href="#quiz"><span class="n">✓</span>스스로 확인하기</a></li>
+  </ol>
+</aside>
+
+<main>
+<div class="hero">
+  <span class="eyebrow">4주차 · 전송 계층</span>
+  <h1>TCP · 신뢰성 · 혼잡 제어</h1>
+  <p class="lead">IP는 패킷을 잃고, 섞고, 두 번 보냅니다. TCP는 그 위에서 <b>순서대로, 빠짐없이, 한 번씩</b> 바이트를 전달합니다. 그리고 네트워크를 망가뜨리지 않을 만큼만 보냅니다.</p>
+  <div class="meta">
+    <span>강의 4-1 · 4-2 (교재 3장)</span>
+    <span>실습 폴더 <a class="kbd-file" href="../w04-tcp/">w04-tcp/</a></span>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card"><h4>Task 1 · 신뢰적 전송</h4><p>손실·중복·순서 바뀜 채널 위에서 2,000바이트를 그대로 옮깁니다.</p><p class="small muted">2.4 · 2.5</p></div>
+  <div class="card"><h4>Task 2 · 링크 측정</h4><p>핸드셰이크를 캡처하고, 두 네트워크의 처리량을 잽니다.</p><p class="small muted">2.6 · 2.7 · 2.9 · 2.10</p></div>
+  <div class="card"><h4>Task 3 · 혼잡 제어</h4><p>고정 윈도우보다 덜 해롭게, 거의 같은 처리량을 냅니다.</p><p class="small muted">2.11 · 2.12</p></div>
+</div>
+
+<!-- 2.1 -->
+<section class="sec" id="place">
+  <h2><span class="n">2.1</span>전송 계층의 자리</h2>
+  <div class="cards">
+    <div class="card"><h4>네트워크 계층 (IP)</h4><p><b>호스트</b>와 <b>호스트</b>를 연결합니다.</p></div>
+    <div class="card"><h4>전송 계층 (TCP, UDP)</h4><p><b>프로세스</b>와 <b>프로세스</b>를 연결합니다.</p></div>
+  </div>
+  <div class="box concept"><span class="tag">IP는 최선형(best-effort) 서비스입니다</span>
+    <p>IP는 다음을 <b>보장하지 않습니다</b>.</p>
+    <ul><li>패킷이 도착하는 것</li><li>보낸 순서대로 도착하는 것</li><li>한 번만 도착하는 것</li><li>손상 없이 도착하는 것</li></ul>
+    <p>TCP는 이 위에서 신뢰적 전송을 만듭니다. UDP는 거의 아무것도 더하지 않습니다.</p>
+  </div>
+</section>
+
+<!-- 2.2 -->
+<section class="sec" id="mux">
+  <h2><span class="n">2.2</span>포트 번호와 다중화</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>한 호스트에서 여러 프로세스가 동시에 통신합니다. 전송 계층은 <b>포트 번호</b>(16비트, 0–65535)로 프로세스를 구분합니다.</p>
+    <ul>
+      <li><b>다중화(multiplexing)</b>: 송신 측에서 여러 소켓의 데이터에 헤더를 붙여 내려보냅니다.</li>
+      <li><b>역다중화(demultiplexing)</b>: 수신 측에서 헤더를 보고 맞는 소켓에 넘깁니다.</li>
+    </ul>
+  </div>
+  <div class="tbl"><table>
+    <tr><th>프로토콜</th><th>소켓을 구분하는 값</th><th>결과</th></tr>
+    <tr><td>UDP</td><td>(목적지 IP, 목적지 포트) — <b>2개</b></td><td>출발지가 달라도 같은 소켓으로 갑니다.</td></tr>
+    <tr><td>TCP</td><td>(출발지 IP, 출발지 포트, 목적지 IP, 목적지 포트) — <b>4개</b></td><td>443번 포트 하나로 연결마다 다른 소켓을 씁니다.</td></tr>
+  </table></div>
+  <div class="box example"><span class="tag">이 프로젝트에서 · 캡처 필터</span>
+    <div class="flow">
+      <span class="chip" style="border-color:var(--dns)"><code>port 53</code><small>3주차 DNS</small></span>
+      <span class="chip hl"><code>tcp port 443</code><small>4주차 HTTPS</small></span>
+      <span class="chip" style="border-color:var(--ip)"><code>port 67 or port 68</code><small>5주차 DHCP</small></span>
+    </div>
+  </div>
+</section>
+
+<!-- 2.3 -->
+<section class="sec" id="udp">
+  <h2><span class="n">2.3</span>UDP</h2>
+  <figure class="dg">
+    <svg viewBox="0 0 640 100" role="img" aria-label="UDP 헤더 8바이트">
+      <rect class="bx-tcp" x="20" y="14" width="300" height="34"/><text x="170" y="36" text-anchor="middle">출발지 포트 (16)</text>
+      <rect class="bx-tcp" x="320" y="14" width="300" height="34"/><text x="470" y="36" text-anchor="middle">목적지 포트 (16)</text>
+      <rect class="bx" x="20" y="48" width="300" height="34"/><text x="170" y="70" text-anchor="middle">길이 (16)</text>
+      <rect class="bx" x="320" y="48" width="300" height="34"/><text x="470" y="70" text-anchor="middle">체크섬 (16)</text>
+    </svg>
+    <figcaption>UDP 헤더는 8바이트가 전부입니다.</figcaption>
+  </figure>
+  <div class="cards">
+    <div class="card"><h4>연결 설정 없음</h4><p>첫 패킷을 바로 보냅니다. DNS가 UDP를 쓰는 이유입니다.</p></div>
+    <div class="card"><h4>상태 없음</h4><p>서버가 많은 클라이언트를 받을 수 있습니다.</p></div>
+    <div class="card"><h4>작은 헤더</h4><p>8바이트. TCP는 20바이트 이상입니다.</p></div>
+    <div class="card"><h4>속도를 응용이 정함</h4><p>혼잡 제어가 보내는 속도를 줄이지 않습니다.</p></div>
+  </div>
+  <div class="box concept"><span class="tag">체크섬</span>
+    <p>송신 측은 세그먼트를 16비트 단위로 더하고 1의 보수를 취해 넣습니다. 수신 측은 같은 계산을 합니다. 결과가 맞지 않으면 오류가 있습니다. 체크섬은 오류를 <b>발견</b>합니다. 오류를 <b>고치지</b> 않습니다.</p>
+  </div>
+</section>
+
+<!-- 2.4 -->
+<section class="sec" id="rdt">
+  <h2><span class="n">2.4</span>신뢰적 데이터 전송의 문제</h2>
+  <p>신뢰할 수 없는 채널은 패킷에 네 가지 일을 합니다. 각 문제에는 해결 장치가 있습니다.</p>
+  <div class="cards">
+    <div class="card"><h4>손상 (corruption)</h4><p>→ <b>체크섬</b></p></div>
+    <div class="card"><h4>손실 (loss)</h4><p>→ <b>ACK + 타이머 + 재전송</b></p></div>
+    <div class="card"><h4>중복 (duplication)</h4><p>→ <b>순서 번호</b></p></div>
+    <div class="card"><h4>순서 바뀜 (reordering)</h4><p>→ <b>순서 번호 + 수신 버퍼</b></p></div>
+  </div>
+  <div class="tbl"><table>
+    <tr><th>장치</th><th>역할</th></tr>
+    <tr><td>순서 번호</td><td>각 패킷에 번호를 붙입니다. 수신 측은 번호로 중복과 순서를 판단합니다.</td></tr>
+    <tr><td>ACK</td><td>수신 측이 "이 번호를 받았습니다"라고 알립니다.</td></tr>
+    <tr><td>타이머</td><td>송신 측이 ACK를 일정 시간 기다립니다.</td></tr>
+    <tr><td>재전송</td><td>타이머가 끝날 때까지 ACK가 없으면 다시 보냅니다.</td></tr>
+  </table></div>
+  <div class="box warn"><span class="tag">핵심: 재전송은 중복을 만듭니다</span>
+    <ol class="stepper">
+      <li>수신 측이 데이터를 받고 ACK를 보냅니다.</li>
+      <li>그 <b>ACK가 손실</b>됩니다.</li>
+      <li>송신 측은 데이터가 손실되었다고 판단하고 다시 보냅니다.</li>
+      <li>수신 측은 <b>같은 데이터를 두 번</b> 받습니다. 순서 번호가 없으면 이것을 구별할 수 없습니다.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 2.5 -->
+<section class="sec" id="pipe">
+  <h2><span class="n">2.5</span>정지-대기, 파이프라이닝, GBN, SR</h2>
+  <figure class="dg">
+    <svg viewBox="0 0 760 270" role="img" aria-label="정지-대기와 파이프라이닝의 시간 비교">
+      <text x="160" y="20" text-anchor="middle" class="t-b">정지-대기 (stop-and-wait)</text>
+      <text x="560" y="20" text-anchor="middle" class="t-b">파이프라이닝 (pipelining)</text>
+      <text x="60" y="40" text-anchor="middle" class="t-s t-muted">송신</text><text x="260" y="40" text-anchor="middle" class="t-s t-muted">수신</text>
+      <text x="460" y="40" text-anchor="middle" class="t-s t-muted">송신</text><text x="660" y="40" text-anchor="middle" class="t-s t-muted">수신</text>
+      <line class="ln" x1="60" y1="48" x2="60" y2="255"/><line class="ln" x1="260" y1="48" x2="260" y2="255"/>
+      <line class="ln" x1="460" y1="48" x2="460" y2="255"/><line class="ln" x1="660" y1="48" x2="660" y2="255"/>
+      <!-- 정지 대기 -->
+      <line class="ln-tcp" x1="60" y1="55" x2="258" y2="95" marker-end="url(#a-t)"/><text x="150" y="68" class="t-s t-tcp">0</text>
+      <line class="ln-dash" x1="260" y1="95" x2="62" y2="135" marker-end="url(#a-m)"/><text x="150" y="128" class="t-s t-muted">ACK 0</text>
+      <line class="ln-tcp" x1="60" y1="135" x2="258" y2="175" marker-end="url(#a-t)"/><text x="150" y="148" class="t-s t-tcp">1</text>
+      <line class="ln-dash" x1="260" y1="175" x2="62" y2="215" marker-end="url(#a-m)"/><text x="150" y="208" class="t-s t-muted">ACK 1</text>
+      <line class="ln-tcp" x1="60" y1="215" x2="140" y2="231" marker-end="url(#a-t)"/>
+      <text x="20" y="98" class="t-s t-warn">대기</text>
+      <path class="ln-warn" d="M52 60 V130" />
+      <!-- 파이프라이닝 -->
+      <line class="ln-tcp" x1="460" y1="55" x2="658" y2="95" marker-end="url(#a-t)"/>
+      <line class="ln-tcp" x1="460" y1="67" x2="658" y2="107" marker-end="url(#a-t)"/>
+      <line class="ln-tcp" x1="460" y1="79" x2="658" y2="119" marker-end="url(#a-t)"/>
+      <line class="ln-tcp" x1="460" y1="91" x2="658" y2="131" marker-end="url(#a-t)"/>
+      <text x="470" y="52" class="t-s t-tcp">0 1 2 3</text>
+      <line class="ln-dash" x1="660" y1="95" x2="462" y2="135" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="660" y1="107" x2="462" y2="147" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="660" y1="119" x2="462" y2="159" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="660" y1="131" x2="462" y2="171" marker-end="url(#a-m)"/>
+      <line class="ln-tcp" x1="460" y1="135" x2="658" y2="175" marker-end="url(#a-t)"/>
+      <line class="ln-tcp" x1="460" y1="147" x2="658" y2="187" marker-end="url(#a-t)"/>
+      <line class="ln-tcp" x1="460" y1="159" x2="658" y2="199" marker-end="url(#a-t)"/>
+      <line class="ln-tcp" x1="460" y1="171" x2="658" y2="211" marker-end="url(#a-t)"/>
+      <text x="470" y="250" class="t-s t-ok t-b">같은 시간에 패킷 8개</text>
+      <text x="70" y="250" class="t-s t-warn t-b">같은 시간에 패킷 2개</text>
+    </svg>
+    <figcaption>정지-대기는 RTT마다 패킷 1개만 보냅니다. 링크는 대부분의 시간 동안 쉽니다.</figcaption>
+  </figure>
+
+  <div class="tbl"><table>
+    <tr><th></th><th>Go-Back-N (GBN)</th><th>선택적 반복 (Selective Repeat, SR)</th></tr>
+    <tr><td>윈도우</td><td>송신 측만</td><td>송신 측과 수신 측 모두</td></tr>
+    <tr><td>ACK</td><td>누적 ACK: "n번까지 모두 받음"</td><td>패킷별 ACK</td></tr>
+    <tr><td>타이머</td><td>가장 오래된 미확인 패킷 하나</td><td>패킷마다 하나</td></tr>
+    <tr><td>순서가 바뀐 패킷</td><td>버립니다</td><td>버퍼에 저장합니다</td></tr>
+    <tr><td>타임아웃 시</td><td>미확인 패킷을 <b>모두</b> 다시 보냄</td><td><b>그 패킷만</b> 다시 보냄</td></tr>
+  </table></div>
+
+  <h3>슬라이딩 윈도우 (SR)</h3>
+  <figure class="dg">
+    <svg viewBox="0 0 760 210" role="img" aria-label="선택적 반복의 송신 윈도우와 수신 버퍼">
+      <text x="20" y="30" class="t-s t-b">송신 측</text>
+      <g class="t-s">
+        <rect class="bx-ok" x="90" y="14" width="38" height="30" rx="4"/><text x="109" y="34" text-anchor="middle">0</text>
+        <rect class="bx-ok" x="130" y="14" width="38" height="30" rx="4"/><text x="149" y="34" text-anchor="middle">1</text>
+        <rect class="bx-ok" x="170" y="14" width="38" height="30" rx="4"/><text x="189" y="34" text-anchor="middle">2</text>
+        <rect class="bx-ok" x="210" y="14" width="38" height="30" rx="4"/><text x="229" y="34" text-anchor="middle">3</text>
+        <rect class="bx-tcp" x="250" y="14" width="38" height="30" rx="4"/><text x="269" y="34" text-anchor="middle" class="t-b">4</text>
+        <rect class="bx-ok" x="290" y="14" width="38" height="30" rx="4"/><text x="309" y="34" text-anchor="middle">5</text>
+        <rect class="bx-tcp" x="330" y="14" width="38" height="30" rx="4"/><text x="349" y="34" text-anchor="middle">6</text>
+        <rect class="bx-tcp" x="370" y="14" width="38" height="30" rx="4"/><text x="389" y="34" text-anchor="middle">7</text>
+        <rect class="bx" x="410" y="14" width="38" height="30" rx="4"/><text x="429" y="34" text-anchor="middle">8</text>
+        <rect class="bx" x="450" y="14" width="38" height="30" rx="4"/><text x="469" y="34" text-anchor="middle">9</text>
+        <rect class="bx" x="490" y="14" width="38" height="30" rx="4"/><text x="509" y="34" text-anchor="middle">10</text>
+        <rect class="bx" x="530" y="14" width="38" height="30" rx="4"/><text x="549" y="34" text-anchor="middle">11</text>
+        <rect class="bx2" x="570" y="14" width="38" height="30" rx="4"/><text x="589" y="34" text-anchor="middle" class="t-muted">12</text>
+        <rect class="bx2" x="610" y="14" width="38" height="30" rx="4"/><text x="629" y="34" text-anchor="middle" class="t-muted">13</text>
+        <rect class="bx2" x="650" y="14" width="38" height="30" rx="4"/><text x="669" y="34" text-anchor="middle" class="t-muted">14</text>
+      </g>
+      <path class="ln-tcp" d="M250 54 V62 H568 V54"/>
+      <text x="409" y="78" text-anchor="middle" class="t-s t-tcp t-b">윈도우 8개 (base = 4)</text>
+
+      <text x="20" y="128" class="t-s t-b">수신 측</text>
+      <g class="t-s">
+        <rect class="bx-ok" x="90" y="112" width="38" height="30" rx="4"/><text x="109" y="132" text-anchor="middle">0</text>
+        <rect class="bx-ok" x="130" y="112" width="38" height="30" rx="4"/><text x="149" y="132" text-anchor="middle">1</text>
+        <rect class="bx-ok" x="170" y="112" width="38" height="30" rx="4"/><text x="189" y="132" text-anchor="middle">2</text>
+        <rect class="bx-ok" x="210" y="112" width="38" height="30" rx="4"/><text x="229" y="132" text-anchor="middle">3</text>
+        <rect class="bx" x="250" y="112" width="38" height="30" rx="4" style="stroke-dasharray:4 3"/><text x="269" y="132" text-anchor="middle" class="t-warn t-b">?</text>
+        <rect class="bx-chk" x="290" y="112" width="38" height="30" rx="4"/><text x="309" y="132" text-anchor="middle">5</text>
+      </g>
+      <text x="269" y="160" text-anchor="middle" class="t-s t-warn">next = 4</text>
+      <text x="320" y="160" class="t-s t-muted">5는 버퍼에서 4를 기다림</text>
+      <!-- 범례 -->
+      <g class="t-s">
+        <rect class="bx-ok" x="90" y="180" width="14" height="14" rx="2"/><text x="110" y="192">확인됨 / 전달됨</text>
+        <rect class="bx-tcp" x="230" y="180" width="14" height="14" rx="2"/><text x="250" y="192">보냄, ACK 기다림</text>
+        <rect class="bx" x="380" y="180" width="14" height="14" rx="2"/><text x="400" y="192">보낼 수 있음</text>
+        <rect class="bx2" x="500" y="180" width="14" height="14" rx="2"/><text x="520" y="192">윈도우 밖</text>
+        <rect class="bx-chk" x="610" y="180" width="14" height="14" rx="2"/><text x="630" y="192">버퍼에 저장</text>
+      </g>
+    </svg>
+    <figcaption>4번의 ACK가 오면 base가 6으로 이동하고 윈도우가 앞으로 미끄러집니다.</figcaption>
+  </figure>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 1</span>
+    <p><a class="kbd-file" href="../w04-tcp/task1_rdt.py">task1_rdt.py</a>는 <b>선택적 반복</b>을 구현합니다. 채널: 손실 10%, 중복 3%, 순서 바뀜. 2,000바이트 = 8바이트 패킷 250개.</p>
+    <h3 style="margin-top:10px">송신 측 <code>Sender.step()</code></h3>
+    <ol class="stepper">
+      <li>ACK 하나를 받아 그 번호를 <code>acked</code>에 표시합니다. 중복 ACK는 같은 표시를 다시 할 뿐입니다.</li>
+      <li><code>base</code>의 패킷이 확인되었으면 <code>base</code>를 앞으로 옮깁니다. (윈도우 이동)</li>
+      <li>윈도우(8개) 안에서 확인되지 않은 패킷을 찾습니다.</li>
+      <li>한 번도 보내지 않았거나 <code>TIMEOUT</code>(40스텝)이 지났으면 보냅니다. (패킷별 타이머)</li>
+    </ol>
+    <h3>수신 측 <code>Receiver.step()</code></h3>
+<pre><code>self.acks.send(("A", seq))              <span class="c"># 1. 모든 도착에 ACK. 중복에도 ACK.</span>
+if seq &gt;= self.next:
+    self.buf.<span class="k">setdefault</span>(seq, payload)   <span class="c"># 2. 버퍼에 저장. 중복은 값을 바꾸지 않음.</span>
+while self.next in self.buf:            <span class="c"># 3. 이어진 부분만 출력에 붙임.</span>
+    self.out += self.buf.pop(self.next)
+    self.next += 1</code></pre>
+    <div class="box warn" style="margin:10px 0"><span class="tag">왜 중복 데이터에도 ACK를 다시 보내는가</span>
+      <p>처음 보낸 ACK가 손실되었을 수 있습니다. ACK를 다시 보내지 않으면 송신 측은 영원히 재전송합니다(livelock).</p>
+    </div>
+    <div class="cards">
+      <div class="card"><p class="big">250</p><p>필요한 최소 패킷</p></div>
+      <div class="card"><p class="big">326</p><p>데이터 채널이 실제로 나른 패킷 (1.30배)</p></div>
+      <div class="card"><p class="big">297</p><p>ACK 채널의 패킷</p></div>
+      <div class="card"><p class="big">손실</p><p>가장 먼저 깨진 원인 (4번째 패킷)</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2.6 -->
+<section class="sec" id="seg">
+  <h2><span class="n">2.6</span>TCP 세그먼트 구조와 ISN</h2>
+  <div class="cards">
+    <div class="card"><h4>연결 지향</h4><p>데이터 전에 핸드셰이크로 연결을 만듭니다.</p></div>
+    <div class="card"><h4>점대점</h4><p>송신자 하나, 수신자 하나.</p></div>
+    <div class="card"><h4>전이중</h4><p>양방향으로 동시에 보냅니다.</p></div>
+    <div class="card"><h4>바이트 스트림</h4><p>메시지 경계가 없습니다.</p></div>
+  </div>
+  <figure class="dg">
+    <svg viewBox="0 0 680 290" role="img" aria-label="TCP 세그먼트 헤더 구조">
+      <text x="20" y="18" class="t-s t-muted">0</text><text x="660" y="18" text-anchor="end" class="t-s t-muted">31비트</text>
+      <rect class="bx" x="20" y="24" width="320" height="34"/><text x="180" y="46" text-anchor="middle">출발지 포트</text>
+      <rect class="bx" x="340" y="24" width="320" height="34"/><text x="500" y="46" text-anchor="middle">목적지 포트</text>
+      <rect class="bx-tcp" x="20" y="58" width="640" height="34"/><text x="340" y="80" text-anchor="middle" class="t-b">순서 번호 (sequence number) — 이 세그먼트 첫 바이트의 번호</text>
+      <rect class="bx-tcp" x="20" y="92" width="640" height="34"/><text x="340" y="114" text-anchor="middle" class="t-b">확인 응답 번호 (ack number) — 다음에 기대하는 바이트</text>
+      <rect class="bx" x="20" y="126" width="80" height="34"/><text x="60" y="148" text-anchor="middle" class="t-s">헤더 길이</text>
+      <rect class="bx2" x="100" y="126" width="60" height="34"/><text x="130" y="148" text-anchor="middle" class="t-s t-muted">예약</text>
+      <rect class="bx-chk" x="160" y="126" width="180" height="34"/><text x="250" y="148" text-anchor="middle" class="t-s t-b">플래그 SYN ACK FIN RST</text>
+      <rect class="bx-ok" x="340" y="126" width="320" height="34"/><text x="500" y="148" text-anchor="middle" class="t-b">수신 윈도우 (rwnd)</text>
+      <rect class="bx" x="20" y="160" width="320" height="34"/><text x="180" y="182" text-anchor="middle">체크섬</text>
+      <rect class="bx" x="340" y="160" width="320" height="34"/><text x="500" y="182" text-anchor="middle">긴급 포인터</text>
+      <rect class="bx-chk" x="20" y="194" width="640" height="34"/><text x="340" y="216" text-anchor="middle">옵션 (MSS, 윈도우 스케일, SACK 허용, 타임스탬프)</text>
+      <rect class="bx2" x="20" y="228" width="640" height="40"/><text x="340" y="253" text-anchor="middle" class="t-muted">데이터 (응용의 바이트)</text>
+      <text x="340" y="284" text-anchor="middle" class="t-s t-muted">옵션 없이 헤더 20바이트</text>
+    </svg>
+  </figure>
+  <div class="box concept"><span class="tag">순서 번호는 바이트 단위</span>
+    <div class="flow">
+      <span class="chip hl">seq 5000<small>1,000바이트</small></span><span class="arr">→</span>
+      <span class="chip hl">seq 6000<small>1,000바이트</small></span><span class="arr">→</span>
+      <span class="chip">ACK 7000<small>"6999까지 모두 받음, 다음은 7000"</small></span>
+    </div>
+    <p>ACK 번호 n은 "n−1번 바이트까지 모두 받았습니다"라는 뜻입니다. 이것이 <b>누적 ACK</b>입니다.</p>
+  </div>
+  <div class="box concept"><span class="tag">ISN은 왜 0이 아닌가</span>
+    <p>첫 순서 번호(<b>ISN</b>, Initial Sequence Number)는 각 쪽이 예측하기 어려운 값으로 고릅니다.</p>
+    <ol class="stepper">
+      <li>공격자가 순서 번호를 추측해서 가짜 세그먼트를 넣는 것을 막습니다.</li>
+      <li>같은 4개 값으로 만든 이전 연결의 늦은 세그먼트가 새 연결의 데이터로 섞이는 것을 막습니다.</li>
+    </ol>
+  </div>
+  <p class="small muted">Task 1과의 비교: Task 1은 패킷 번호(0, 1, 2, …)를 씁니다. TCP는 바이트 번호를 씁니다. 원리는 같습니다.</p>
+</section>
+
+<!-- 2.7 -->
+<section class="sec" id="hs">
+  <h2><span class="n">2.7</span>3-way handshake</h2>
+  <figure class="dg">
+    <svg viewBox="0 0 760 300" role="img" aria-label="TCP 3-way handshake와 실제 ISN 값">
+      <rect class="bx" x="60" y="10" width="140" height="36" rx="6"/><text x="130" y="33" text-anchor="middle" class="t-b">클라이언트 (노트북)</text>
+      <rect class="bx" x="560" y="10" width="140" height="36" rx="6"/><text x="630" y="33" text-anchor="middle" class="t-b">서버 :443</text>
+      <line class="ln" x1="130" y1="46" x2="130" y2="290"/><line class="ln" x1="630" y1="46" x2="630" y2="290"/>
+      <line class="ln-tcp" x1="130" y1="70" x2="628" y2="110" marker-end="url(#a-t)"/>
+      <text x="380" y="78" text-anchor="middle" class="t-b t-tcp">#1 SYN</text>
+      <text x="380" y="96" text-anchor="middle" class="t-s t-mono">seq = 1111356914 · MSS 1460 · WS 10 · SACK</text>
+      <line class="ln-tcp" x1="630" y1="130" x2="132" y2="170" marker-end="url(#a-t)"/>
+      <text x="380" y="138" text-anchor="middle" class="t-b t-tcp">#2 SYN + ACK</text>
+      <text x="380" y="156" text-anchor="middle" class="t-s t-mono">seq = 3798358670 · ack = 1111356915 · MSS 1250 · WS 13</text>
+      <line class="ln-tcp" x1="130" y1="190" x2="628" y2="230" marker-end="url(#a-t)"/>
+      <text x="380" y="198" text-anchor="middle" class="t-b t-tcp">#3 ACK</text>
+      <text x="380" y="216" text-anchor="middle" class="t-s t-mono">ack = 3798358671</text>
+      <line class="ln-ok" x1="630" y1="250" x2="132" y2="284" marker-end="url(#a-o)"/>
+      <text x="380" y="262" text-anchor="middle" class="t-s t-ok t-b">이제 데이터 (TLS, HTTP)</text>
+      <path class="ln-dash" d="M110 70 H90 V190 H110"/>
+      <text x="84" y="134" text-anchor="end" class="t-s t-muted">RTT</text><text x="84" y="150" text-anchor="end" class="t-s t-muted">1번</text>
+    </svg>
+    <figcaption>Task 2에서 직접 캡처한 <code>out/tcp.pcapng</code>의 값입니다. SYN은 순서 번호 1개를 사용하므로 ack = ISN + 1입니다.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <tr><th>SYN 옵션</th><th>뜻</th><th>캡처 값 (클라이언트 / 서버)</th></tr>
+    <tr><td>MSS</td><td>한 세그먼트에 담을 최대 데이터 크기</td><td>1460 / 1250</td></tr>
+    <tr><td>윈도우 스케일</td><td>rwnd 필드에 곱할 2의 거듭제곱. 16비트 한계(64 KB)를 넘기 위함</td><td>10 (×1024) / 13 (×8192)</td></tr>
+    <tr><td>SACK 허용</td><td>받은 범위를 선택적으로 알릴 수 있음</td><td>예 / 예</td></tr>
+  </table></div>
+  <p>연결 종료: 양쪽이 각자 <b>FIN</b>을 보내고 상대가 ACK합니다.</p>
+  <div class="box example"><span class="tag">이 프로젝트에서 · 핸드셰이크 시간</span>
+    <p><a class="kbd-file" href="../w04-tcp/task2_measure.py">task2_measure.py</a>는 <code>curl</code>의 시간을 나눕니다. <code>connect_s = time_connect − time_namelookup</code>이 핸드셰이크 시간입니다. 이 값은 RTT와 거의 같습니다.</p>
+    <div class="flow">
+      <span class="chip" style="border-color:var(--dns)">DNS<small>time_namelookup</small></span><span class="arr">→</span>
+      <span class="chip hl">핸드셰이크<small>connect_s ≈ RTT</small></span><span class="arr">→</span>
+      <span class="chip">첫 바이트까지<small>ttfb_s (TLS 포함)</small></span><span class="arr">→</span>
+      <span class="chip">전체<small>total_s</small></span>
+    </div>
+  </div>
+</section>
+
+<!-- 2.8 -->
+<section class="sec" id="rtt">
+  <h2><span class="n">2.8</span>RTT 추정과 타임아웃</h2>
+  <div class="cards">
+    <div class="card bad"><h4>타임아웃이 너무 짧으면</h4><p>불필요한 재전송이 생깁니다.</p></div>
+    <div class="card bad"><h4>타임아웃이 너무 길면</h4><p>손실에 늦게 반응합니다.</p></div>
+  </div>
+<pre><code>EstimatedRTT    = (1 − α)·EstimatedRTT + α·SampleRTT                 <span class="c"># α = 0.125</span>
+DevRTT          = (1 − β)·DevRTT + β·|SampleRTT − EstimatedRTT|      <span class="c"># β = 0.25</span>
+TimeoutInterval = EstimatedRTT + 4·DevRTT</code></pre>
+  <div class="box concept"><span class="tag">빠른 재전송 (fast retransmit)</span>
+    <p>같은 ACK가 세 번 더 오면(<b>중복 ACK 3개</b>) 타이머를 기다리지 않고 재전송합니다. 중복 ACK는 "그 뒤의 세그먼트는 도착하고 있다"는 뜻입니다. 한 세그먼트만 빠졌을 가능성이 큽니다.</p>
+  </div>
+  <p class="small muted">이 프로젝트의 타임아웃은 고정 값입니다: Task 1 <code>TIMEOUT = 40</code>, Task 3 bench <code>TIMEOUT = 3 * RTT</code>. 시뮬레이션이라 RTT 추정이 필요 없습니다.</p>
+</section>
+
+<!-- 2.9 -->
+<section class="sec" id="flow">
+  <h2><span class="n">2.9</span>흐름 제어</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p><b>흐름 제어(flow control)</b>는 송신 측이 <b>수신 측의 버퍼</b>를 넘치게 하지 않도록 합니다.</p>
+    <ol class="stepper">
+      <li>수신 측은 버퍼의 남은 공간을 <b>rwnd</b> 필드에 넣어 보냅니다.</li>
+      <li>송신 측은 확인되지 않은 데이터의 양을 rwnd 이하로 유지합니다.</li>
+    </ol>
+    <p><b>실제 윈도우 = 필드 값 × 2<sup>스케일</sup></b>. SYN 자체의 윈도우 필드에는 스케일을 적용하지 않습니다.</p>
+  </div>
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 A5</span>
+    <div class="flow">
+      <span class="chip">SYN 윈도우<small>64,240 (스케일 없음)</small></span><span class="arr">→</span>
+      <span class="chip">핸드셰이크 뒤<small>63 × 1024 = 64,512</small></span><span class="arr">→</span>
+      <span class="chip hl">전송 중 최대<small>약 4.6 MB</small></span>
+    </div>
+    <div class="cards">
+      <div class="card"><p class="big">4.6 MB</p><p>수신 측이 허락한 양 (rwnd)</p></div>
+      <div class="card"><p class="big">193 KB</p><p>서버가 실제로 동시에 보낸 최대량</p></div>
+    </div>
+    <p><b>결론:</b> rwnd는 제한 요인이 아니었습니다. 송신 측의 <b>혼잡 윈도우</b>(2.12)가 제한 요인이었습니다.</p>
+  </div>
+</section>
+
+<!-- 2.10 -->
+<section class="sec" id="bdp">
+  <h2><span class="n">2.10</span>처리량, RTT, 대역폭-지연 곱</h2>
+  <div class="box concept"><span class="tag">두 식</span>
+    <div class="cards">
+      <div class="card"><h4>처리량</h4><p class="big" style="font-size:22px">≈ 윈도우 ÷ RTT</p><p class="small muted">RTT마다 윈도우만큼 보내기 때문</p></div>
+      <div class="card"><h4>BDP</h4><p class="big" style="font-size:22px">= 대역폭 × RTT</p><p class="small muted">링크를 가득 채우는 데 필요한 윈도우</p></div>
+    </div>
+    <p>같은 윈도우라도 RTT가 길면 처리량이 낮습니다. 슬로 스타트는 RTT마다 윈도우를 두 배로 하므로, RTT가 길면 윈도우가 커지는 데도 시간이 더 걸립니다.</p>
+  </div>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 B3–B5</span>
+    <figure class="dg" style="margin-top:4px">
+      <svg viewBox="0 0 720 170" role="img" aria-label="두 네트워크의 처리량과 핸드셰이크 시간 비교">
+        <text x="20" y="22" class="t-s t-b">처리량 중앙값 (Mbps)</text>
+        <text x="20" y="54" class="t-s">캠퍼스 Wi-Fi</text>
+        <rect x="130" y="40" width="358" height="22" rx="3" class="fill-tcp"/>
+        <text x="496" y="56" class="t-s t-b">178.8  (범위 116.7–273.8)</text>
+        <text x="20" y="86" class="t-s">휴대폰 핫스팟</text>
+        <rect x="130" y="72" width="116" height="22" rx="3" class="fill-muted"/>
+        <text x="254" y="88" class="t-s t-b">57.8  (범위 51.0–67.6)</text>
+        <text x="20" y="118" class="t-s t-b">핸드셰이크 중앙값 (ms ≈ RTT)</text>
+        <rect x="130" y="128" width="30" height="14" rx="3" class="fill-tcp"/><text x="166" y="140" class="t-s">7.5 ms 캠퍼스</text>
+        <rect x="130" y="148" width="152" height="14" rx="3" class="fill-muted"/><text x="288" y="160" class="t-s">38.1 ms 핫스팟 (약 5배)</text>
+      </svg>
+    </figure>
+    <p><b>계산:</b> 179 Mbps × 7.5 ms ≈ <b>168 KB</b>. 실제로 동시에 보낸 최대량 193 KB와 같은 크기입니다.</p>
+    <p><b>B5:</b> 처리량은 RTT에 반비례하고, 윈도우가 자라는 속도도 RTT에 묶여 있습니다. 그래서 핸드셰이크 시간과 처리량은 독립이 아닙니다.</p>
+    <p class="small muted">주의: 핫스팟 측정은 IPv6로 연결되었고 캠퍼스는 IPv4였습니다. 두 측정은 링크뿐 아니라 IP 버전도 다릅니다.</p>
+  </div>
+</section>
+
+<!-- 2.11 -->
+<section class="sec" id="cong">
+  <h2><span class="n">2.11</span>혼잡과 혼잡 제어</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p><b>혼잡(congestion)</b>은 너무 많은 송신자가 네트워크의 처리량보다 많이 보낼 때 생깁니다.</p>
+  </div>
+  <div class="cards">
+    <div class="card bad"><h4>① 큐 지연</h4><p>도착률이 링크 용량에 가까워지면 지연이 매우 커집니다.</p></div>
+    <div class="card bad"><h4>② 재전송 낭비</h4><p>버린 패킷을 다시 보내므로 같은 데이터에 링크를 두 번 씁니다.</p></div>
+    <div class="card bad"><h4>③ 상류의 낭비</h4><p>중간에서 버려진 패킷은 앞 링크들이 한 일을 버립니다.</p></div>
+  </div>
+  <div class="box warn"><span class="tag">1986년 10월 · 혼잡 붕괴</span>
+    <p>링크는 바빴지만 대부분 재전송이었습니다. 유효 처리량은 거의 0이었습니다. TCP 혼잡 제어는 이 사건 뒤에 만들어졌습니다.</p>
+  </div>
+  <div class="tbl"><table>
+    <tr><th></th><th>흐름 제어</th><th>혼잡 제어</th></tr>
+    <tr><td>보호 대상</td><td>수신 측 버퍼</td><td>네트워크 (라우터 큐)</td></tr>
+    <tr><td>정보 출처</td><td>수신 측이 rwnd로 직접 알림</td><td>송신 측이 손실과 지연으로 추정</td></tr>
+    <tr><td>변수</td><td>rwnd</td><td>cwnd</td></tr>
+  </table></div>
+  <p class="lead" style="text-align:center"><b>보낼 수 있는 양 = min(rwnd, cwnd)</b></p>
+</section>
+
+<!-- 2.12 -->
+<section class="sec" id="cc">
+  <h2><span class="n">2.12</span>TCP 혼잡 제어: 슬로 스타트와 AIMD</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>송신 측은 라우터의 큐를 볼 수 없습니다. 두 가지 사건으로 추정합니다.</p>
+    <div class="cards">
+      <div class="card good"><h4>ACK 도착</h4><p>여유가 있습니다 → cwnd를 <b>늘립니다</b>.</p></div>
+      <div class="card bad"><h4>손실</h4><p>큐가 넘쳤습니다 → cwnd를 <b>줄입니다</b>.</p></div>
+    </div>
+  </div>
+
+  <div class="tbl"><table>
+    <tr><th>단계</th><th>규칙</th><th>결과</th></tr>
+    <tr><td><b>슬로 스타트</b></td><td>cwnd = 1 MSS로 시작. ACK마다 +1 MSS. ssthresh에 닿으면 혼잡 회피로.</td><td>RTT마다 <b>두 배</b> (지수 증가)</td></tr>
+    <tr><td><b>혼잡 회피</b></td><td>ACK마다 +MSS·MSS/cwnd</td><td>RTT마다 <b>+1 MSS</b> (선형 증가)</td></tr>
+    <tr><td><b>중복 ACK 3개</b></td><td>ssthresh = cwnd/2, cwnd 절반 → 빠른 회복 (Reno)</td><td>가벼운 신호</td></tr>
+    <tr class="bad"><td><b>타임아웃</b></td><td>ssthresh = cwnd/2, cwnd = 1 MSS → 슬로 스타트</td><td>심한 신호</td></tr>
+  </table></div>
+  <p>혼잡 회피의 "선형 증가 + 절반 감소"가 <b>AIMD</b>(Additive Increase, Multiplicative Decrease)입니다. cwnd는 톱니 모양으로 움직입니다.</p>
+
+  <h3>Task 3의 링크</h3>
+  <figure class="dg">
+    <svg viewBox="0 0 760 150" role="img" aria-label="Task 3 링크: 큐 10과 파이프 20">
+      <rect class="bx" x="10" y="50" width="90" height="44" rx="6"/><text x="55" y="77" text-anchor="middle" class="t-b">송신 측</text>
+      <line class="ln" x1="100" y1="72" x2="138" y2="72" marker-end="url(#a-m)"/>
+      <g>
+        <rect class="bx-warn" x="140" y="56" width="20" height="32" rx="2"/><rect class="bx-warn" x="162" y="56" width="20" height="32" rx="2"/>
+        <rect class="bx-warn" x="184" y="56" width="20" height="32" rx="2"/><rect class="bx-warn" x="206" y="56" width="20" height="32" rx="2"/>
+        <rect class="bx-warn" x="228" y="56" width="20" height="32" rx="2"/><rect class="bx-warn" x="250" y="56" width="20" height="32" rx="2"/>
+        <rect class="bx-warn" x="272" y="56" width="20" height="32" rx="2"/><rect class="bx-warn" x="294" y="56" width="20" height="32" rx="2"/>
+        <rect class="bx-warn" x="316" y="56" width="20" height="32" rx="2"/><rect class="bx-warn" x="338" y="56" width="20" height="32" rx="2"/>
+      </g>
+      <text x="249" y="42" text-anchor="middle" class="t-s t-warn t-b">큐 10칸 (tail drop)</text>
+      <text x="249" y="110" text-anchor="middle" class="t-s t-muted">가득 차면 새 패킷을 조용히 버림</text>
+      <line class="ln" x1="360" y1="72" x2="398" y2="72" marker-end="url(#a-m)"/>
+      <rect class="area-pipe" x="400" y="52" width="250" height="40" rx="20"/>
+      <rect class="bx-ok" x="400" y="52" width="250" height="40" rx="20" style="fill:none"/>
+      <text x="525" y="77" text-anchor="middle" class="t-b t-ok">링크: 1패킷/슬롯 · RTT 20슬롯</text>
+      <text x="525" y="110" text-anchor="middle" class="t-s t-muted">파이프에 약 20패킷이 들어감 (= BDP)</text>
+      <line class="ln" x1="650" y1="72" x2="688" y2="72" marker-end="url(#a-m)"/>
+      <rect class="bx" x="690" y="50" width="62" height="44" rx="6"/><text x="721" y="77" text-anchor="middle" class="t-b">수신</text>
+      <text x="380" y="140" text-anchor="middle" class="t-s"><tspan class="t-ok t-b">윈도우 ≤ 20</tspan>: 큐가 빔 · <tspan class="t-chk t-b">20–30</tspan>: 큐에 쌓임 · <tspan class="t-warn t-b">30 초과</tspan>: 손실</text>
+    </svg>
+  </figure>
+
+  <h3>cwnd의 움직임 (개념도)</h3>
+  <figure class="dg">
+    <svg viewBox="0 0 760 290" role="img" aria-label="슬로 스타트와 AIMD 톱니 그래프">
+      <rect class="area-q" x="60" y="160" width="670" height="30"/>
+      <rect class="area-pipe" x="60" y="190" width="670" height="60"/>
+      <line class="ln" x1="60" y1="250" x2="735" y2="250"/><line class="ln" x1="60" y1="30" x2="60" y2="250"/>
+      <line class="ln-warn" x1="60" y1="58" x2="730" y2="58" style="stroke-dasharray:6 4"/>
+      <text x="725" y="52" text-anchor="end" class="t-s t-warn t-b">고정 윈도우 64 (baseline) — 항상 큐 가득, 손실 37%</text>
+      <line class="ln-dash" x1="60" y1="160" x2="730" y2="160"/>
+      <text x="66" y="156" class="t-s t-warn">30 = 파이프 20 + 큐 10 → 이 위는 손실</text>
+      <line class="ln-dash" x1="60" y1="190" x2="730" y2="190"/>
+      <text x="66" y="208" class="t-s t-ok">20 = 파이프(BDP)</text>
+      <polyline class="ln-tcp" style="stroke-width:3" points="60,247 90,244 120,238 150,226 180,202 210,154 210,202 420,160 420,205 645,160 645,205 720,190"/>
+      <g class="fill-warn"><circle cx="210" cy="154" r="5"/><circle cx="420" cy="160" r="5"/><circle cx="645" cy="160" r="5"/></g>
+      <text x="120" y="140" class="t-s t-tcp t-b">슬로 스타트</text><text x="120" y="154" class="t-s t-muted">RTT마다 ×2</text>
+      <text x="300" y="232" class="t-s t-tcp t-b">혼잡 회피: 선형 증가</text>
+      <text x="430" y="232" class="t-s t-muted">손실 → ×0.5</text>
+      <text x="40" y="34" class="t-s t-muted" text-anchor="middle">cwnd</text>
+      <text x="730" y="270" class="t-s t-muted" text-anchor="end">시간 (RTT) →</text>
+      <text x="40" y="250" class="t-s t-muted" text-anchor="middle">0</text>
+      <text x="40" y="194" class="t-s t-muted" text-anchor="middle">20</text>
+      <text x="40" y="164" class="t-s t-muted" text-anchor="middle">30</text>
+      <text x="40" y="62" class="t-s t-muted" text-anchor="middle">64</text>
+    </svg>
+    <figcaption>빨간 점 = 손실. 톱니는 파이프(20) 위, 손실선(30) 아래를 오갑니다. 큐(분홍 띠)에 머무는 시간이 짧습니다.</figcaption>
+  </figure>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 3</span>
+    <p><b>고정 윈도우 64는 왜 가장 나쁜 송신자인가?</b> goodput은 가장 높습니다. 그러나 보낸 패킷의 37%를 큐가 버리고, 큐를 늘 8.8/10으로 채워 <b>다른 모든 흐름</b>에게 지연과 손실을 줍니다. goodput은 남에게 준 피해를 세지 않습니다. 모두가 이렇게 하면 혼잡 붕괴가 됩니다.</p>
+<pre><code>def on_ack(self):
+    if self.slow_start:
+        self.window += 1                          <span class="c"># 슬로 스타트: RTT마다 두 배</span>
+    else:
+        self.window += self.GROW / self.window    <span class="c"># 혼잡 회피: RTT마다 +0.25</span>
+
+def on_loss(self):
+    if self.quiet &gt; 0:
+        return                                    <span class="c"># 한 번의 넘침 = 한 번의 감소</span>
+    self.slow_start = False
+    self.window = max(2.0, self.window * <span class="k">self.BACKOFF</span>)   <span class="c"># ×0.5</span>
+    self.quiet = int(self.window) * self.QUIET</code></pre>
+    <div class="box concept" style="margin:10px 0"><span class="tag">quiet가 필요한 이유</span>
+      <p>큐가 한 번 넘치면 패킷 여러 개가 버려집니다. 타임아웃은 하나씩 따로 옵니다. 이것은 <b>혼잡 사건 하나</b>입니다. 감소도 한 번만 해야 합니다. TCP도 한 윈도우 안의 손실에는 한 번만 반응합니다.</p>
+    </div>
+    <div class="cards">
+      <div class="card bad"><h4>baseline (고정 64)</h4><p class="big" style="color:var(--warn)">37.4%</p><p>손실 · goodput 986.8 · 큐 8.8 · 재전송 2,340</p></div>
+      <div class="card good"><h4>YourControl</h4><p class="big" style="color:var(--example)">2.0%</p><p>손실 · goodput 946.2 (96%) · 큐 4.1 · 재전송 78</p></div>
+    </div>
+    <h3>감소를 완만하게 하면?</h3>
+    <div class="tbl"><table>
+      <tr><th>BACKOFF</th><th>goodput</th><th>손실</th><th>평균 큐</th><th>판정</th></tr>
+      <tr class="hl"><td>×0.5</td><td>96%</td><td>2.0%</td><td>4.1</td><td>통과 (strong)</td></tr>
+      <tr><td>×0.7</td><td>98.7%</td><td>4.0%</td><td class="bad">5.6</td><td>큐 조건 실패</td></tr>
+      <tr><td>×0.8</td><td>99.1%</td><td class="bad">6.6%</td><td class="bad">7.1</td><td>둘 다 실패</td></tr>
+      <tr><td>×0.9</td><td>99.1%</td><td class="bad">14.9%</td><td class="bad">8.4</td><td>둘 다 실패</td></tr>
+    </table></div>
+    <p>마지막 3%의 goodput은 <b>다른 흐름의 지연</b>으로 삽니다.</p>
+  </div>
+
+  <div class="box concept"><span class="tag">지연 기반 혼잡 제어</span>
+    <p>손실 기반 방식은 큐가 넘쳐야 반응합니다. 그래서 큐를 늘 채웁니다. 지연 기반 방식(TCP Vegas, BBR)은 RTT가 늘어나는 것을 보고 큐가 차기 <b>전에</b> 줄입니다.</p>
+  </div>
+</section>
+
+<!-- 2.13 -->
+<section class="sec" id="quic">
+  <h2><span class="n">2.13</span>QUIC</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p><b>QUIC</b>은 UDP 위에서 동작하는 전송 프로토콜입니다. HTTP/3이 사용합니다.</p>
+    <p><b>왜 UDP 위인가:</b> 운영체제와 중간 장비(방화벽, NAT)는 TCP를 이미 해석합니다. TCP를 바꾸면 그 장비들이 새 TCP를 막거나 고칩니다. UDP 위에서는 응용 안에서 새 기능을 배포할 수 있습니다.</p>
+  </div>
+  <figure class="dg">
+    <svg viewBox="0 0 760 170" role="img" aria-label="TCP와 QUIC의 HOL 블로킹 비교">
+      <text x="20" y="30" class="t-b">TCP</text><text x="20" y="46" class="t-s t-muted">스트림 1개</text>
+      <rect class="bx-tcp" x="110" y="16" width="56" height="32" rx="4"/><text x="138" y="37" text-anchor="middle" class="t-s">A1</text>
+      <rect class="bx-warn" x="170" y="16" width="56" height="32" rx="4" style="stroke-dasharray:4 3"/><text x="198" y="37" text-anchor="middle" class="t-s t-warn t-b">B1 ✕</text>
+      <rect class="bx2" x="230" y="16" width="56" height="32" rx="4"/><text x="258" y="37" text-anchor="middle" class="t-s t-muted">A2</text>
+      <rect class="bx2" x="290" y="16" width="56" height="32" rx="4"/><text x="318" y="37" text-anchor="middle" class="t-s t-muted">A3</text>
+      <text x="360" y="37" class="t-s t-warn">B1이 손실 → A2, A3도 기다림 (HOL 블로킹)</text>
+
+      <text x="20" y="100" class="t-b">QUIC</text><text x="20" y="116" class="t-s t-muted">스트림 여러 개</text>
+      <text x="110" y="84" class="t-s t-muted">스트림 A</text>
+      <rect class="bx-ok" x="170" y="70" width="56" height="28" rx="4"/><text x="198" y="89" text-anchor="middle" class="t-s">A1</text>
+      <rect class="bx-ok" x="230" y="70" width="56" height="28" rx="4"/><text x="258" y="89" text-anchor="middle" class="t-s">A2</text>
+      <rect class="bx-ok" x="290" y="70" width="56" height="28" rx="4"/><text x="318" y="89" text-anchor="middle" class="t-s">A3</text>
+      <text x="360" y="89" class="t-s t-ok">계속 전달</text>
+      <text x="110" y="124" class="t-s t-muted">스트림 B</text>
+      <rect class="bx-warn" x="170" y="110" width="56" height="28" rx="4" style="stroke-dasharray:4 3"/><text x="198" y="129" text-anchor="middle" class="t-s t-warn t-b">B1 ✕</text>
+      <text x="240" y="129" class="t-s t-warn">B만 기다림</text>
+    </svg>
+  </figure>
+  <ul>
+    <li>연결 설정과 TLS 암호화 설정을 한 번의 왕복으로 합칩니다.</li>
+    <li>한 연결 안에 여러 스트림을 둡니다. 한 스트림의 손실이 다른 스트림을 막지 않습니다.</li>
+    <li>TCP처럼 신뢰적 전송과 혼잡 제어를 합니다.</li>
+  </ul>
+</section>
+
+<!-- quiz -->
+<section class="sec" id="quiz">
+  <h2><span class="n">✓</span>스스로 확인하기</h2>
+  <div class="box check"><span class="tag">확인 질문 · 눌러서 답 보기</span>
+    <details class="q"><summary>TCP 소켓은 왜 값 4개로 구분하고, UDP는 2개로 충분합니까?</summary>
+      <p class="a">TCP는 연결마다 상태(순서 번호, 버퍼)가 따로 있습니다. 같은 서버 포트에 들어온 연결을 구분하려면 출발지 주소와 포트가 필요합니다. UDP는 연결 상태가 없습니다.</p></details>
+    <details class="q"><summary>수신 측이 중복 데이터 패킷에도 ACK를 다시 보내야 하는 이유는?</summary>
+      <p class="a">처음 ACK가 손실되었을 수 있습니다. 다시 보내지 않으면 송신 측은 그 패킷을 끝없이 재전송합니다.</p></details>
+    <details class="q"><summary>SYN-ACK의 ack 번호가 클라이언트 ISN + 1인 이유는?</summary>
+      <p class="a">SYN은 데이터가 없어도 순서 번호 1개를 사용합니다. ack는 "다음에 기대하는 번호"이므로 ISN + 1입니다.</p></details>
+    <details class="q"><summary>rwnd가 4.6 MB였는데 실제로 보낸 양은 193 KB였습니다. 무엇이 제한했습니까?</summary>
+      <p class="a">송신 측의 혼잡 윈도우(cwnd)입니다. 5 MB 전송이 0.15초에 끝나서 대부분 슬로 스타트 중이었습니다. 193 KB는 BDP(약 168 KB)와 같은 크기입니다.</p></details>
+    <details class="q"><summary>흐름 제어와 혼잡 제어의 차이를 한 문장으로 말하십시오.</summary>
+      <p class="a">흐름 제어는 수신 측 버퍼를 보호하고 rwnd로 직접 알림을 받습니다. 혼잡 제어는 네트워크를 보호하고 손실과 지연으로 상태를 추정합니다.</p></details>
+    <details class="q"><summary>고정 윈도우 64가 goodput이 가장 높은데도 가장 나쁜 송신자인 이유는?</summary>
+      <p class="a">37%를 버리고 큐를 늘 가득 채워서 다른 흐름에 지연과 손실을 줍니다. goodput은 그 피해를 세지 않습니다. 모두가 이렇게 하면 혼잡 붕괴입니다.</p></details>
+    <details class="q"><summary>타임아웃과 중복 ACK 3개에 TCP가 다르게 반응하는 이유는?</summary>
+      <p class="a">중복 ACK는 뒤의 세그먼트가 도착하고 있다는 뜻이므로 가벼운 혼잡입니다(절반). 타임아웃은 아무것도 도착하지 않는다는 뜻이므로 심한 혼잡입니다(1 MSS로).</p></details>
+  </div>
+</section>
+
+<div class="pager">
+  <a href="w03-dns.html"><small>이전</small>← 3주차 · DNS와 CDN</a>
+  <a class="next" href="w05-ip-nat.html"><small>다음</small>5주차 · IP와 NAT →</a>
+</div>
+</main>
+</div>
+</body>
+</html>

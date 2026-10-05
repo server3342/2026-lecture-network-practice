@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>네트워크 개념 정리</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <nav class="nav">
+    <a class="on" href="index.html">개요</a>
+    <a href="w03-dns.html">3주 DNS</a>
+    <a href="w04-tcp.html">4주 TCP</a>
+    <a href="w05-ip-nat.html">5주 IP·NAT</a>
+  </nav>
+  <button class="theme-btn" type="button">테마</button>
+</div></header>
+
+<div class="layout">
+<aside class="toc">
+  <b>이 페이지</b>
+  <ol>
+    <li><a href="#how"><span class="n">0.1</span>읽는 방법</a></li>
+    <li><a href="#layers"><span class="n">0.2</span>계층 모델</a></li>
+    <li><a href="#weeks"><span class="n">0.3</span>주차별 페이지</a></li>
+    <li><a href="#flow"><span class="n">0.4</span>세 주를 하나로</a></li>
+    <li><a href="#glossary"><span class="n">0.5</span>용어집</a></li>
+  </ol>
+</aside>
+
+<main>
+<div class="hero">
+  <span class="eyebrow">컴퓨터 네트워크 · 2026-2 · 고려대학교 세종</span>
+  <h1>3–5주차 개념 정리<br>DNS · TCP · IP/NAT</h1>
+  <p class="lead">강의의 개념을 처음부터 단계별로 설명합니다. 각 개념 뒤에 이 저장소에서 그 개념을 사용한 코드와 측정값을 붙였습니다.</p>
+  <div class="meta">
+    <span>강의 슬라이드: <a href="https://2026-lecture-network.vercel.app/">2026-lecture-network.vercel.app</a></span>
+    <span>교재: Kurose &amp; Ross 9판 §2.3–§2.5, 3장, §4.1–§4.3</span>
+  </div>
+</div>
+
+<section class="sec" id="how">
+  <h2><span class="n">0.1</span>이 문서를 읽는 방법</h2>
+  <p>모든 절은 같은 순서로 씁니다. 상자의 색이 내용의 종류를 알려 줍니다.</p>
+  <div class="cards">
+    <div class="box concept" style="margin:0"><span class="tag">개념</span><p>용어의 뜻과 동작 원리입니다.</p></div>
+    <div class="box steps" style="margin:0"><span class="tag">절차</span><p>번호 순서대로 일어나는 일입니다.</p></div>
+    <div class="box example" style="margin:0"><span class="tag">이 프로젝트에서</span><p>이 저장소의 코드와 실제 측정값입니다.</p></div>
+    <div class="box check" style="margin:0"><span class="tag">확인 질문</span><p>질문을 누르면 답이 열립니다.</p></div>
+  </div>
+
+  <div class="box concept">
+    <span class="tag">작성 규칙 · ASD-STE100을 한국어에 적용</span>
+    <ul>
+      <li>한 문장에는 한 가지 내용만 씁니다.</li>
+      <li>절차는 번호를 붙인 단계로 씁니다.</li>
+      <li>한 용어는 한 가지 뜻으로만 씁니다. 처음 나올 때 영어 원어를 괄호에 씁니다.</li>
+      <li>같은 대상에 다른 이름을 쓰지 않습니다. 예: "질의"와 "요청"을 섞어 쓰지 않습니다.</li>
+    </ul>
+  </div>
+
+  <h3>이 문서에서 고정한 용어</h3>
+  <div class="tbl"><table>
+    <tr><th>용어</th><th>뜻</th></tr>
+    <tr><td>호스트(host)</td><td>네트워크에 연결된 컴퓨터. 노트북, 서버, 휴대폰이 호스트입니다.</td></tr>
+    <tr><td>질의(query)</td><td>한 쪽이 보내는 질문 메시지.</td></tr>
+    <tr><td>응답(response)</td><td>질의에 대한 답 메시지.</td></tr>
+    <tr><td>주소(address)</td><td>IP 주소. 따로 말하지 않으면 IPv4 주소입니다.</td></tr>
+    <tr><td>이름(name)</td><td>사람이 읽는 호스트 이름. 예: <code>www.korea.ac.kr</code></td></tr>
+  </table></div>
+</section>
+
+<section class="sec" id="layers">
+  <h2><span class="n">0.2</span>계층 모델: 세 주를 묶는 그림</h2>
+  <p>인터넷은 일을 계층(layer)으로 나눕니다. 각 계층은 바로 아래 계층의 서비스를 사용합니다. 3·4·5주차는 위에서부터 한 계층씩 내려갑니다.</p>
+
+  <figure class="dg">
+    <svg viewBox="0 0 760 300" role="img" aria-label="인터넷 계층과 주차의 대응">
+      <!-- 계층 상자 -->
+      <rect class="bx-dns" x="20" y="16" width="330" height="58" rx="8"/>
+      <text x="36" y="42" class="t-b t-dns">응용 계층 (application)</text>
+      <text x="36" y="62" class="t-s t-muted">DNS · HTTP · SMTP  —  단위: 메시지</text>
+
+      <rect class="bx-tcp" x="20" y="84" width="330" height="58" rx="8"/>
+      <text x="36" y="110" class="t-b t-tcp">전송 계층 (transport)</text>
+      <text x="36" y="130" class="t-s t-muted">TCP · UDP · QUIC  —  단위: 세그먼트</text>
+
+      <rect class="bx-ip" x="20" y="152" width="330" height="58" rx="8"/>
+      <text x="36" y="178" class="t-b t-ip">네트워크 계층 (network)</text>
+      <text x="36" y="198" class="t-s t-muted">IP · DHCP · NAT  —  단위: 데이터그램</text>
+
+      <rect class="bx2" x="20" y="220" width="330" height="58" rx="8"/>
+      <text x="36" y="246" class="t-b">링크 계층 (link)</text>
+      <text x="36" y="266" class="t-s t-muted">Ethernet · Wi-Fi · ARP  —  단위: 프레임 (7주차)</text>
+
+      <!-- 오른쪽 설명 -->
+      <line class="ln-dash" x1="350" y1="45" x2="400" y2="45"/>
+      <line class="ln-dash" x1="350" y1="113" x2="400" y2="113"/>
+      <line class="ln-dash" x1="350" y1="181" x2="400" y2="181"/>
+      <text x="410" y="40" class="t-b t-dns">3주차</text>
+      <text x="410" y="58" class="t-s">이름을 주소로 바꿉니다.</text>
+      <text x="410" y="108" class="t-b t-tcp">4주차</text>
+      <text x="410" y="126" class="t-s">프로세스끼리 신뢰적으로 연결합니다.</text>
+      <text x="410" y="176" class="t-b t-ip">5주차</text>
+      <text x="410" y="194" class="t-s">호스트에서 호스트로 패킷을 옮깁니다.</text>
+      <text x="410" y="250" class="t-s t-muted">(이 문서의 범위 밖)</text>
+
+      <!-- 캡슐화 화살표 -->
+      <path class="ln" d="M 736 30 L 736 270" marker-end="url(#ah)"/>
+      <text x="726" y="150" class="t-s t-muted" text-anchor="end" transform="rotate(-90 726 150)">보낼 때: 아래로 내려가며 헤더를 붙임</text>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs>
+    </svg>
+    <figcaption>보내는 쪽은 위에서 아래로 헤더를 붙이고, 받는 쪽은 아래에서 위로 헤더를 뗍니다.</figcaption>
+  </figure>
+</section>
+
+<section class="sec" id="weeks">
+  <h2><span class="n">0.3</span>주차별 페이지</h2>
+  <div class="cards">
+    <a class="card link wk-dns" href="w03-dns.html">
+      <h4>3주차 · DNS와 CDN</h4>
+      <p>계층 구조, 재귀/반복 질의, 레코드, 위임과 glue, CNAME, 캐시와 TTL, CDN 유도</p>
+      <p class="small muted">실습: 반복 리졸버 · 유도 측정 · TTL 캐시</p>
+    </a>
+    <a class="card link wk-tcp" href="w04-tcp.html">
+      <h4>4주차 · TCP</h4>
+      <p>포트, UDP, 신뢰적 전송, 선택적 반복, 핸드셰이크, 흐름 제어, 혼잡 제어, QUIC</p>
+      <p class="small muted">실습: 신뢰적 전송 · 링크 측정 · 혼잡 제어</p>
+    </a>
+    <a class="card link wk-ip" href="w05-ip-nat.html">
+      <h4>5주차 · IP와 NAT</h4>
+      <p>라우터 내부, IPv4 주소, 서브넷과 CIDR, 최장 프리픽스 일치, DHCP, NAT, IPv6</p>
+      <p class="small muted">실습: 서브넷과 LPM · 내 주소와 DHCP · 빠른 LPM</p>
+    </a>
+  </div>
+</section>
+
+<section class="sec" id="flow">
+  <h2><span class="n">0.4</span>세 주를 하나로 연결하기</h2>
+  <p>4주차 Task 2에서 <code>curl https://speed.cloudflare.com/...</code>을 실행했습니다. 그때 다음 순서로 일이 일어납니다. 색은 주차를 뜻합니다.</p>
+  <div class="legend" style="margin-bottom:6px">
+    <span><i style="background:var(--dns)"></i>3주차 DNS</span>
+    <span><i style="background:var(--tcp)"></i>4주차 TCP</span>
+    <span><i style="background:var(--ip)"></i>5주차 IP·NAT</span>
+  </div>
+  <ol class="stepper">
+    <li style="--wk:var(--ip)"><b>DHCP.</b> Wi-Fi에 들어올 때 노트북은 주소 <code>172.16.25.130/24</code>, 게이트웨이 <code>172.16.25.1</code>, DNS 서버 주소를 받았습니다.</li>
+    <li style="--wk:var(--dns)"><b>DNS.</b> <code>curl</code>이 로컬 DNS 서버에 이름을 재귀 질의합니다. 캐시에 없으면 로컬 DNS 서버가 루트 → <code>.com</code> → 권한 서버로 반복 질의합니다. <span class="muted">→ curl의 <code>time_namelookup</code></span></li>
+    <li style="--wk:var(--ip)"><b>포워딩 결정.</b> 목적지가 자기 서브넷 밖입니다. 노트북은 패킷을 기본 게이트웨이로 보냅니다.</li>
+    <li style="--wk:var(--tcp)"><b>TCP 핸드셰이크.</b> SYN → SYN-ACK → ACK. ISN을 정하고 MSS와 윈도우 스케일을 교환합니다. <span class="muted">→ curl의 <code>connect_s</code></span></li>
+    <li style="--wk:var(--ip)"><b>NAT.</b> 캠퍼스 경계 라우터가 출발지 <code>172.16.25.130:포트</code>를 <code>163.152.233.xxx:새 포트</code>로 바꾸고 변환 표에 기록합니다.</li>
+    <li style="--wk:var(--ip)"><b>라우터마다 포워딩.</b> 각 라우터는 목적지 주소에 최장 프리픽스 일치를 적용합니다. IP 헤더의 TTL을 1 줄입니다.</li>
+    <li style="--wk:var(--tcp)"><b>데이터 전송.</b> 슬로 스타트로 cwnd가 RTT마다 두 배가 됩니다. 수신 윈도우는 4.6 MB였지만 실제로 보낸 양은 약 193 KB였습니다.</li>
+    <li style="--wk:var(--ip)"><b>응답의 귀환.</b> 응답은 NAT 변환 표를 거쳐 다시 <code>172.16.25.130</code>으로 갑니다.</li>
+  </ol>
+</section>
+
+<section class="sec" id="glossary">
+  <h2><span class="n">0.5</span>용어집</h2>
+  <div class="tbl"><table>
+    <tr><th>용어</th><th>영어</th><th>한 줄 정의</th><th>위치</th></tr>
+    <tr><td>리졸버</td><td>resolver</td><td>호스트 대신 이름을 해석하는 DNS 서버</td><td><a href="w03-dns.html#hier">3주 1.3</a></td></tr>
+    <tr><td>재귀 질의</td><td>recursive query</td><td>받은 서버가 답을 끝까지 찾아 주는 질의</td><td><a href="w03-dns.html#rec">3주 1.4</a></td></tr>
+    <tr><td>반복 질의</td><td>iterative query</td><td>받은 서버가 다음 서버를 알려 주는 질의</td><td><a href="w03-dns.html#rec">3주 1.4</a></td></tr>
+    <tr><td>자원 레코드</td><td>resource record</td><td>(Name, TTL, Class, Type, Value)</td><td><a href="w03-dns.html#rr">3주 1.5</a></td></tr>
+    <tr><td>위임</td><td>delegation</td><td>Authority 섹션의 NS로 "저 서버에 물으십시오"라고 하는 응답</td><td><a href="w03-dns.html#deleg">3주 1.7</a></td></tr>
+    <tr><td>glue 레코드</td><td>glue record</td><td>위임에 함께 오는 네임서버의 A 레코드</td><td><a href="w03-dns.html#deleg">3주 1.7</a></td></tr>
+    <tr><td>TTL (DNS)</td><td>time to live</td><td>레코드를 캐시에 둘 수 있는 시간(초)</td><td><a href="w03-dns.html#cache">3주 1.9</a></td></tr>
+    <tr><td>만료된 답</td><td>stale answer</td><td>TTL이 지난 레코드로 한 답</td><td><a href="w03-dns.html#cache">3주 1.9</a></td></tr>
+    <tr><td>CDN</td><td>content distribution network</td><td>여러 위치에 복사본을 두고 사용자를 한 곳으로 보내는 망</td><td><a href="w03-dns.html#cdn">3주 1.11</a></td></tr>
+    <tr><td>애니캐스트</td><td>anycast</td><td>여러 위치가 같은 주소를 쓰고 라우팅이 가까운 곳을 고르는 방식</td><td><a href="w03-dns.html#cdn">3주 1.11</a></td></tr>
+    <tr><td>역다중화</td><td>demultiplexing</td><td>헤더의 포트를 보고 맞는 소켓에 데이터를 넘기는 일</td><td><a href="w04-tcp.html#mux">4주 2.2</a></td></tr>
+    <tr><td>순서 번호</td><td>sequence number</td><td>데이터에 붙인 번호. TCP에서는 바이트 번호</td><td><a href="w04-tcp.html#rdt">4주 2.4</a></td></tr>
+    <tr><td>선택적 반복</td><td>selective repeat</td><td>패킷별 ACK와 타이머, 수신 측 버퍼를 쓰는 파이프라이닝</td><td><a href="w04-tcp.html#pipe">4주 2.5</a></td></tr>
+    <tr><td>ISN</td><td>initial sequence number</td><td>연결의 첫 순서 번호. 예측하기 어려운 값</td><td><a href="w04-tcp.html#seg">4주 2.6</a></td></tr>
+    <tr><td>rwnd</td><td>receive window</td><td>수신 측 버퍼의 남은 공간</td><td><a href="w04-tcp.html#flow">4주 2.9</a></td></tr>
+    <tr><td>BDP</td><td>bandwidth-delay product</td><td>대역폭 × RTT. 링크를 채우는 데 필요한 윈도우</td><td><a href="w04-tcp.html#bdp">4주 2.10</a></td></tr>
+    <tr><td>cwnd</td><td>congestion window</td><td>송신 측이 네트워크를 위해 제한하는 윈도우</td><td><a href="w04-tcp.html#cc">4주 2.12</a></td></tr>
+    <tr><td>AIMD</td><td>additive increase, multiplicative decrease</td><td>RTT마다 +1, 손실 시 절반</td><td><a href="w04-tcp.html#cc">4주 2.12</a></td></tr>
+    <tr><td>HOL 블로킹</td><td>head-of-line blocking</td><td>맨 앞 항목이 막혀 뒤 항목이 기다리는 현상</td><td><a href="w04-tcp.html#quic">4주 2.13</a></td></tr>
+    <tr><td>포워딩 / 라우팅</td><td>forwarding / routing</td><td>라우터 하나의 출력 선택 / 전체 경로 결정</td><td><a href="w05-ip-nat.html#plane">5주 3.1</a></td></tr>
+    <tr><td>프리픽스, CIDR</td><td>prefix, CIDR</td><td>주소의 네트워크 부분, <code>a.b.c.d/x</code> 표기</td><td><a href="w05-ip-nat.html#cidr">5주 3.5</a></td></tr>
+    <tr><td>최장 프리픽스 일치</td><td>longest prefix match</td><td>일치한 항목 중 가장 긴 프리픽스를 고르는 규칙</td><td><a href="w05-ip-nat.html#lpm">5주 3.7</a></td></tr>
+    <tr><td>DHCP, 임대</td><td>DHCP, lease</td><td>주소를 자동으로 빌려주는 프로토콜, 그 기간</td><td><a href="w05-ip-nat.html#dhcp">5주 3.9</a></td></tr>
+    <tr><td>NAT, CGNAT</td><td>NAT, carrier-grade NAT</td><td>내부 주소·포트를 공인 주소·포트로 바꿈, 통신사의 두 번째 NAT</td><td><a href="w05-ip-nat.html#nat">5주 3.10</a></td></tr>
+    <tr><td>듀얼 스택</td><td>dual stack</td><td>IPv4와 IPv6를 함께 쓰는 방식</td><td><a href="w05-ip-nat.html#v6">5주 3.11</a></td></tr>
+  </table></div>
+</section>
+
+<div class="pager">
+  <span></span>
+  <a class="next" href="w03-dns.html"><small>다음</small>3주차 · DNS와 CDN →</a>
+</div>
+</main>
+</div>
+</body>
+</html>

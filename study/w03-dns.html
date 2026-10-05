@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3주차 DNS와 CDN</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body class="wk-dns">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="a-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker>
+  <marker id="a-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-dns"/></marker>
+  <marker id="a-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-tcp"/></marker>
+  <marker id="a-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-ok"/></marker>
+</defs></svg>
+
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <nav class="nav">
+    <a href="index.html">개요</a>
+    <a class="on" href="w03-dns.html">3주 DNS</a>
+    <a href="w04-tcp.html">4주 TCP</a>
+    <a href="w05-ip-nat.html">5주 IP·NAT</a>
+  </nav>
+  <button class="theme-btn" type="button">테마</button>
+</div></header>
+
+<div class="layout">
+<aside class="toc">
+  <b>3주차 목차</b>
+  <ol>
+    <li><a href="#problem"><span class="n">1.1</span>DNS가 하는 일</a></li>
+    <li><a href="#dist"><span class="n">1.2</span>왜 분산하는가</a></li>
+    <li><a href="#hier"><span class="n">1.3</span>이름과 서버의 계층</a></li>
+    <li><a href="#rec"><span class="n">1.4</span>재귀 질의와 반복 질의</a></li>
+    <li><a href="#rr"><span class="n">1.5</span>자원 레코드</a></li>
+    <li><a href="#msg"><span class="n">1.6</span>DNS 메시지 형식</a></li>
+    <li><a href="#deleg"><span class="n">1.7</span>위임과 glue</a></li>
+    <li><a href="#cname"><span class="n">1.8</span>CNAME 체인</a></li>
+    <li><a href="#cache"><span class="n">1.9</span>캐시와 TTL</a></li>
+    <li><a href="#dash"><span class="n">1.10</span>비디오와 DASH</a></li>
+    <li><a href="#cdn"><span class="n">1.11</span>CDN과 DNS 유도</a></li>
+    <li><a href="#mail"><span class="n">1.12</span>(참고) 전자메일</a></li>
+    <li><a href="#quiz"><span class="n">✓</span>스스로 확인하기</a></li>
+  </ol>
+</aside>
+
+<main>
+<div class="hero">
+  <span class="eyebrow">3주차 · 응용 계층</span>
+  <h1>DNS와 CDN</h1>
+  <p class="lead">이름을 입력하면 주소가 돌아옵니다. 이번 주의 질문은 세 가지입니다. <b>누가 답했는가, 그 기계는 누구의 것인가, 그 답을 얼마 동안 써도 되는가.</b></p>
+  <div class="meta">
+    <span>강의 3-1 · 3-2 (교재 §2.4–§2.5)</span>
+    <span>실습 폴더 <a class="kbd-file" href="../w03-dns/">w03-dns/</a></span>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card"><h4>Task 1 · 반복 리졸버</h4><p><code>dig +trace</code> 없이 루트부터 직접 내려갑니다.</p><p class="small muted">1.4 · 1.6 · 1.7 · 1.8</p></div>
+  <div class="card"><h4>Task 2 · 캡처와 유도 측정</h4><p>패킷에서 위임과 답을 구별하고, CDN 유도를 측정합니다.</p><p class="small muted">1.6 · 1.11</p></div>
+  <div class="card"><h4>Task 3 · TTL 캐시</h4><p>만료된 답 0개, 상류 질의 하한을 찾습니다.</p><p class="small muted">1.9</p></div>
+</div>
+
+<!-- 1.1 -->
+<section class="sec" id="problem">
+  <h2><span class="n">1.1</span>DNS가 해결하는 문제</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>호스트를 가리키는 방법은 두 가지입니다.</p>
+    <div class="cards" style="margin:8px 0">
+      <div class="card"><h4>이름 <code>www.korea.ac.kr</code></h4><p>사람이 기억하기 쉽습니다. 길이가 일정하지 않습니다. 라우터는 이름을 처리하지 않습니다.</p></div>
+      <div class="card"><h4>주소 <code>163.152.6.10</code></h4><p>32비트 숫자입니다. 라우터가 처리합니다. 사람이 기억하기 어렵습니다.</p></div>
+    </div>
+    <p><b>DNS(Domain Name System)</b>는 이름을 주소로 바꿉니다. 이 일을 <b>이름 해석(name resolution)</b>이라고 합니다.</p>
+  </div>
+  <h3>주소 변환 이외의 서비스</h3>
+  <div class="tbl"><table>
+    <tr><th>서비스</th><th>설명</th></tr>
+    <tr><td>호스트 별칭</td><td>짧은 별칭을 정식 이름(canonical name)에 연결합니다.</td></tr>
+    <tr><td>메일 서버 별칭</td><td><code>@korea.ac.kr</code> 메일을 받을 서버를 알려 줍니다(<code>MX</code>).</td></tr>
+    <tr><td>부하 분산</td><td>한 이름에 여러 주소를 돌려줍니다. 클라이언트가 여러 서버로 나뉩니다.</td></tr>
+  </table></div>
+  <p class="small muted">DNS는 응용 계층 프로토콜입니다. 주로 UDP 53번 포트를 사용합니다. 응답이 크면 TCP 53번을 사용합니다.</p>
+</section>
+
+<!-- 1.2 -->
+<section class="sec" id="dist">
+  <h2><span class="n">1.2</span>왜 DNS를 한 대의 서버로 만들지 않는가</h2>
+  <p>중앙 서버 한 대로 만들면 네 가지 문제가 생깁니다.</p>
+  <div class="cards">
+    <div class="card bad"><h4>① 단일 장애점</h4><p>그 서버가 멈추면 인터넷 전체가 멈춥니다.</p></div>
+    <div class="card bad"><h4>② 트래픽 양</h4><p>전 세계의 모든 질의가 한 서버로 갑니다.</p></div>
+    <div class="card bad"><h4>③ 거리</h4><p>먼 사용자는 질의마다 긴 지연을 겪습니다.</p></div>
+    <div class="card bad"><h4>④ 유지보수</h4><p>모든 이름의 변경을 한 곳에서 처리해야 합니다.</p></div>
+  </div>
+  <div class="box concept"><span class="tag">결론</span><p>DNS는 <b>분산(distributed)</b>되고 <b>계층적(hierarchical)</b>인 데이터베이스입니다.</p></div>
+</section>
+
+<!-- 1.3 -->
+<section class="sec" id="hier">
+  <h2><span class="n">1.3</span>이름의 구조와 서버의 계층</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>이름은 점(<code>.</code>)으로 나뉜 <b>라벨(label)</b>의 목록입니다. <b>오른쪽 라벨이 더 높은 계층</b>입니다.</p>
+    <p><b>영역(zone)</b>은 한 조직이 책임지는 이름의 범위입니다.</p>
+  </div>
+
+  <figure class="dg">
+    <svg viewBox="0 0 800 300" role="img" aria-label="DNS 이름 계층 트리">
+      <!-- 연결선 -->
+      <path class="ln" d="M380 48 L105 95 M380 48 L245 95 M380 48 L385 95"/>
+      <path class="ln-dns" d="M380 48 L605 95"/>
+      <path class="ln" d="M105 129 L75 170 M105 129 L190 170 M245 129 L315 170 M385 129 L435 170"/>
+      <path class="ln-dns" d="M605 129 L605 170 M605 204 L605 240"/>
+      <!-- 루트 -->
+      <rect class="bx-dns" x="330" y="12" width="100" height="36" rx="18"/>
+      <text x="380" y="35" text-anchor="middle" class="t-b">. (루트)</text>
+      <!-- TLD -->
+      <rect class="bx" x="60" y="95" width="90" height="34" rx="6"/><text x="105" y="117" text-anchor="middle">com</text>
+      <rect class="bx" x="200" y="95" width="90" height="34" rx="6"/><text x="245" y="117" text-anchor="middle">org</text>
+      <rect class="bx" x="340" y="95" width="90" height="34" rx="6"/><text x="385" y="117" text-anchor="middle">edu</text>
+      <rect class="bx-dns" x="560" y="95" width="90" height="34" rx="6"/><text x="605" y="117" text-anchor="middle" class="t-b">kr</text>
+      <!-- 3단계 -->
+      <rect class="bx2" x="15" y="170" width="120" height="34" rx="6"/><text x="75" y="192" text-anchor="middle" class="t-s">microsoft.com</text>
+      <rect class="bx2" x="140" y="170" width="100" height="34" rx="6"/><text x="190" y="192" text-anchor="middle" class="t-s">netflix.com</text>
+      <rect class="bx2" x="255" y="170" width="120" height="34" rx="6"/><text x="315" y="192" text-anchor="middle" class="t-s">wikipedia.org</text>
+      <rect class="bx2" x="380" y="170" width="110" height="34" rx="6"/><text x="435" y="192" text-anchor="middle" class="t-s">stanford.edu</text>
+      <rect class="bx-dns" x="560" y="170" width="90" height="34" rx="6"/><text x="605" y="192" text-anchor="middle">ac.kr</text>
+      <rect class="bx-dns" x="540" y="240" width="130" height="34" rx="6"/><text x="605" y="262" text-anchor="middle" class="t-b">korea.ac.kr</text>
+      <!-- 오른쪽 설명 -->
+      <text x="690" y="34" class="t-s t-dns t-b">루트 서버</text>
+      <text x="690" y="116" class="t-s t-dns t-b">TLD 서버</text>
+      <text x="690" y="186" class="t-s t-muted">ac.kr</text>
+      <text x="690" y="200" class="t-s t-muted">(kr 서버가 담당)</text>
+      <text x="690" y="256" class="t-s t-dns t-b">권한 서버</text>
+      <text x="690" y="272" class="t-s t-muted">고려대학교</text>
+    </svg>
+    <figcaption>파란 경로가 <code>www.korea.ac.kr</code>을 찾을 때 내려가는 길입니다.</figcaption>
+  </figure>
+
+  <div class="tbl"><table>
+    <tr><th>서버 부류</th><th>아는 것</th><th>예</th></tr>
+    <tr><td><b>루트 서버</b> (root)</td><td>각 TLD를 담당하는 서버가 어디 있는지</td><td><code>a.root-servers.net</code> = <code>198.41.0.4</code></td></tr>
+    <tr><td><b>TLD 서버</b></td><td>각 도메인의 권한 서버가 어디 있는지</td><td><code>.kr</code>, <code>.com</code> 서버</td></tr>
+    <tr><td><b>권한 DNS 서버</b> (authoritative)</td><td>자기 영역 안의 실제 레코드</td><td>고려대학교의 네임서버</td></tr>
+    <tr><td><b>로컬 DNS 서버</b> (리졸버)</td><td>계층에 속하지 않습니다. 호스트 대신 계층을 내려가고 결과를 캐시합니다.</td><td>학교·ISP의 DNS 서버</td></tr>
+  </table></div>
+
+  <div class="box warn"><span class="tag">흔한 오해</span>
+    <p>"루트 서버는 13대"는 틀린 말입니다. 루트 서버를 운영하는 <b>조직</b>이 13곳입니다. 각 조직은 전 세계에 많은 복제 서버를 둡니다.</p>
+  </div>
+
+  <div class="box example"><span class="tag">이 프로젝트에서</span>
+    <p><a class="kbd-file" href="../w03-dns/task1_resolve.py">task1_resolve.py</a> 26–31행의 <code>ROOT_SERVERS</code>는 루트 서버 주소 세 개입니다. 리졸버는 항상 여기에서 시작합니다. 이것보다 앞 단계는 없습니다.</p>
+<pre><code>ROOT_SERVERS = [
+    "198.41.0.4",       <span class="c"># a.root-servers.net</span>
+    "199.9.14.201",     <span class="c"># b.root-servers.net</span>
+    "192.33.4.12",      <span class="c"># c.root-servers.net</span>
+]</code></pre>
+  </div>
+</section>
+
+<!-- 1.4 -->
+<section class="sec" id="rec">
+  <h2><span class="n">1.4</span>재귀 질의와 반복 질의</h2>
+  <div class="cards">
+    <div class="card" style="border-top:5px solid var(--tcp)"><h4>재귀 질의 (recursive)</h4><p>"답을 끝까지 찾아서 주십시오."</p><p class="small muted">받은 서버가 다른 서버들에게 대신 묻습니다.</p></div>
+    <div class="card" style="border-top:5px solid var(--dns)"><h4>반복 질의 (iterative)</h4><p>"아는 만큼만 주십시오."</p><p class="small muted">받은 서버는 다음에 물을 서버를 알려 줍니다.</p></div>
+  </div>
+
+  <figure class="dg">
+    <svg viewBox="0 0 760 330" role="img" aria-label="재귀 질의와 반복 질의의 흐름">
+      <!-- 노드 -->
+      <rect class="bx" x="20" y="135" width="150" height="62" rx="8"/>
+      <text x="95" y="162" text-anchor="middle" class="t-b">노트북</text>
+      <text x="95" y="182" text-anchor="middle" class="t-s t-muted">stub resolver</text>
+      <rect class="bx-chk" x="290" y="130" width="170" height="72" rx="8"/>
+      <text x="375" y="160" text-anchor="middle" class="t-b">로컬 DNS 서버</text>
+      <text x="375" y="180" text-anchor="middle" class="t-s t-muted">대신 묻고, 캐시함</text>
+      <rect class="bx-dns" x="580" y="18" width="160" height="50" rx="8"/>
+      <text x="660" y="48" text-anchor="middle" class="t-b">루트 서버</text>
+      <rect class="bx-dns" x="580" y="141" width="160" height="50" rx="8"/>
+      <text x="660" y="171" text-anchor="middle" class="t-b">.kr TLD 서버</text>
+      <rect class="bx-dns" x="580" y="264" width="160" height="50" rx="8"/>
+      <text x="660" y="288" text-anchor="middle" class="t-b">권한 서버</text>
+      <text x="660" y="304" text-anchor="middle" class="t-s t-muted">korea.ac.kr</text>
+      <!-- 재귀 1, 8 -->
+      <line class="ln-tcp" x1="170" y1="155" x2="288" y2="155" marker-end="url(#a-t)"/>
+      <text x="229" y="148" text-anchor="middle" class="t-s t-tcp t-b">① 질의 (RD=1)</text>
+      <line class="ln-tcp" x1="288" y1="180" x2="172" y2="180" marker-end="url(#a-t)"/>
+      <text x="229" y="198" text-anchor="middle" class="t-s t-tcp t-b">⑧ 주소</text>
+      <!-- 반복 2-7 -->
+      <line class="ln-dns" x1="460" y1="140" x2="578" y2="40" marker-end="url(#a-d)"/>
+      <text x="490" y="78" class="t-s t-dns t-b">② 질의</text>
+      <line class="ln-dash" x1="578" y1="60" x2="468" y2="150" marker-end="url(#a-m)"/>
+      <text x="540" y="118" class="t-s t-muted">③ "kr은 저기"</text>
+      <line class="ln-dns" x1="460" y1="158" x2="578" y2="158" marker-end="url(#a-d)"/>
+      <text x="519" y="152" text-anchor="middle" class="t-s t-dns t-b">④ 질의</text>
+      <line class="ln-dash" x1="578" y1="176" x2="462" y2="176" marker-end="url(#a-m)"/>
+      <text x="519" y="192" text-anchor="middle" class="t-s t-muted">⑤ "저기"</text>
+      <line class="ln-dns" x1="460" y1="194" x2="578" y2="282" marker-end="url(#a-d)"/>
+      <text x="470" y="250" class="t-s t-dns t-b">⑥ 질의</text>
+      <line class="ln-dash" x1="578" y1="298" x2="468" y2="204" marker-end="url(#a-m)"/>
+      <text x="520" y="296" text-anchor="end" class="t-s t-muted">⑦ A 레코드</text>
+    </svg>
+    <figcaption>주황 = 재귀 질의(노트북 ↔ 로컬 DNS). 파랑 = 반복 질의(로컬 DNS ↔ 계층의 서버들). 점선 = 응답.</figcaption>
+  </figure>
+
+  <div class="box steps"><span class="tag">절차 · 보통의 이름 해석</span>
+    <ol class="stepper">
+      <li>노트북이 로컬 DNS 서버에 <b>재귀</b> 질의를 보냅니다.</li>
+      <li>로컬 DNS 서버가 루트 서버에 <b>반복</b> 질의를 보냅니다. 루트 서버는 TLD 서버의 위치를 줍니다.</li>
+      <li>로컬 DNS 서버가 TLD 서버에 질의합니다. TLD 서버는 권한 서버의 위치를 줍니다.</li>
+      <li>로컬 DNS 서버가 권한 서버에 질의합니다. 권한 서버는 주소를 줍니다.</li>
+      <li>로컬 DNS 서버가 주소를 노트북에 돌려줍니다. 결과를 캐시에 저장합니다.</li>
+    </ol>
+    <p>노트북은 질의를 <b>한 번</b> 보냅니다. 나머지 질의는 로컬 DNS 서버가 보냅니다.</p>
+  </div>
+
+  <div class="box concept"><span class="tag">RD 비트</span>
+    <p>질의 헤더의 <b>RD(Recursion Desired)</b> 비트가 1이면 "재귀로 처리해 주십시오"라는 뜻입니다. <code>dig</code>의 <code>+norecurse</code> 옵션은 RD를 0으로 만듭니다.</p>
+  </div>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 1</span>
+    <p>Task 1은 위 그림의 <b>②–⑦을 직접 구현</b>하는 과제입니다. <code>dig +trace</code>는 이 일을 대신 하므로 금지입니다. <code>_query()</code>는 모든 질의에 <code>+norecurse</code>를 붙입니다(81–84행).</p>
+<pre><code>["dig", f"@{server}", name, "A", <span class="k">"+norecurse"</span>, "+time=3", "+tries=1", ...]</code></pre>
+    <div class="flow">
+      <span class="chip hl">198.41.0.4<small>루트</small></span><span class="arr">→</span>
+      <span class="chip hl">.kr 서버<small>TLD</small></span><span class="arr">→</span>
+      <span class="chip hl">고려대 네임서버<small>권한</small></span><span class="arr">=</span>
+      <span class="chip"><b>질의 3번</b><small>노트북은 평소 1번</small></span>
+    </div>
+    <p>차이 2번은 평소에 로컬 DNS 서버가 대신 하고 캐시하는 일입니다.</p>
+  </div>
+</section>
+
+<!-- 1.5 -->
+<section class="sec" id="rr">
+  <h2><span class="n">1.5</span>자원 레코드 (Resource Record)</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>DNS 데이터베이스는 <b>자원 레코드(RR)</b>의 모음입니다. 레코드 하나는 다섯 필드입니다. <code>dig</code> 출력의 한 줄이 레코드 하나입니다.</p>
+  </div>
+  <figure class="dg">
+    <svg viewBox="0 0 760 120" role="img" aria-label="자원 레코드의 다섯 필드">
+      <rect class="bx-dns" x="20" y="20" width="230" height="44" rx="6"/><text x="135" y="47" text-anchor="middle" class="t-mono">www.korea.ac.kr.</text>
+      <rect class="bx-chk" x="258" y="20" width="90" height="44" rx="6"/><text x="303" y="47" text-anchor="middle" class="t-mono">3600</text>
+      <rect class="bx2" x="356" y="20" width="70" height="44" rx="6"/><text x="391" y="47" text-anchor="middle" class="t-mono">IN</text>
+      <rect class="bx-tcp" x="434" y="20" width="70" height="44" rx="6"/><text x="469" y="47" text-anchor="middle" class="t-mono t-b">A</text>
+      <rect class="bx-ok" x="512" y="20" width="228" height="44" rx="6"/><text x="626" y="47" text-anchor="middle" class="t-mono">163.152.6.10</text>
+      <text x="135" y="88" text-anchor="middle" class="t-b">Name</text>
+      <text x="303" y="88" text-anchor="middle" class="t-b">TTL (초)</text>
+      <text x="391" y="88" text-anchor="middle" class="t-b">Class</text>
+      <text x="469" y="88" text-anchor="middle" class="t-b">Type</text>
+      <text x="626" y="88" text-anchor="middle" class="t-b">Value</text>
+      <text x="303" y="106" text-anchor="middle" class="t-s t-muted">캐시에 둘 시간</text>
+      <text x="469" y="106" text-anchor="middle" class="t-s t-muted">Value의 종류</text>
+    </svg>
+  </figure>
+  <div class="tbl"><table>
+    <tr><th>Type</th><th>Name</th><th>Value</th><th>쓰임</th></tr>
+    <tr><td><code>A</code></td><td>호스트 이름</td><td>IPv4 주소</td><td>이름 → 주소</td></tr>
+    <tr><td><code>AAAA</code></td><td>호스트 이름</td><td>IPv6 주소</td><td>이름 → IPv6 주소</td></tr>
+    <tr><td><code>NS</code></td><td>도메인</td><td>권한 서버의 <b>이름</b></td><td>위임 (1.7)</td></tr>
+    <tr><td><code>CNAME</code></td><td>별칭</td><td>정식 이름</td><td>별칭 (1.8)</td></tr>
+    <tr><td><code>MX</code></td><td>도메인</td><td>메일 서버 이름</td><td>메일 전달</td></tr>
+  </table></div>
+  <div class="cards">
+    <div class="card"><h4>권한 답 (authoritative)</h4><p>권한 서버가 직접 준 답입니다.</p></div>
+    <div class="card"><h4>비권한 답 (non-authoritative)</h4><p>캐시가 준 답입니다. <code>nslookup</code>은 "Non-authoritative answer"로 표시합니다.</p></div>
+  </div>
+  <div class="box example"><span class="tag">이 프로젝트에서</span>
+    <p><code>_query()</code>는 <code>dig</code> 출력의 각 줄을 <code>(name, type, value)</code>로 자릅니다(97–99행). 필드 0 = Name, 필드 3 = Type, 필드 4 = Value입니다.</p>
+<pre><code>f = line.split()
+if len(f) &gt;= 5:                          <span class="c"># name ttl IN type rdata</span>
+    sec[cur].append((f[0]..., f[3], f[4]...))</code></pre>
+  </div>
+</section>
+
+<!-- 1.6 -->
+<section class="sec" id="msg">
+  <h2><span class="n">1.6</span>DNS 메시지 형식</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>질의와 응답은 <b>같은 형식</b>입니다. 형식은 헤더 하나와 섹션 네 개입니다. 어느 섹션이 채워졌는지가 응답의 종류를 정합니다.</p>
+  </div>
+  <div class="tbl"><table>
+    <tr><th>헤더 필드</th><th>뜻</th></tr>
+    <tr><td>ID (16비트)</td><td>질의의 번호. 응답은 같은 ID를 돌려줍니다. 클라이언트는 이 값으로 응답을 질의에 짝짓습니다.</td></tr>
+    <tr><td>QR</td><td>0 = 질의, 1 = 응답</td></tr>
+    <tr><td>AA</td><td>Authoritative Answer. 권한 서버가 답했으면 1</td></tr>
+    <tr><td>RD / RA</td><td>재귀 요청 / 재귀 지원</td></tr>
+    <tr><td>RCODE</td><td>결과: <code>NOERROR</code>, <code>NXDOMAIN</code>(이름 없음), <code>REFUSED</code> 등</td></tr>
+  </table></div>
+
+  <figure class="dg">
+    <svg viewBox="0 0 760 290" role="img" aria-label="위임 응답과 답 응답의 비교">
+      <text x="190" y="22" text-anchor="middle" class="t-b">위임 응답 · 패킷 #2</text>
+      <text x="570" y="22" text-anchor="middle" class="t-b">답 응답 · 패킷 #6</text>
+      <!-- 왼쪽 -->
+      <rect class="bx2" x="20" y="34" width="340" height="44" rx="6"/>
+      <text x="34" y="54" class="t-s t-b">헤더</text><text x="34" y="70" class="t-s t-mono">ID 0xa837 · QR=1 · <tspan class="t-warn t-b">AA=0</tspan></text>
+      <rect class="bx" x="20" y="84" width="340" height="40" rx="6"/>
+      <text x="34" y="109" class="t-s"><tspan class="t-b">Question</tspan>  www.korea.ac.kr A</text>
+      <rect class="bx" x="20" y="130" width="340" height="40" rx="6" style="stroke-dasharray:4 4"/>
+      <text x="34" y="155" class="t-s t-muted"><tspan class="t-b">Answer</tspan>  0개 (비어 있음)</text>
+      <rect class="bx-dns" x="20" y="176" width="340" height="40" rx="6"/>
+      <text x="34" y="201" class="t-s"><tspan class="t-b">Authority</tspan>  kr NS × 6  ← 다음 서버의 이름</text>
+      <rect class="bx-dns" x="20" y="222" width="340" height="40" rx="6"/>
+      <text x="34" y="247" class="t-s"><tspan class="t-b">Additional</tspan>  glue A/AAAA × 11  ← 그 주소</text>
+      <!-- 오른쪽 -->
+      <rect class="bx2" x="400" y="34" width="340" height="44" rx="6"/>
+      <text x="414" y="54" class="t-s t-b">헤더</text><text x="414" y="70" class="t-s t-mono">QR=1 · <tspan class="t-ok t-b">AA=1</tspan></text>
+      <rect class="bx" x="400" y="84" width="340" height="40" rx="6"/>
+      <text x="414" y="109" class="t-s"><tspan class="t-b">Question</tspan>  www.korea.ac.kr A</text>
+      <rect class="bx-ok" x="400" y="130" width="340" height="40" rx="6"/>
+      <text x="414" y="155" class="t-s"><tspan class="t-b">Answer</tspan>  A 163.152.6.10  ← 최종 답</text>
+      <rect class="bx" x="400" y="176" width="340" height="40" rx="6" style="stroke-dasharray:4 4"/>
+      <text x="414" y="201" class="t-s t-muted"><tspan class="t-b">Authority</tspan>  (있을 수 있음)</text>
+      <rect class="bx" x="400" y="222" width="340" height="40" rx="6" style="stroke-dasharray:4 4"/>
+      <text x="414" y="247" class="t-s t-muted"><tspan class="t-b">Additional</tspan>  (있을 수 있음)</text>
+      <text x="380" y="282" text-anchor="middle" class="t-s t-muted">같은 형식. 채워진 섹션과 AA 비트만 다릅니다.</text>
+    </svg>
+    <figcaption>Task 2 Part A에서 직접 캡처한 <code>out/dns.pcapng</code>의 두 패킷입니다.</figcaption>
+  </figure>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 Part A</span>
+    <ul>
+      <li><b>A2</b> 질의 #1과 응답 #2는 같은 ID <code>0xa837</code>을 가집니다.</li>
+      <li><b>A3</b> #2는 위임(Answer 0, Authority NS 6, Additional glue 11). #6은 답(Answer A 1, AA=1).</li>
+      <li><b>A4</b> 가장 큰 응답은 #50, <b>897바이트</b>입니다. 큰 TLD로 가는 위임이라서 <code>NS</code> 13개와 추가 레코드 27개(<code>gtld-servers.net</code>의 A/AAAA glue + EDNS OPT)를 담았습니다. 이름 압축이 없으면 더 큽니다.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 1.7 -->
+<section class="sec" id="deleg">
+  <h2><span class="n">1.7</span>위임(delegation)과 glue 레코드</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p><b>위임</b>은 "이 이름은 내 담당이 아닙니다. 저 서버에 물으십시오"라는 응답입니다. Authority 섹션의 <code>NS</code> 레코드로 표현됩니다.</p>
+    <p><code>NS</code>의 값은 서버의 <b>이름</b>입니다. 이름만으로는 질의를 보낼 수 없습니다. <b>주소</b>가 필요합니다.</p>
+    <p>그래서 위임 응답은 보통 Additional 섹션에 그 서버들의 <code>A</code> 레코드를 함께 넣습니다. 이것이 <b>glue 레코드</b>입니다.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card good">
+      <h4>glue가 있을 때</h4>
+      <div class="flow"><span class="chip">위임 받음</span><span class="arr">→</span><span class="chip hl">glue 주소로<br>바로 질의</span></div>
+      <p class="small muted">추가 비용 없음</p>
+    </div>
+    <div class="card bad">
+      <h4>glue가 없을 때</h4>
+      <div class="flow"><span class="chip">위임 받음</span><span class="arr">→</span><span class="chip">원래 해석 멈춤</span><span class="arr">→</span><span class="chip hl">NS 이름을<br>루트부터 해석</span><span class="arr">→</span><span class="chip">원래 해석 계속</span></div>
+      <p class="small muted">해석 안의 해석 = "재귀 리졸버"의 "재귀"</p>
+    </div>
+  </div>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 1 R3</span>
+    <p><code>_walk()</code> 128–145행이 위임을 처리합니다.</p>
+<pre><code>ns   = [v for n, t, v in sec["authority"]  if t == "NS"]            <span class="c"># 위임: NS 이름</span>
+glue = [v for n, t, v in sec["additional"] if t == "A" and n in ns]
+if glue:
+    servers = glue                                                 <span class="c"># glue 있음 → 바로 다음 서버</span>
+    continue
+self.no_glue += 1                                                  <span class="c"># glue 없음</span>
+for n in ns:
+    servers.append(<span class="k">self.resolve_inner(n, depth + 1)</span>)              <span class="c"># NS 이름부터 새로 해석</span></code></pre>
+    <p><b>실제 사례:</b> <code>www.nytimes.com</code>의 체인은 <code>xovr.nyt.net</code>을 지납니다. 이 영역의 네임서버 <code>dns1.p06.nsone.net</code>은 glue 없이 왔습니다.</p>
+    <div class="flow">
+      <span class="chip">루트</span><span class="arr">→</span><span class="chip">.net</span><span class="arr">→</span><span class="chip">nsone.net 서버</span><span class="arr">=</span><span class="chip hl"><b>+3번</b><small>전체 13번</small></span>
+    </div>
+  </div>
+</section>
+
+<!-- 1.8 -->
+<section class="sec" id="cname">
+  <h2><span class="n">1.8</span>CNAME과 CNAME 체인</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p><code>CNAME</code>은 "이 이름은 다른 이름의 별칭입니다"라는 뜻입니다. 답의 이름이 질의한 이름과 다를 수 있습니다. 리졸버는 <b>새 이름으로 해석을 다시 시작</b>합니다.</p>
+    <p>CNAME이 여러 번 이어지면 <b>CNAME 체인</b>입니다. 체인이 자기 자신으로 돌아오면 무한 반복이 됩니다. 그래서 횟수에 상한을 둡니다.</p>
+  </div>
+  <div class="flow">
+    <span class="chip">www.microsoft.com</span><span class="arr">CNAME →</span>
+    <span class="chip">www.microsoft.com-c-3.edgekey.net</span><span class="arr">CNAME →</span>
+    <span class="chip hl">e13678.dscb.akamaiedge.net</span><span class="arr">A →</span>
+    <span class="chip"><code>23.49.206.40</code></span>
+  </div>
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 1 R4–R6</span>
+    <div class="tbl"><table>
+      <tr><th>요구</th><th>코드</th><th>하는 일</th></tr>
+      <tr><td>R5 CNAME</td><td><code>_walk()</code> 114–126행</td><td>Answer 안의 CNAME을 따라갑니다. 끝에 A가 없으면 <code>("CNAME", 새 이름)</code>을 돌려줍니다.</td></tr>
+      <tr><td>R5 CNAME</td><td><code>resolve_inner()</code> 147–155행</td><td>새 이름으로 루트부터 다시 시작합니다.</td></tr>
+      <tr><td>R6 상한</td><td><code>MAX_DEPTH = 30</code>, <code>MAX_CNAME = 10</code></td><td>전체 질의가 120을 넘으면 예외. 잘못된 영역이 리졸버를 멈추지 못합니다.</td></tr>
+      <tr><td>R4 무응답</td><td><code>_walk()</code> 105–110행</td><td>서버 목록을 차례로 시도합니다. 시간 초과면 다음 서버로 갑니다.</td></tr>
+    </table></div>
+    <p><b>CDN 이름의 차이:</b> <code>--verify</code>에서 내 주소 <code>23.49.206.40</code>와 <code>dig</code>의 <code>104.94.218.45</code>가 달랐습니다. 내 리졸버는 Akamai 서버에 직접 물었고, <code>dig</code>는 캠퍼스 리졸버를 거쳤습니다. CDN은 묻는 쪽과 시간에 따라 다른 답을 줍니다(1.11).</p>
+  </div>
+</section>
+
+<!-- 1.9 -->
+<section class="sec" id="cache">
+  <h2><span class="n">1.9</span>DNS 캐시와 TTL</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>DNS 서버는 받은 레코드를 <b>캐시</b>에 저장합니다. 같은 질의가 다시 오면 캐시에서 답합니다. 그래서 실제로 루트까지 가는 질의는 적습니다.</p>
+    <p>캐시는 레코드를 <b>TTL 동안만</b> 사용해야 합니다.</p>
+    <ul>
+      <li>시각 <i>t</i>에 TTL이 <i>T</i>초인 레코드를 받았습니다.</li>
+      <li>이 레코드는 [<i>t</i>, <i>t</i>+<i>T</i>) 구간의 질의에만 답할 수 있습니다.</li>
+      <li><i>t</i>+<i>T</i> 이후에 이 레코드로 답하면 <b>만료된 답(stale answer)</b>입니다.</li>
+    </ul>
+  </div>
+
+  <figure class="dg">
+    <svg viewBox="0 0 720 250" role="img" aria-label="TTL 20초 레코드에 대한 두 캐시의 동작">
+      <!-- 축 -->
+      <text x="8" y="44" class="t-s t-b">질의 도착</text>
+      <line class="ln" x1="80" y1="40" x2="690" y2="40"/>
+      <g class="fill-muted">
+        <circle cx="80" cy="40" r="4"/><circle cx="120" cy="40" r="4"/><circle cx="155" cy="40" r="4"/>
+        <circle cx="190" cy="40" r="4"/><circle cx="255" cy="40" r="4"/><circle cx="330" cy="40" r="4"/>
+        <circle cx="370" cy="40" r="4"/><circle cx="430" cy="40" r="4"/><circle cx="505" cy="40" r="4"/>
+        <circle cx="580" cy="40" r="4"/>
+      </g>
+      <!-- 행 A: 올바른 캐시 -->
+      <text x="8" y="94" class="t-s t-b t-ok">올바른</text><text x="8" y="108" class="t-s t-b t-ok">캐시</text>
+      <rect class="bx-ok" x="80" y="84" width="100" height="22" rx="3"/>
+      <rect class="bx-ok" x="190" y="84" width="100" height="22" rx="3"/>
+      <rect class="bx-ok" x="330" y="84" width="100" height="22" rx="3"/>
+      <rect class="bx-ok" x="430" y="84" width="100" height="22" rx="3"/>
+      <rect class="bx-ok" x="580" y="84" width="100" height="22" rx="3"/>
+      <g class="fill-ok"><path d="M80 80 l-6 -10 h12z"/><path d="M190 80 l-6 -10 h12z"/><path d="M330 80 l-6 -10 h12z"/><path d="M430 80 l-6 -10 h12z"/><path d="M580 80 l-6 -10 h12z"/></g>
+      <text x="690" y="100" class="t-s t-ok" text-anchor="end"> </text>
+      <text x="80" y="126" class="t-s t-muted">▼ = 상류 질의 5번 · 만료된 답 0개</text>
+      <!-- 행 B: baseline -->
+      <text x="8" y="164" class="t-s t-b t-warn">baseline</text><text x="8" y="178" class="t-s t-b t-warn">(60초 고정)</text>
+      <rect class="bx-ok" x="80" y="154" width="100" height="22" rx="3"/>
+      <rect class="bx-warn" x="180" y="154" width="200" height="22" rx="3"/>
+      <rect class="bx-ok" x="430" y="154" width="100" height="22" rx="3"/>
+      <rect class="bx-warn" x="530" y="154" width="150" height="22" rx="3"/>
+      <g class="fill-ok"><path d="M80 150 l-6 -10 h12z"/><path d="M430 150 l-6 -10 h12z"/></g>
+      <g class="ln-warn">
+        <path d="M185 160 l10 10 M195 160 l-10 10"/><path d="M250 160 l10 10 M260 160 l-10 10"/>
+        <path d="M325 160 l10 10 M335 160 l-10 10"/><path d="M365 160 l10 10 M375 160 l-10 10"/>
+        <path d="M575 160 l10 10 M585 160 l-10 10"/>
+      </g>
+      <text x="80" y="196" class="t-s t-muted">▼ = 상류 질의 2번 · <tspan class="t-warn t-b">✕ 만료된 답 5개</tspan> (빨간 구간은 TTL이 지났는데 계속 씀)</text>
+      <!-- 시간 축 -->
+      <line class="ln" x1="80" y1="220" x2="690" y2="220"/>
+      <g class="t-s t-muted">
+        <text x="80" y="238" text-anchor="middle">0초</text><text x="180" y="238" text-anchor="middle">20</text>
+        <text x="280" y="238" text-anchor="middle">40</text><text x="380" y="238" text-anchor="middle">60</text>
+        <text x="480" y="238" text-anchor="middle">80</text><text x="580" y="238" text-anchor="middle">100</text>
+        <text x="680" y="238" text-anchor="middle">120</text>
+      </g>
+    </svg>
+    <figcaption>TTL 20초인 <code>www.microsoft.com</code>을 예로 든 그림입니다. 초록 = 유효한 구간, 빨강 = 만료된 채 사용하는 구간.</figcaption>
+  </figure>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 3</span>
+    <p><code>BaselineCache</code>는 결함이 세 개입니다. 앞의 두 개는 <b>원인이 같습니다</b>: TTL을 버리고 모든 레코드를 60초 동안 유지합니다(<code>FIXED_LIFETIME = 60</code>).</p>
+    <div class="tbl"><table>
+      <tr><th>결함</th><th>종류</th><th>결과</th></tr>
+      <tr class="bad"><td>TTL이 60초보다 짧은 레코드를 만료 후에도 줌</td><td>정확성</td><td>stale <b>266</b>건 (microsoft 20초, cnn 30초)</td></tr>
+      <tr><td>TTL이 긴 레코드를 1분마다 다시 가져옴</td><td>성능</td><td><code>dns.google</code>을 1번이면 될 것을 21번</td></tr>
+      <tr><td>리스트를 처음부터 끝까지 찾음</td><td>성능</td><td>조회마다 O(n)</td></tr>
+    </table></div>
+    <p><code>YourCache</code>는 레코드마다 <b>만료 시각</b>을 저장합니다.</p>
+<pre><code>entry = self.entries.get(name)                     <span class="c"># dict: O(1) 조회</span>
+if entry is not None and <span class="k">now &lt; entry[1]</span>:           <span class="c"># 만료 전 → 캐시에서 답</span>
+    return entry[0]
+address, ttl = self.upstream(name)                 <span class="c"># 없거나 만료 → 상류에 질의</span>
+self.entries[name] = (address, <span class="k">now + ttl</span>)          <span class="c"># 만료 시각 = 지금 + TTL</span></code></pre>
+    <div class="cards">
+      <div class="card bad"><h4>baseline</h4><p class="big" style="color:var(--warn)">266</p><p>stale · 상류 325 · hit 67.5%</p></div>
+      <div class="card good"><h4>YourCache</h4><p class="big" style="color:var(--example)">0</p><p>stale · 상류 275 · hit 72.5%</p></div>
+    </div>
+  </div>
+
+  <div class="box concept"><span class="tag">하한 275의 이유</span>
+    <ol class="stepper">
+      <li>레코드는 받은 뒤 TTL 동안만 사용할 수 있습니다.</li>
+      <li>만료 후 첫 질의는 반드시 상류에 물어야 합니다. 그렇지 않으면 stale입니다.</li>
+      <li>더 일찍 다시 물으면 질의 수만 늘어납니다.</li>
+      <li>따라서 "만료 후 첫 질의에서만 다시 묻기"가 최소입니다. <code>YourCache</code>가 정확히 이 방법입니다.</li>
+    </ol>
+    <p>자료구조를 바꿔도 이 수는 줄지 않습니다. <b>TTL과 질의 패턴이 하한을 정합니다.</b> (microsoft 118 + cnn 76 + netflix 37 + spotify 23 + github 11 + wikipedia 6 + 긴 TTL 4개 × 1 = 275)</p>
+  </div>
+</section>
+
+<!-- 1.10 -->
+<section class="sec" id="dash">
+  <h2><span class="n">1.10</span>비디오 스트리밍과 DASH</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>비디오는 큰 데이터를 끊김 없이 받아야 합니다. 사용자마다 대역폭이 다르고, 대역폭은 시간에 따라 변합니다. <b>DASH(Dynamic Adaptive Streaming over HTTP)</b>는 이 문제를 클라이언트가 풀게 합니다.</p>
+  </div>
+  <ol class="stepper">
+    <li>서버는 비디오를 짧은 <b>조각(chunk)</b>으로 나눕니다.</li>
+    <li>서버는 각 조각을 여러 <b>비트율</b>로 인코딩합니다.</li>
+    <li>서버는 <b>매니페스트(manifest)</b> 파일에 조각과 비트율별 URL을 적습니다.</li>
+    <li>클라이언트는 매니페스트를 먼저 받습니다.</li>
+    <li>클라이언트는 측정한 대역폭과 <b>버퍼</b> 양을 보고 다음 조각의 비트율을 고릅니다.</li>
+  </ol>
+  <div class="cards">
+    <div class="card"><h4>누가 고르는가</h4><p>서버가 아니라 <b>클라이언트</b>가 비트율을 고릅니다.</p></div>
+    <div class="card"><h4>왜 HTTP인가</h4><p>일반 웹 서버, 캐시, 방화벽을 그대로 통과합니다.</p></div>
+    <div class="card"><h4>버퍼의 역할</h4><p>재생 전에 미리 받아 둔 데이터가 속도 변동을 흡수합니다.</p></div>
+  </div>
+</section>
+
+<!-- 1.11 -->
+<section class="sec" id="cdn">
+  <h2><span class="n">1.11</span>CDN과 DNS 유도</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>데이터센터 한 곳에서 전 세계에 보내면 ① 먼 경로의 가장 느린 링크가 속도를 정하고 ② 같은 데이터가 같은 링크를 여러 번 지나며 ③ 데이터센터가 단일 장애점이 됩니다.</p>
+    <p><b>CDN(Content Distribution Network)</b>은 많은 위치에 서버 클러스터를 두고 콘텐츠 복사본을 저장합니다.</p>
+  </div>
+  <div class="cards">
+    <div class="card"><h4>Enter Deep</h4><p>ISP 안 깊이, 많은 곳에 작은 클러스터. 사용자와 가깝습니다. 관리가 어렵습니다. (예: Akamai)</p></div>
+    <div class="card"><h4>Bring Home</h4><p>IXP 근처, 적은 곳에 큰 클러스터. 관리가 쉽습니다. 사용자와 덜 가깝습니다.</p></div>
+  </div>
+
+  <h3>DNS가 사용자를 클러스터로 보내는 방법</h3>
+  <figure class="dg">
+    <svg viewBox="0 0 760 330" role="img" aria-label="CDN의 DNS 유도 순서">
+      <!-- 머리 -->
+      <rect class="bx" x="20" y="10" width="120" height="40" rx="6"/><text x="80" y="35" text-anchor="middle" class="t-b">사용자</text>
+      <rect class="bx-chk" x="210" y="10" width="130" height="40" rx="6"/><text x="275" y="35" text-anchor="middle" class="t-b">로컬 DNS</text>
+      <rect class="bx" x="410" y="10" width="150" height="40" rx="6"/><text x="485" y="29" text-anchor="middle" class="t-b">example.com</text><text x="485" y="44" text-anchor="middle" class="t-s t-muted">권한 서버</text>
+      <rect class="bx-dns" x="610" y="10" width="130" height="40" rx="6"/><text x="675" y="29" text-anchor="middle" class="t-b">CDN</text><text x="675" y="44" text-anchor="middle" class="t-s t-muted">권한 서버</text>
+      <!-- 생명선 -->
+      <line class="ln-dash" x1="80" y1="50" x2="80" y2="320"/>
+      <line class="ln-dash" x1="275" y1="50" x2="275" y2="320"/>
+      <line class="ln-dash" x1="485" y1="50" x2="485" y2="320"/>
+      <line class="ln-dash" x1="675" y1="50" x2="675" y2="320"/>
+      <!-- 메시지 -->
+      <line class="ln" x1="80" y1="80" x2="273" y2="80" marker-end="url(#a-m)"/><text x="88" y="74" class="t-s">① www.example.com ?</text>
+      <line class="ln" x1="275" y1="112" x2="483" y2="112" marker-end="url(#a-m)"/><text x="283" y="106" class="t-s">② www.example.com ?</text>
+      <line class="ln-dns" x1="485" y1="144" x2="277" y2="144" marker-end="url(#a-d)"/><text x="477" y="138" text-anchor="end" class="t-s t-dns t-b">③ CNAME a1105.cdn.net</text>
+      <line class="ln" x1="275" y1="176" x2="673" y2="176" marker-end="url(#a-m)"/><text x="283" y="170" class="t-s">④ a1105.cdn.net ?</text>
+      <rect class="bx-dns" x="560" y="194" width="190" height="46" rx="6"/>
+      <text x="655" y="213" text-anchor="middle" class="t-s t-b">질의한 로컬 DNS의 위치로</text>
+      <text x="655" y="230" text-anchor="middle" class="t-s t-b">클러스터를 고름</text>
+      <line class="ln-ok" x1="675" y1="262" x2="277" y2="262" marker-end="url(#a-o)"/><text x="667" y="256" text-anchor="end" class="t-s t-ok t-b">⑤ A 클러스터 주소</text>
+      <line class="ln-ok" x1="275" y1="294" x2="82" y2="294" marker-end="url(#a-o)"/><text x="267" y="288" text-anchor="end" class="t-s t-ok t-b">⑥ A 클러스터 주소</text>
+      <text x="88" y="316" class="t-s t-muted">⑦ 사용자는 그 클러스터에 HTTP로 접속</text>
+    </svg>
+  </figure>
+  <div class="box warn"><span class="tag">주의</span>
+    <p>④에서 CDN이 보는 것은 <b>사용자가 아니라 로컬 DNS 서버</b>의 주소입니다. 사용자가 먼 공용 리졸버(예: <code>8.8.8.8</code>)를 쓰면 CDN은 사용자의 위치를 잘못 알 수 있습니다.</p>
+  </div>
+  <div class="cards">
+    <div class="card"><h4>애니캐스트 (anycast)</h4><p>여러 위치의 서버가 <b>같은 주소</b>를 씁니다. 라우팅이 가까운 위치로 보냅니다. CNAME이 없으므로 DNS만 보아서는 CDN을 알 수 없습니다.</p></div>
+    <div class="card"><h4>AS (Autonomous System)</h4><p>한 조직이 운영하는 네트워크입니다. 번호(ASN)를 가집니다. 주소의 AS를 보면 그 주소의 실제 소유자를 알 수 있습니다.</p></div>
+  </div>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 Part B</span>
+    <p><a class="kbd-file" href="../w03-dns/task2_steering.py">task2_steering.py</a>가 12개 사이트의 CNAME 체인을 따라갑니다. <code>asn_of()</code>는 Team Cymru의 DNS 서비스로 주소의 AS를 찾습니다.</p>
+    <h3 style="margin-top:12px">"제3자 CDN인가"를 판정하는 규칙</h3>
+    <div class="tbl"><table>
+      <tr><th>규칙</th><th>내용</th><th>틀린 사이트</th></tr>
+      <tr><td>단순 규칙</td><td>체인 끝 이름의 마지막 두 라벨을 사이트와 비교</td><td><code>www.bbc.co.uk</code> (<code>co.uk</code>가 한 접미사), <code>www.github.com</code> (CNAME 없이 Microsoft AS)</td></tr>
+      <tr class="hl"><td>사용한 규칙</td><td>체인이 사이트의 <b>등록 도메인</b>을 벗어나면 제3자. 벗어나지 않으면 주소의 <b>AS</b>로 판정</td><td><code>www.wikipedia.org</code>: <code>wikimedia.org</code>는 다른 영역이지만 같은 소유자</td></tr>
+    </table></div>
+    <div class="tbl"><table>
+      <tr><th>사이트</th><th>체인 길이</th><th>끝 영역</th><th>AS 소유자</th></tr>
+      <tr><td>www.microsoft.com</td><td>2</td><td>akamaiedge.net</td><td>Akamai</td></tr>
+      <tr><td>www.netflix.com</td><td>1</td><td>netflix.com</td><td>Netflix (자체 CDN)</td></tr>
+      <tr><td>www.cnn.com</td><td>1</td><td>fastly.net</td><td>Fastly</td></tr>
+      <tr><td>www.korea.ac.kr</td><td>0</td><td>korea.ac.kr</td><td>고려대학교 (CDN 없음)</td></tr>
+      <tr><td>www.github.com</td><td>1</td><td>github.com</td><td>Microsoft</td></tr>
+      <tr><td>www.wikipedia.org</td><td>1</td><td>wikimedia.org</td><td>Wikimedia</td></tr>
+    </table></div>
+    <h3>유도(steering) 측정 결과</h3>
+    <div class="cards">
+      <div class="card"><p class="big">8 / 10</p><p>리졸버를 바꾸면 다른 주소를 준 CDN 사이트</p></div>
+      <div class="card"><p class="big">3 / 10</p><p>휴대폰 네트워크에서 다른 주소 (Akamai)</p></div>
+      <div class="card bad"><p class="big" style="color:var(--warn)">1–3 / 10</p><p>같은 리졸버에 두 번 물어도 바뀜 (잡음)</p></div>
+    </div>
+    <p><b>결론:</b> "답은 질의하는 쪽에 따라 다르다"는 지지됩니다. "답은 <b>가까운</b> 곳이다"는 증명되지 않았습니다. 지연 시간을 측정하지 않았기 때문입니다.</p>
+  </div>
+</section>
+
+<!-- 1.12 -->
+<section class="sec" id="mail">
+  <h2><span class="n">1.12</span>(참고) 전자메일</h2>
+  <p class="muted">3주차 강의 앞부분입니다. 실습에서는 사용하지 않았습니다.</p>
+  <div class="flow">
+    <span class="chip">Alice의<br>사용자 에이전트</span><span class="arr">SMTP →</span>
+    <span class="chip">Alice의<br>메일 서버</span><span class="arr">SMTP →</span>
+    <span class="chip">Bob의<br>메일 서버</span><span class="arr">IMAP/HTTP →</span>
+    <span class="chip">Bob의<br>사용자 에이전트</span>
+  </div>
+  <ul>
+    <li>SMTP는 서버에서 서버로 메일을 <b>밀어 보냅니다(push)</b>. TCP 25번 포트입니다.</li>
+    <li>HTTP는 클라이언트가 데이터를 <b>당겨 옵니다(pull)</b>.</li>
+    <li>받은 메일을 가져오는 일은 SMTP가 하지 않습니다. IMAP 또는 HTTP(웹메일)가 합니다.</li>
+    <li>DNS의 <code>MX</code> 레코드가 도메인의 메일 서버를 알려 줍니다.</li>
+  </ul>
+</section>
+
+<!-- quiz -->
+<section class="sec" id="quiz">
+  <h2><span class="n">✓</span>스스로 확인하기</h2>
+  <div class="box check"><span class="tag">확인 질문 · 눌러서 답 보기</span>
+    <details class="q"><summary>루트 서버는 왜 <code>www.korea.ac.kr</code>의 주소를 바로 주지 않습니까?</summary>
+      <p class="a">루트 서버는 그 주소를 가지고 있지 않습니다. 루트 서버는 <code>kr</code>을 누가 담당하는지만 압니다. 그래서 위임만 줄 수 있습니다.</p></details>
+    <details class="q"><summary>노트북은 질의를 1번 보냅니다. Task 1 리졸버는 3번 이상 보냈습니다. 차이는 누가 합니까?</summary>
+      <p class="a">로컬 DNS 서버(리졸버)가 합니다. 노트북의 재귀 질의를 받아 반복 질의로 계층을 내려가고, 결과를 캐시합니다.</p></details>
+    <details class="q"><summary>위임 응답과 답 응답을 패킷에서 어떻게 구별합니까?</summary>
+      <p class="a">위임: Answer 0개, Authority에 NS, AA=0. 답: Answer에 A, AA=1. 형식은 같고 채워진 섹션만 다릅니다.</p></details>
+    <details class="q"><summary>glue가 없는 위임을 받으면 리졸버는 무엇을 합니까?</summary>
+      <p class="a">원래 해석을 멈추고 NS 이름의 주소를 루트부터 새로 해석합니다. 그 주소로 원래 해석을 이어 갑니다.</p></details>
+    <details class="q"><summary>상류 질의 하한이 275인 이유는 무엇입니까?</summary>
+      <p class="a">레코드는 TTL 동안만 쓸 수 있습니다. 만료 후 첫 질의는 반드시 상류에 물어야 합니다. 더 일찍 물으면 질의만 늘어납니다. 그래서 "만료 후 첫 질의에서만 묻기"의 횟수가 최소입니다.</p></details>
+    <details class="q"><summary><code>www.microsoft.com</code>의 상류 질의가 baseline 52건에서 118건으로 늘었습니다. 왜 이것이 옳습니까?</summary>
+      <p class="a">baseline이 아낀 질의는 만료된 답이었습니다. TTL이 20초이므로 올바른 캐시는 그 질의를 해야 합니다.</p></details>
+    <details class="q"><summary>리졸버를 바꾸면 다른 주소가 온다는 사실로 "가까운 곳으로 보낸다"를 증명할 수 없는 이유는?</summary>
+      <p class="a">같은 리졸버에 두 번 물어도 주소가 바뀝니다(순환). 그리고 지연을 재지 않았으므로 다른 주소가 더 가까운지 모릅니다.</p></details>
+  </div>
+</section>
+
+<div class="pager">
+  <a href="index.html"><small>이전</small>← 개요</a>
+  <a class="next" href="w04-tcp.html"><small>다음</small>4주차 · TCP →</a>
+</div>
+</main>
+</div>
+</body>
+</html>

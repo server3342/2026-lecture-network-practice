@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # 커밋 직전 개인정보 검사 - 스테이징된 out/ 파일과 캡처 파일을 mask.py --check 로 봅니다.
 #   설치: git config core.hooksPath .githooks
-#   급할 때 건너뛰기: git commit --no-verify
+#   자동 검사를 통과해도 '직접 확인할 것'과 '한계'를 읽고 y 를 눌러야 커밋됩니다.
+#   터미널이 없는 곳(에디터, 스크립트)에서는 확인한 뒤 MASK_REVIEWED=1 git commit ...
+#   급할 때 전부 건너뛰기: git commit --no-verify
 set -u
 ROOT="$(git rev-parse --show-toplevel)"
 mapfile -d '' FILES < <(git diff --cached --name-only -z --diff-filter=ACMR \
@@ -20,3 +22,17 @@ if ! python3 "$ROOT/mask.py" --check "$TMP"; then
   echo "오탐이 확실하면 git commit --no-verify 로 건너뛸 수 있습니다."
   exit 1
 fi
+
+# 자동 검사가 못 보는 부분은 사람이 확인
+[ "${MASK_REVIEWED:-}" = "1" ] && { echo "MASK_REVIEWED=1 - 확인한 것으로 보고 진행합니다."; exit 0; }
+if { : < /dev/tty; } 2>/dev/null; then
+  printf '\n위의 "직접 확인할 것"과 "한계"를 확인했습니까? 커밋할까요? [y/N] ' > /dev/tty
+  read -r ans < /dev/tty
+  case "$ans" in y|Y|yes) exit 0 ;; esac
+  echo "커밋을 취소했습니다."
+  exit 1
+fi
+echo
+echo "터미널이 없어 확인을 받을 수 없습니다. 위 내용을 확인했다면:"
+echo "    MASK_REVIEWED=1 git commit ..."
+exit 1

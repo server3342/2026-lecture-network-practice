@@ -22,6 +22,10 @@
 씁니다. 출력 이름이 .pcapng 이면 pcapng 로 씁니다. 패킷 길이는 그대로 두고, 바뀐 패킷의
 IPv4/TCP/UDP/ICMPv6 체크섬은 다시 계산합니다. pcapng 의 인터페이스 이름·OS·주석 같은
 옵션과 이름 해석(NRB) 블록은 지웁니다.
+
+한계 - 이 스크립트가 '통과'라고 해도 사람이 확인해야 하는 것이 있습니다.
+아래 LIMITS 목록이 --check 결과 끝에 매번 출력되고, 방문 기록처럼 판단이 필요한
+항목은 파일별로 뽑아서 보여 줍니다. 커밋 훅은 이것을 확인했다고 답해야 진행합니다.
 """
 import argparse, getpass, glob, ipaddress, json, os, re, socket, struct, subprocess, sys
 
@@ -30,6 +34,18 @@ MAC_RE = r"\b[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}\b"
 V6_RE = r"(?<![\w:.])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}"
 GENERIC_NAMES = {"localhost", "localhost.localdomain", "android", "iphone", "ubuntu"}
 SHORT = 6                   # 이보다 짧은 이름은 바이너리 안에서 우연히 맞기 쉬워서 단어 단위로만 찾습니다
+LIMITS = [
+    "이 기계의 식별자만 압니다. 다른 사람·기기의 이름(친구 폰, 집 공유기 이름 등)은 DHCP 호스트명과 MAC 처럼 "
+    "구조가 정해진 곳에서만 잡고, 텍스트나 페이로드 속 이름은 못 잡습니다",
+    "집 공인 IP 는 알 수 없습니다. 위 '공인 IPv4' 목록에 내 집 주소가 있으면 --ip OLD=NEW 로 다시 마스킹하세요",
+    "방문 기록(DNS 질의, TLS SNI, HTTP Host)은 민감한지 판단하지 않고 목록만 보여 줍니다",
+    "암호화되지 않은 페이로드 내용(HTTP 본문, 쿠키, 폼 데이터)과 패킷 시각은 검사·마스킹하지 않습니다",
+    "링크 타입은 이더넷과 Linux cooked 만 다룹니다 (802.11 무선 헤더 캡처는 오류)",
+    "pcap/pcapng 와 텍스트 외 파일(이미지, PDF 등)은 검사하지 않습니다 ([skip] 으로 표시)",
+    "6자보다 짧은 이름은 바이너리 안에서 찾지 않고, localhost 같은 흔한 이름은 제외합니다",
+    "다른 기기에서 찍은 캡처라면 그 기기의 MAC·호스트명은 '내 식별자'로 알지 못합니다 (구조 검사만 적용)",
+    "이미 커밋·푸시된 기록은 보지 않습니다. 훅은 이번 커밋에 들어가는 파일만 봅니다",
+]
 TEXT_EXT = {".txt", ".md", ".json", ".csv", ".log", ".html", ".yml", ".yaml", ".tsv"}
 
 
@@ -657,6 +673,97 @@ def check_capture(path, ident):
     return list(dict.fromkeys(problems))
 
 
+def dns_names(payload):
+    """DNS 메시지의 질문 이름들 (압축 안 된 질문 부분만)."""
+    if len(payload) < 12:
+        return []
+    qd = struct.unpack(">H", payload[4:6])[0]
+    names, off = [], 12
+    for _ in range(min(qd, 8)):
+        labels = []
+        while off < len(payload):
+            n = payload[off]
+            if n == 0 or n & 0xC0:
+                off += 1 if n == 0 else 2
+                break
+            labels.append(bytes(payload[off + 1:off + 1 + n]).decode("ascii", "replace"))
+            off += 1 + n
+        off += 4
+        if labels:
+            names.append(".".join(labels))
+    return names
+
+
+def tls_sni(payload):
+    """TLS ClientHello 의 server_name. 잘린 캡처면 None."""
+    try:
+        if payload[0] != 0x16 or payload[5] != 1:
+            return None
+        off = 9 + 2 + 32
+        off += 1 + payload[off]                                   # session id
+        off += 2 + struct.unpack(">H", payload[off:off + 2])[0]   # cipher suites
+        off += 1 + payload[off]                                   # compression
+        end = off + 2 + struct.unpack(">H", payload[off:off + 2])[0]
+        off += 2
+        while off + 4 <= min(end, len(payload)):
+            et, ln = struct.unpack(">HH", payload[off:off + 4])
+            if et == 0:
+                n = struct.unpack(">H", payload[off + 7:off + 9])[0]
+                return bytes(payload[off + 9:off + 9 + n]).decode("ascii", "replace")
+            off += 4 + ln
+    except (IndexError, struct.error):
+        pass
+    return None
+
+
+def review_capture(cap):
+    """사람이 판단해야 하는 것: 방문 기록."""
+    dns, sni, http = set(), set(), set()
+    for p in cap.packets:
+        d = p["data"]
+        lay = layers(p["link"], d)
+        if not lay:
+            continue
+        _, l3, et = lay
+        info = l4_info(d, l3, et)
+        if not info:
+            continue
+        proto, l4, _ = info
+        if proto == 17 and len(d) >= l4 + 8:
+            sp, dp = struct.unpack(">HH", d[l4:l4 + 4])
+            if {sp, dp} & {53, 5353, 5355}:
+                dns.update(dns_names(d[l4 + 8:]))
+        elif proto == 6 and len(d) >= l4 + 20:
+            pl = d[l4 + ((d[l4 + 12] >> 4) * 4):]
+            name = tls_sni(pl)
+            if name:
+                sni.add(name)
+            m = re.search(rb"\r\nHost: *([^\r\n]+)", bytes(pl[:2048]))
+            if m:
+                http.add(m.group(1).decode("ascii", "replace"))
+    out = []
+    for label, names in (("DNS 질의", dns), ("TLS SNI", sni), ("HTTP Host", http)):
+        if names:
+            out.append(f"{label} {len(names)}개: " + ", ".join(sorted(names)))
+    return out
+
+
+def review_text(s):
+    ips = set()
+    for m in re.finditer(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])", s):
+        try:
+            a = ipaddress.IPv4Address(m.group(1))
+        except ValueError:
+            continue
+        if a.is_global and not a.is_multicast:
+            ips.add(m.group(1))
+    if not ips:
+        return []
+    shown_ = sorted(ips, key=lambda x: ipaddress.IPv4Address(x))
+    more = f" 외 {len(ips) - 15}개" if len(ips) > 15 else ""
+    return [f"공인 IPv4 {len(ips)}개 (내 집 주소가 섞였는지): " + ", ".join(shown_[:15]) + more]
+
+
 def check_text(path, ident):
     s = open(path, encoding="utf-8", errors="replace").read()
     problems = []
@@ -737,16 +844,24 @@ def shown(f, paths):
 def do_check(paths, ident):
     if not paths:
         paths = sorted(glob.glob(os.path.join(HERE, "w*", "out")))
-    bad = 0
+    bad, review, skipped = 0, [], []
     for f in files_under(paths):
         rel = shown(f, paths)
         if is_capture(f):
             probs = check_capture(f, ident)
+            try:
+                items = review_capture(Capture(f))
+            except ValueError:
+                items = []
         elif is_text(f):
             probs = check_text(f, ident)
+            items = review_text(open(f, encoding="utf-8", errors="replace").read())
         else:
             print(f"  [skip]  {rel}  (검사할 수 없는 형식 - 직접 확인하세요)")
+            skipped.append(rel)
             continue
+        if items:
+            review.append((rel, items))
         if probs:
             bad += 1
             print(f"  [!!]    {rel}")
@@ -757,12 +872,24 @@ def do_check(paths, ident):
         else:
             print(f"  [ok]    {rel}")
     print()
+    if review or skipped:
+        print("  == 직접 확인할 것 (자동으로 판단하지 않음)")
+        for rel, items in review:
+            print(f"  {rel}")
+            for x in items:
+                print(f"      - {x[:600]}{' …' if len(x) > 600 else ''}")
+        for rel in skipped:
+            print(f"  {rel}\n      - 검사하지 못한 형식. 직접 열어 보세요")
+        print()
+    print("  == 이 검사의 한계")
+    for x in LIMITS:
+        print(f"   - {x}")
+    print()
     if bad:
         print(f"  {bad}개 파일에 개인정보가 남아 있습니다. raw/ 원본에서 다시 마스킹하세요:")
         print(f"      python3 mask.py <원본> <out/파일>")
         return 1
-    print("  개인정보 검사 통과. 이 스크립트가 아는 항목만 본 것이니, DNS 질의(방문 기록) 같은")
-    print("  내용은 직접 한 번 훑어보세요.")
+    print("  자동 검사 통과. 위의 '직접 확인할 것'과 '한계'는 사람이 확인해야 합니다.")
     return 0
 
 
@@ -798,7 +925,8 @@ def do_mask(src, dst, ident):
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+                                epilog="이 검사의 한계:\n" + "\n".join("  - " + x for x in LIMITS))
     p.add_argument("paths", nargs="*", help="마스킹: 원본 출력 / 검사: 검사할 파일·폴더")
     p.add_argument("--check", action="store_true", help="마스킹하지 않고 검사만")
     p.add_argument("--extra", action="append", default=[], help="추가로 지울 문자열")

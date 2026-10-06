@@ -24,7 +24,8 @@ python3 test_tasks.py              # all checks; --task N for one
 python3 ../check.py w03            # format check of out/ (from repo root: python3 check.py w03)
 python3 ../mask.py raw/x.pcap out/x.pcapng   # mask MACs, hostnames, tailnet, own IPv6 (run on the host)
 python3 ../mask.py --check         # privacy check of every w*/out/ before committing
-git config core.hooksPath .githooks   # once per clone: pre-commit runs mask.py --check on staged out/ files
+git config core.hooksPath .githooks   # once per clone: pre-commit runs mask.py --check on staged out/ files,
+                                      # then asks the user to confirm the review list (no tty: MASK_REVIEWED=1, only after the user has reviewed)
 ```
 
 Container (identical tool versions for everyone): `docker compose build && docker compose run --rm lab` — repo mounted at `/lab`. Week 6 Task 2 needs `bash w06-routing/scenario.sh {up|routes|cut|restore|cost|down}` (runs `docker compose --profile routing`, FRR v9.1.0 routers; writes into `w06-routing/out/`).

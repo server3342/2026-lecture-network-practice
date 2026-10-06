@@ -1,0 +1,37 @@
+# B3 - r1 eth1 (r1-r3, net_a) down 45초 뒤 (2026-10-06 13:23:24 KST)
+# 실제 인터페이스 매핑 (frr.conf 의 description 과 r1 이 반대입니다 - docker 가 붙이는 순서 때문)
+#   net_a 172.18.0.0/16  r1 eth1 (.2)  - r3 eth0 (.3)
+#   net_b 172.21.0.0/16  r1 eth0 (.2)  - r2 eth1 (.3)
+#   net_c 172.20.0.0/16  r2 eth0 (.2)  - r3 eth1 (.3)
+# 그래서 'r1 eth1 down' 은 scenario.sh 메시지와 달리 r1-r3 링크(net_a)를 끊습니다.
+# FRR 9.1.0 (quay.io/frrouting/frr:9.1.0 을 frrouting/frr:v9.1.0 으로 태그 - Docker Hub 에 해당 태그가 없음)
+# Hello 10s / Dead 40s / Wait 40s (frr.conf 에 지정 없음 -> 기본값), 모든 링크 cost 10
+
+===== r1 =====
+
+Neighbor ID     Pri State           Up Time         Dead Time Address         Interface                        RXmtL RqstL DBsmL
+2.2.2.2           1 Full/DR         12m54s            35.705s 172.21.0.3      eth0:172.21.0.2                      0     0     0
+
+O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0, weight 1, 00:00:45
+O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0, weight 1, 00:00:45
+O   172.21.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:01:08
+
+===== r2 =====
+
+Neighbor ID     Pri State           Up Time         Dead Time Address         Interface                        RXmtL RqstL DBsmL
+3.3.3.3           1 Full/DR         12m54s            35.806s 172.20.0.3      eth0:172.20.0.2                      0     0     0
+1.1.1.1           1 Full/Backup     12m54s            35.320s 172.21.0.2      eth1:172.21.0.3                      0     0     0
+
+O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0, weight 1, 00:00:45
+O   172.20.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:12:49
+O   172.21.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:13:35
+
+===== r3 =====
+
+Neighbor ID     Pri State           Up Time         Dead Time Address         Interface                        RXmtL RqstL DBsmL
+2.2.2.2           1 Full/Backup     12m49s            35.467s 172.20.0.2      eth1:172.20.0.3                      0     0     0
+
+O   172.18.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:13:34
+O   172.20.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:13:34
+O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1, weight 1, 00:00:45
+

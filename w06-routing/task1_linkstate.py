@@ -14,6 +14,7 @@ in the packet. Build it.
     python3 task1_linkstate.py --verify
 """
 import argparse
+import heapq
 
 # Undirected weighted graph: node -> {neighbour: cost}
 TOPOLOGY = {
@@ -33,7 +34,20 @@ def dijkstra(graph, source):
 
     You write the loop. `heapq` is allowed; `networkx` is not.
     """
-    raise NotImplementedError("implement Dijkstra")
+    dist = {source: 0}
+    pq = [(0, source)]
+    done = set()
+    while pq:
+        cost, node = heapq.heappop(pq)
+        if node in done:
+            continue
+        done.add(node)
+        for nbr, w in graph[node].items():
+            if nbr not in done and cost + w < dist.get(nbr, float("inf")):
+                dist[nbr] = cost + w
+                heapq.heappush(pq, (cost + w, nbr))
+    del dist[source]
+    return dist
 
 
 def forwarding_table(graph, source):
@@ -48,7 +62,29 @@ def forwarding_table(graph, source):
     works, but think about what a router does when two shortest paths tie, and
     pick a rule. Say which in observation.md.
     """
-    raise NotImplementedError("implement the forwarding table")
+    # Tie rule: among equal-cost paths, keep the first hop with the smallest
+    # name. Deterministic, so every run installs the same single next hop
+    # (no ECMP). The hop rides along in the heap entry and is inherited from
+    # the predecessor, so no path is ever reconstructed.
+    best = {source: (0, "")}
+    pq = [(0, "", source)]
+    done = set()
+    table = {}
+    while pq:
+        cost, hop, node = heapq.heappop(pq)
+        if node in done:
+            continue
+        done.add(node)
+        if node != source:
+            table[node] = hop
+        for nbr, w in graph[node].items():
+            if nbr in done:
+                continue
+            cand = (cost + w, nbr if node == source else hop)
+            if cand < best.get(nbr, (float("inf"), "")):
+                best[nbr] = cand
+                heapq.heappush(pq, (cand[0], cand[1], nbr))
+    return table
 
 
 def link_down(graph, a, b):

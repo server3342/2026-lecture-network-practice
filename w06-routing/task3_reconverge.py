@@ -87,8 +87,116 @@ class YourRouter:
     on the event where it happens.
     """
 
+    # What is kept between events: dist[node], the cost of the shortest path
+    # from source. dijkstra_table() breaks ties deterministically - a node
+    # inherits the first hop of its tight predecessor with the smallest
+    # (dist, name), because that is the order the heap pops them - so the
+    # whole table is a function of dist and the graph. If an event leaves
+    # dist alone, the table can be re-derived from it without SPF.
+
     def __init__(self, graph, source):
-        raise NotImplementedError("write your router")
+        self.graph = {n: dict(e) for n, e in graph.items()}
+        self.source = source
+        self._spf()
+
+    def _spf(self):
+        """Full recompute: the counted SPF for the table, plus the distances.
+
+        dijkstra_table() throws its costs away, so they are rebuilt here in
+        the same breath. This runs only alongside a counted SPF, never
+        instead of one.
+        """
+        self.table = dijkstra_table(self.graph, self.source)
+        dist = {self.source: 0}
+        pq, done = [(0, self.source)], set()
+        while pq:
+            cost, node = heapq.heappop(pq)
+            if node in done:
+                continue
+            done.add(node)
+            for nbr, w in self.graph[node].items():
+                if cost + w < dist.get(nbr, float("inf")):
+                    dist[nbr] = cost + w
+                    heapq.heappush(pq, (cost + w, nbr))
+        self.dist = dist
+        self.order = sorted(dist, key=lambda n: (dist[n], n))
+
+    def _improve(self, start, cost):
+        """A link got cheaper and `start` is now reachable for `cost`.
+
+        Distances can only fall, so push the improvement outward and stop at
+        every node it does not beat. Nodes it never reaches are not touched -
+        this is the part of the area that did not need SPF.
+        """
+        dist = self.dist
+        dist[start] = cost
+        pq = [(cost, start)]
+        while pq:
+            c, node = heapq.heappop(pq)
+            if c > dist[node]:
+                continue
+            for nbr, w in self.graph[node].items():
+                if c + w < dist.get(nbr, float("inf")):
+                    dist[nbr] = c + w
+                    heapq.heappush(pq, (c + w, nbr))
+        self.order = sorted(dist, key=lambda n: (dist[n], n))
+
+    def _rederive(self):
+        """Distances unchanged, tight edges changed: rebuild hops, no SPF."""
+        dist, src, hop = self.dist, self.source, {}
+        for d in self.order[1:]:
+            p = min((q for q, w in self.graph[d].items()
+                     if q in dist and dist[q] + w == dist[d]),
+                    key=lambda q: (dist[q], q))
+            hop[d] = d if p == src else hop[p]
+        self.table = hop
+
+    def _has_other_tight_pred(self, node, excluded):
+        dist = self.dist
+        return any(q != excluded and q in dist and dist[q] + w == dist[node]
+                   for q, w in self.graph[node].items())
 
     def link_change(self, a, b, cost):
-        raise NotImplementedError
+        """cost=None means the link went down."""
+        inf = float("inf")
+        old = self.graph[a].get(b)
+        new = cost
+        if old == new:
+            return
+        da, db = self.dist.get(a, inf), self.dist.get(b, inf)
+        o = inf if old is None else old
+        n = inf if new is None else new
+
+        # Which direction of the link, if any, was / will be on a shortest path
+        was_tight = [(x, y) for x, y, dx, dy in ((a, b, da, db), (b, a, db, da))
+                     if dx < inf and dx + o == dy]
+        will_tight = [(x, y) for x, y, dx, dy in ((a, b, da, db), (b, a, db, da))
+                      if dx < inf and dx + n == dy]
+
+        if new is None:
+            self.graph[a].pop(b, None)
+            self.graph[b].pop(a, None)
+        else:
+            self.graph[a][b] = new
+            self.graph[b][a] = new
+
+        if n < o:
+            # up / cheaper: matters only if it makes something strictly shorter
+            if da + n < db or db + n < da:
+                if da + n < db:
+                    self._improve(b, da + n)
+                else:
+                    self._improve(a, db + n)
+                self._rederive()
+                return
+            dist_changed = False
+        else:
+            # down / dearer: matters only if a node loses its only tight way in
+            dist_changed = any(not self._has_other_tight_pred(y, x)
+                               for x, y in was_tight)
+
+        if dist_changed:
+            self._spf()
+        elif was_tight or will_tight:
+            self._rederive()            # same costs, different ties
+        # else: the link was off every shortest path and stays off

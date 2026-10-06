@@ -1,0 +1,397 @@
+# B4/B5/C - 재수렴 시간 측정
+#
+# 방법: 세 라우터에서 'show ip route ospf' 와 'show ip ospf neighbor' 를 병렬로 계속 조회
+#       (한 바퀴 약 0.25초), 업타임 열을 지우고 표가 바뀐 순간만 기록. t 는 이벤트 명령 직전 기준 초.
+#       t 는 조회 시작 시각이라 해상도는 한 바퀴(~0.25초)이고, 음수(-0.07)는 '이벤트 직후 첫 조회에서 이미 바뀜'.
+#       scenario.sh cut 은 업타임 열까지 비교해서 1초 뒤에 무조건 '재수렴'으로 잡고 r1 만 보므로 쓰지 않았습니다.
+#
+# 표가 '다시 맞는' 시각 = 그 라우터의 최종 상태가 처음 나타난 t
+#
+# B4  링크 끊기 (r1 eth1 down = 반송파 끊김, r1 이 바로 압니다)
+#   run    r1      r2      r3      | r3 가 r1 을 이웃에서 지운 시각 (dead interval)
+#   1     +0.21   +0.18   +0.18    | +35.86
+#   2     +0.19   +0.08   +0.17    | +36.19
+#   3     -0.07   -0.06   -0.03    | +32.30
+#   4     +0.32   +0.28   +0.28    | +39.36   <- route-before/after.txt 는 이 회차
+#   => 경로 재수렴 < 0.4초. 이웃 상태만 dead interval(40s) 동안 남아 있음
+#
+# B4' 조용한 고장 (r1 eth1, r3 eth0 에 tc netem loss 100% - 인터페이스는 up 그대로)
+#   r1 +39.02 (첫 변화 +37.91)   r2 +38.79 (첫 변화 +38.04)   r3 +38.09
+#   이웃 삭제  r3 +37.73, r1 +38.63
+#   => 약 38초. Dead 40s - (마지막 hello 이후 경과 0~10s) = 30~40s 구간과 일치
+#
+# B5  복구 (r1 eth1 up)
+#   run    r1      r2      r3      | 이웃 Full (r1 쪽 / r3 쪽)
+#   1     +8.44   +0.24   +18.02   | +8.05 / +8.39
+#   2     +6.87   +0.32   +11.86   | +6.44 / +6.59
+#   3     +6.05   +0.28   +6.17    | +0.95 / +5.76
+#   => 전체가 다시 맞기까지 6~18초. 끊을 때보다 20~60배 느리고 회차마다 들쭉날쭉
+#
+# C   비용 변경 (r1 eth0 = r1-r2 링크, cost 10 -> 100), 링크는 계속 up
+#   r1 +0.27   r3 +0.23   r2 변화 없음 (r2 가 쓰는 r1 쪽 출력 인터페이스는 eth1 이라 비용 그대로)
+#   되돌리기 (100 -> 10)   r1 +0.22   r3 +0.29
+#   => 약 0.3초, 이웃 상태 변화 없음
+
+# ---------------- 원시 기록 (라우터별 표가 바뀐 시각) ----------------
+
+######## cut
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.21  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+  t=  -0.16  2.2.2.2/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  +0.18  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t=  +0.18  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+  t= +35.86  2.2.2.2/Full/Backup 
+
+
+######## cut2
+--- r1  routes (t = seconds from event)
+  t=  -3.00  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.19  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -3.00  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+  t=  -0.23  2.2.2.2/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -3.00  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  +0.08  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -3.00  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -3.00  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t=  +0.17  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -3.00  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+  t= +36.19  2.2.2.2/Full/Backup 
+
+
+######## cut3
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  -0.07  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+  t=  -0.07  2.2.2.2/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  -0.06  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t=  -0.03  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+  t= +32.30  2.2.2.2/Full/Backup 
+
+
+######## cut4
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.32  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+  t=  -0.08  2.2.2.2/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  +0.28  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t=  +0.28  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+  t= +39.36  2.2.2.2/Full/Backup 
+
+
+######## silent
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t= +37.91  O   172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t= +39.02  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+  t= +38.63  2.2.2.2/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -3.00  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t= +38.04  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t= +38.79  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -3.00  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t= +38.09  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+  t= +37.73  2.2.2.2/Full/Backup 
+
+
+######## restore
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  -0.03  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +8.44  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 
+  t=  +8.05  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.98  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  +0.24  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.98  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+  t= +18.02  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  2.2.2.2/Full/Backup 
+  t=  -0.13  1.1.1.1/Init/DROther 2.2.2.2/Full/Backup 
+  t=  +8.39  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+
+
+######## restore2
+--- r1  routes (t = seconds from event)
+  t=  -3.00  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.17  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +6.87  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -3.00  2.2.2.2/Full/DR 
+  t=  +6.44  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -3.00  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  +0.32  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -3.00  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -3.00  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+  t= +11.86  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+    neighbours
+  t=  -3.00  2.2.2.2/Full/Backup 
+  t=  -0.22  1.1.1.1/Init/DROther 2.2.2.2/Full/Backup 
+  t=  +6.59  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+
+
+######## restore3
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.19  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.95  O   172.18.0.0/16 [110/30] via 172.21.0.3, eth0
+             O>* 172.20.0.0/16 [110/20] via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +6.05  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 
+  t=  +0.95  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+  t=  +0.28  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+  t=  +6.17  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  2.2.2.2/Full/Backup 
+  t=  -0.06  1.1.1.1/Init/DROther 2.2.2.2/Full/Backup 
+  t=  +0.69  1.1.1.1/Loading/Backup 2.2.2.2/Full/Backup 
+  t=  +5.76  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+
+
+######## cost
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.27  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+             O   172.21.0.0/16 [110/30] via 172.18.0.3, eth1
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t=  +0.23  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 
+
+
+######## costback
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+             O   172.21.0.0/16 [110/30] via 172.18.0.3, eth1
+  t=  +0.22  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+  t=  +0.29  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 

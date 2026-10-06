@@ -1,0 +1,61 @@
+# C2 - r1 eth0 (r1-r2, net_b) ip ospf cost 10 -> 100
+# 변경 전 (같은 날 수렴 상태, route-before.txt 와 동일)
+===== r1 =====
+O   172.18.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:01:26
+O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1, weight 1, 00:00:20
+  *                        via 172.21.0.3, eth0, weight 1, 00:00:20
+O   172.21.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:00:20
+===== r2 =====
+O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0, weight 1, 00:01:26
+  *                        via 172.21.0.2, eth1, weight 1, 00:01:26
+O   172.20.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:12:01
+O   172.21.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:12:47
+===== r3 =====
+O   172.18.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:12:46
+O   172.20.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:12:46
+O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0, weight 1, 00:00:20
+  *                        via 172.20.0.2, eth1, weight 1, 00:00:20
+
+# 변경 20초 뒤
+===== r1 =====
+O   172.18.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:00:46
+O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1, weight 1, 00:00:20
+O   172.21.0.0/16 [110/30] via 172.18.0.3, eth1, weight 1, 00:00:20
+===== r2 =====
+O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0, weight 1, 00:00:46
+  *                        via 172.21.0.2, eth1, weight 1, 00:00:46
+O   172.20.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:11:21
+O   172.21.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:12:07
+===== r3 =====
+O   172.18.0.0/16 [110/10] is directly connected, eth0, weight 1, 00:12:06
+O   172.20.0.0/16 [110/10] is directly connected, eth1, weight 1, 00:12:06
+O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1, weight 1, 00:00:20
+
+# 시간 기록
+--- r1  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+               *                        via 172.21.0.3, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth0
+  t=  +0.27  O   172.18.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+             O   172.21.0.0/16 [110/30] via 172.18.0.3, eth1
+    neighbours
+  t=  -2.99  2.2.2.2/Full/DR 3.3.3.3/Full/DR 
+--- r2  routes (t = seconds from event)
+  t=  -2.99  O>* 172.18.0.0/16 [110/20] via 172.20.0.3, eth0
+               *                        via 172.21.0.2, eth1
+             O   172.20.0.0/16 [110/10] is directly connected, eth0
+             O   172.21.0.0/16 [110/10] is directly connected, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 3.3.3.3/Full/DR 
+--- r3  routes (t = seconds from event)
+  t=  -2.99  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.18.0.2, eth0
+               *                        via 172.20.0.2, eth1
+  t=  +0.23  O   172.18.0.0/16 [110/10] is directly connected, eth0
+             O   172.20.0.0/16 [110/10] is directly connected, eth1
+             O>* 172.21.0.0/16 [110/20] via 172.20.0.2, eth1
+    neighbours
+  t=  -2.99  1.1.1.1/Full/Backup 2.2.2.2/Full/Backup 

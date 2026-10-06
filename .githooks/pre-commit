@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# 커밋 직전 개인정보 검사 - 스테이징된 out/ 파일과 캡처 파일을 mask.py --check 로 봅니다.
+#   설치: git config core.hooksPath .githooks
+#   급할 때 건너뛰기: git commit --no-verify
+set -u
+ROOT="$(git rev-parse --show-toplevel)"
+mapfile -d '' FILES < <(git diff --cached --name-only -z --diff-filter=ACMR \
+  | grep -zE '(^|/)out/|\.(pcap|pcapng)$')
+[ ${#FILES[@]} -eq 0 ] && exit 0
+
+# 작업 트리가 아니라 실제로 커밋될 내용(인덱스)을 꺼내서 검사
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+git checkout-index --prefix="$TMP/" -- "${FILES[@]}"
+
+echo "개인정보 검사 (스테이징된 파일 ${#FILES[@]}개)"
+if ! python3 "$ROOT/mask.py" --check "$TMP"; then
+  echo
+  echo "커밋을 멈췄습니다. raw/ 원본에서 다시 마스킹한 뒤 git add 하세요."
+  echo "오탐이 확실하면 git commit --no-verify 로 건너뛸 수 있습니다."
+  exit 1
+fi

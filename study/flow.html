@@ -4,18 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>요청 한 번 따라가기</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="style.css">
 <script src="theme.js"></script>
+<script src="tips.js" defer></script>
 </head>
 <body>
 <header class="topbar"><div class="topbar-inner">
-  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <a class="brand" href="index.html">3–7주차 개념 정리</a>
   <nav class="nav">
     <a href="index.html">개요</a>
     <a class="on" href="flow.html">요청 따라가기</a>
     <a href="w03-dns.html">3주 DNS</a>
     <a href="w04-tcp.html">4주 TCP</a>
     <a href="w05-ip-nat.html">5주 IP·NAT</a>
+    <a href="w06-routing.html">6주 라우팅</a>
+    <a href="w07-ethernet-arp.html">7주 이더넷·ARP</a>
   </nav>
   <button class="theme-btn" type="button">테마</button>
 </div></header>
@@ -260,7 +265,7 @@
         <tr class="hl"><td><code>0.0.0.0/0</code></td><td><code>172.16.25.1</code></td><td>예. 길이 0은 모든 주소와 일치합니다.</td></tr>
       </table></div>
       일치한 항목은 기본 경로 하나입니다. 그러므로 첫 홉은 게이트웨이 <code>172.16.25.1</code>입니다. <span class="muted">→ <span class="kbd-file">addresses.json</span>의 <code>ip_route</code></span></li>
-    <li style="--wk:var(--muted)"><b>노트북이 게이트웨이의 MAC 주소를 찾습니다.</b> 노트북은 ARP를 씁니다. ARP는 7주차의 내용입니다. 이 단계 뒤에 프레임의 두 주소는 서로 다른 장치를 가리킵니다.
+    <li style="--wk:var(--muted)"><b>노트북이 게이트웨이의 MAC 주소를 찾습니다.</b> 노트북은 ARP를 씁니다. <a href="w07-ethernet-arp.html#arp">7주차 5.5</a> 이 단계 뒤에 프레임의 두 주소는 서로 다른 장치를 가리킵니다.
       <ul>
         <li>프레임의 목적지 MAC 주소: 게이트웨이</li>
         <li>IP 데이터그램의 목적지 주소: 서버 <code>172.66.0.218</code></li>

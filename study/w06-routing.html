@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6주차 라우팅</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<script src="tips.js" defer></script>
+</head>
+<body class="wk-rt">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="a-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker>
+  <marker id="a-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-rt"/></marker>
+</defs></svg>
+
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">3–7주차 개념 정리</a>
+  <nav class="nav">
+    <a href="index.html">개요</a>
+    <a href="flow.html">요청 따라가기</a>
+    <a href="w03-dns.html">3주 DNS</a>
+    <a href="w04-tcp.html">4주 TCP</a>
+    <a href="w05-ip-nat.html">5주 IP·NAT</a>
+    <a class="on" href="w06-routing.html">6주 라우팅</a>
+    <a href="w07-ethernet-arp.html">7주 이더넷·ARP</a>
+  </nav>
+  <button class="theme-btn" type="button">테마</button>
+</div></header>
+
+<div class="layout">
+<aside class="toc">
+  <b>6주차 목차</b>
+  <ol>
+    <li><a href="#control"><span class="n">4.1</span>제어 평면</a></li>
+    <li><a href="#graph"><span class="n">4.2</span>네트워크를 그래프로</a></li>
+    <li><a href="#ls"><span class="n">4.3</span>링크 상태와 다익스트라</a></li>
+    <li><a href="#hop"><span class="n">4.4</span>첫 홉과 동점</a></li>
+    <li><a href="#dv"><span class="n">4.5</span>거리 벡터</a></li>
+    <li><a href="#cmp"><span class="n">4.6</span>LS와 DV 비교</a></li>
+    <li><a href="#ospf"><span class="n">4.7</span>OSPF</a></li>
+    <li><a href="#reconv"><span class="n">4.8</span>장애와 재수렴</a></li>
+    <li><a href="#trace"><span class="n">4.9</span>traceroute로 본 경로</a></li>
+    <li><a href="#incr"><span class="n">4.10</span>SPF를 덜 돌리기</a></li>
+    <li><a href="#quiz"><span class="n">✓</span>스스로 확인하기</a></li>
+  </ol>
+</aside>
+
+<main>
+<div class="hero">
+  <span class="eyebrow">6주차 · 네트워크 계층 (제어 평면)</span>
+  <h1>라우팅 · 다익스트라 · 거리 벡터 · OSPF</h1>
+  <p class="lead">라우팅 프로토콜의 일은 최단 경로를 한 번 찾는 것이 아닙니다. <b>무엇이 고장 날 때마다 최단 경로를 다시, 빨리 찾는 것</b>입니다.</p>
+  <div class="meta">
+    <span>강의 6-1 · 6-2 (교재 §5.2–§5.3)</span>
+    <span>실습 폴더 <a class="kbd-file" href="../w06-routing/">w06-routing/</a></span>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card"><h4>Task 1 · 링크 상태</h4><p>다익스트라와 그 결과인 포워딩 테이블을 직접 만듭니다.</p><p class="small muted">4.2 · 4.3 · 4.4</p></div>
+  <div class="card"><h4>Task 2 · 실제 망 끊기</h4><p>traceroute와 FRR 라우터 3대로 재수렴 시간을 잽니다.</p><p class="small muted">4.7 · 4.8 · 4.9</p></div>
+  <div class="card"><h4>Task 3 · 재계산 줄이기</h4><p>SPF를 건너뛸 수 있는 때를 아는 라우터를 만듭니다.</p><p class="small muted">4.10</p></div>
+</div>
+
+<!-- 4.1 -->
+<section class="sec" id="control">
+  <h2><span class="n">4.1</span>제어 평면: 포워딩 테이블을 만드는 쪽</h2>
+  <p>5주차의 포워딩은 테이블을 <b>읽습니다</b>. 6주차의 라우팅은 그 테이블을 <b>만듭니다</b>. <a href="w05-ip-nat.html#plane">5주차 3.1</a></p>
+  <div class="cards">
+    <div class="card" style="border-top:var(--s-1) solid var(--rt)"><h4>라우터마다 계산</h4><p>각 라우터가 라우팅 알고리즘을 실행합니다. 라우터끼리 메시지를 교환합니다. OSPF와 BGP가 이 방식입니다.</p><p class="small muted">이번 주의 범위</p></div>
+    <div class="card" style="border-top:var(--s-1) solid var(--muted)"><h4>논리적 중앙 제어 (SDN)</h4><p>원격 컨트롤러가 테이블을 계산합니다. 컨트롤러가 각 라우터에 테이블을 내려 줍니다.</p><p class="small muted">교재 §5.5</p></div>
+  </div>
+  <div class="box concept"><span class="tag">개념 · 수렴(convergence)</span>
+    <p>모든 라우터의 테이블이 현재 망의 상태와 맞는 상태를 <b>수렴</b>이라고 합니다. 링크가 바뀐 뒤 다시 수렴할 때까지가 <b>재수렴</b>입니다. 재수렴 동안 일부 패킷은 틀린 곳으로 가거나 버려집니다.</p>
+  </div>
+</section>
+
+<!-- 4.2 -->
+<section class="sec" id="graph">
+  <h2><span class="n">4.2</span>네트워크를 그래프로 보기</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <ul>
+      <li><b>노드(node)</b>는 라우터입니다. <b>간선(edge)</b>은 링크입니다.</li>
+      <li>각 링크에는 <b>비용(cost)</b>이 있습니다. 관리자가 정합니다. 보통 대역폭이 클수록 비용을 작게 합니다.</li>
+      <li>경로의 비용은 경로에 있는 링크 비용의 합입니다. 라우팅은 <b>최소 비용 경로</b>를 찾습니다.</li>
+    </ul>
+  </div>
+  <figure class="dg">
+    <svg viewBox="0 0 700 300" role="img" aria-label="Task 1의 그래프 TOPOLOGY. 노드 u, v, w, x, y, z와 링크 비용. u에서의 최단 경로 트리를 굵게 표시">
+      <!-- 일반 링크 -->
+      <line class="ln" x1="80" y1="150" x2="450" y2="60"/>
+      <line class="ln" x1="250" y1="60" x2="450" y2="60"/>
+      <line class="ln" x1="250" y1="60" x2="250" y2="240"/>
+      <line class="ln" x1="450" y1="60" x2="250" y2="240"/>
+      <line class="ln" x1="450" y1="60" x2="620" y2="150"/>
+      <!-- 최단 경로 트리 -->
+      <line class="ln-rt" style="stroke-width:4" x1="80" y1="150" x2="250" y2="60"/>
+      <line class="ln-rt" style="stroke-width:4" x1="80" y1="150" x2="250" y2="240"/>
+      <line class="ln-rt" style="stroke-width:4" x1="250" y1="240" x2="450" y2="240"/>
+      <line class="ln-rt" style="stroke-width:4" x1="450" y1="240" x2="450" y2="60"/>
+      <line class="ln-rt" style="stroke-width:4" x1="450" y1="240" x2="620" y2="150"/>
+      <!-- 비용 -->
+      <g text-anchor="middle" class="t-b">
+        <text x="152" y="98">2</text>
+        <text x="152" y="215">1</text>
+        <text x="340" y="80">5</text>
+        <text x="350" y="52">3</text>
+        <text x="238" y="155">2</text>
+        <text x="362" y="160">3</text>
+        <text x="463" y="155">1</text>
+        <text x="545" y="95">5</text>
+        <text x="350" y="232">1</text>
+        <text x="548" y="218">2</text>
+      </g>
+      <!-- 노드 -->
+      <g text-anchor="middle">
+        <circle cx="80" cy="150" r="22" class="bx-rt"/><text x="80" y="155" class="t-b t-rt">u</text>
+        <circle cx="250" cy="60" r="20" class="bx"/><text x="250" y="65" class="t-b">v</text>
+        <circle cx="250" cy="240" r="20" class="bx"/><text x="250" y="245" class="t-b">x</text>
+        <circle cx="450" cy="60" r="20" class="bx"/><text x="450" y="65" class="t-b">w</text>
+        <circle cx="450" cy="240" r="20" class="bx"/><text x="450" y="245" class="t-b">y</text>
+        <circle cx="620" cy="150" r="20" class="bx"/><text x="620" y="155" class="t-b">z</text>
+      </g>
+      <text x="350" y="290" text-anchor="middle" class="t-s t-muted">굵은 선 = u에서 시작한 최단 경로 트리</text>
+    </svg>
+    <figcaption><span class="kbd-file">task1_linkstate.py</span>의 <code>TOPOLOGY</code>입니다. 교재 그림 5.3과 같은 그래프입니다.</figcaption>
+  </figure>
+  <div class="box warn"><span class="tag">직접 링크가 최단 경로가 아닐 수 있습니다</span>
+    <p><code>u</code>–<code>w</code> 직접 링크의 비용은 5입니다. <code>u → x → y → w</code>의 비용은 1 + 1 + 1 = 3입니다. 그러므로 <code>u</code>는 <code>w</code>로 갈 패킷을 <code>x</code> 쪽으로 보냅니다. <code>w</code> 쪽 인터페이스로 보내면 라우팅이 아니라 인접 관계만 본 것입니다.</p>
+  </div>
+</section>
+
+<!-- 4.3 -->
+<section class="sec" id="ls">
+  <h2><span class="n">4.3</span>링크 상태 라우팅과 다익스트라</h2>
+  <div class="box concept"><span class="tag">개념 · 링크 상태(link state, LS)</span>
+    <ol class="stepper" style="--wk:var(--rt)">
+      <li>각 라우터는 자기 링크와 그 비용을 <b>링크 상태 광고(LSA)</b>에 담습니다.</li>
+      <li>각 라우터는 LSA를 망의 <b>모든 라우터</b>에 퍼뜨립니다(플러딩, flooding).</li>
+      <li>그 결과 모든 라우터가 <b>같은 지도</b>를 가집니다.</li>
+      <li>각 라우터는 그 지도로 <b>혼자</b> 다익스트라를 실행합니다.</li>
+    </ol>
+  </div>
+
+  <div class="box steps"><span class="tag">절차 · 다익스트라 (출발지 u)</span>
+    <ol class="stepper">
+      <li>확정 집합 N′에 <code>u</code>만 넣으십시오. 이웃의 거리 D는 링크 비용으로, 나머지는 ∞로 두십시오.</li>
+      <li>N′ 밖에서 D가 가장 작은 노드 <code>m</code>을 고르십시오. <code>m</code>을 N′에 넣으십시오.</li>
+      <li><code>m</code>의 이웃 <code>n</code>마다 D(n) = min(D(n), D(m) + c(m, n))으로 고치십시오.</li>
+      <li>모든 노드가 N′에 들어갈 때까지 2–3단계를 반복하십시오.</li>
+    </ol>
+  </div>
+
+  <h3>계산 예시: <code>TOPOLOGY</code>, 출발지 <code>u</code></h3>
+  <p>칸의 값은 "거리, 직전 노드"입니다. 색칠한 칸은 다음 단계에서 N′에 들어갈 노드입니다.</p>
+  <div class="tbl"><table>
+    <tr><th>단계</th><th>N′</th><th>v</th><th>w</th><th>x</th><th>y</th><th>z</th></tr>
+    <tr><td>0</td><td>u</td><td>2, u</td><td>5, u</td><td class="hl">1, u</td><td>∞</td><td>∞</td></tr>
+    <tr><td>1</td><td>u x</td><td class="hl">2, u</td><td>4, x</td><td></td><td>2, x</td><td>∞</td></tr>
+    <tr><td>2</td><td>u x v</td><td></td><td>4, x</td><td></td><td class="hl">2, x</td><td>∞</td></tr>
+    <tr><td>3</td><td>u x v y</td><td></td><td class="hl">3, y</td><td></td><td></td><td>4, y</td></tr>
+    <tr><td>4</td><td>u x v y w</td><td></td><td></td><td></td><td></td><td class="hl">4, y</td></tr>
+    <tr><td>5</td><td>u x v y w z</td><td></td><td></td><td></td><td></td><td></td></tr>
+  </table></div>
+  <p class="small muted">단계 1에서 <code>v</code>와 <code>y</code>의 거리가 둘 다 2입니다. 어느 쪽을 먼저 확정해도 결과는 같습니다.</p>
+  <div class="box concept"><span class="tag">계산량</span>
+    <p>노드가 n개이면 단순 구현은 O(n²)입니다. 힙(우선순위 큐)을 쓰면 O((n + 간선 수) log n)입니다. Task 1은 <code>heapq</code>를 허용하고 <code>networkx</code>를 금지합니다(R6).</p>
+  </div>
+</section>
+
+<!-- 4.4 -->
+<section class="sec" id="hop">
+  <h2><span class="n">4.4</span>라우터가 저장하는 것: 첫 홉 하나</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <p>라우터는 경로 전체를 저장하지 않습니다. 목적지마다 <b>첫 홉(first hop)</b> 하나만 저장합니다. 첫 홉은 반드시 <b>직접 이웃</b>입니다(R3). 다음 라우터가 다시 자기 첫 홉을 고릅니다. 그래서 패킷은 경로를 들고 다닐 필요가 없습니다.</p>
+  </div>
+  <div class="tbl"><table>
+    <tr><th>목적지</th><th>v</th><th>w</th><th>x</th><th>y</th><th>z</th></tr>
+    <tr><td>최단 거리</td><td>2</td><td>3</td><td>1</td><td>2</td><td>4</td></tr>
+    <tr class="hl"><td>첫 홉 (정상)</td><td>v</td><td>x</td><td>x</td><td>x</td><td>x</td></tr>
+    <tr><td>최단 거리 (<code>u</code>–<code>x</code> 끊김)</td><td>2</td><td>5</td><td>4</td><td>5</td><td>7</td></tr>
+    <tr class="bad"><td>첫 홉 (<code>u</code>–<code>x</code> 끊김)</td><td>v</td><td>v</td><td>v</td><td>v</td><td>v</td></tr>
+  </table></div>
+  <p><code>u</code>–<code>x</code>가 끊기면 <code>x</code>를 지나던 네 목적지가 모두 <code>v</code>로 바뀝니다. <code>v</code>만 그대로입니다(R5).</p>
+
+  <div class="box concept"><span class="tag">비용이 같은 경로가 여럿일 때</span>
+    <div class="cards">
+      <div class="card"><h4>하나만 고르기</h4><p>정해진 규칙으로 하나를 고릅니다. 예: 이름이 가장 작은 첫 홉. 결과가 항상 같습니다.</p></div>
+      <div class="card"><h4>ECMP</h4><p>같은 비용의 첫 홉을 <b>모두</b> 설치합니다. 흐름마다 해시로 하나를 고릅니다. 한 흐름은 한 경로에 머물러 순서가 섞이지 않습니다.</p></div>
+    </div>
+  </div>
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 1</span>
+    <ul>
+      <li>힙 항목에 <code>(비용, 첫 홉, 노드)</code>를 넣습니다. 출발지의 이웃은 자기 자신이 첫 홉입니다. 나머지 노드는 직전 노드의 첫 홉을 물려받습니다. 그래서 경로를 다시 만들지 않습니다.</li>
+      <li>동점 규칙: <code>(비용, 첫 홉)</code> 튜플이 더 작을 때만 바꿉니다. 그러므로 동점이면 이름이 작은 첫 홉이 이깁니다.</li>
+      <li><code>u</code>–<code>x</code>가 끊긴 뒤 <code>w</code>는 동점입니다. 직접 링크 5와 <code>u-v-w</code> 2 + 3 = 5입니다. 이 규칙은 <code>v</code>를 고릅니다.</li>
+      <li>Task 2의 FRR 라우터는 ECMP를 썼습니다. <code>172.20.0.0/16</code>에 <code>via</code> 두 개를 설치했습니다.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4.5 -->
+<section class="sec" id="dv">
+  <h2><span class="n">4.5</span>거리 벡터 라우팅</h2>
+  <div class="box concept"><span class="tag">개념 · 거리 벡터(distance vector, DV)</span>
+    <p>각 라우터는 지도 전체를 모릅니다. 각 라우터는 <b>이웃이 알려 준 거리</b>만 압니다. 계산은 벨만-포드(Bellman-Ford) 식을 씁니다.</p>
+    <pre><code>D<sub>x</sub>(y) = min<sub>v</sub> { c(x, v) + D<sub>v</sub>(y) }   <span class="c"># v는 x의 이웃</span></code></pre>
+    <p>"y까지의 내 거리 = 이웃까지의 비용 + 그 이웃이 말한 y까지의 거리" 중 가장 작은 값입니다.</p>
+  </div>
+  <div class="box steps"><span class="tag">절차 · 각 라우터가 반복하는 일</span>
+    <ol class="stepper">
+      <li>링크 비용이 바뀌거나 이웃이 새 거리 벡터를 보낼 때까지 기다립니다.</li>
+      <li>위 식으로 자기 거리 벡터를 다시 계산합니다.</li>
+      <li>자기 거리 벡터가 바뀌었으면 이웃에게 보냅니다.</li>
+    </ol>
+    <p class="small muted">반복적·비동기적·분산적입니다. 시계를 맞추지 않습니다. 이웃에게만 보냅니다.</p>
+  </div>
+  <div class="cards">
+    <div class="card good"><h4>좋은 소식은 빠릅니다</h4><p>비용이 줄면 새 거리가 이웃마다 한 번씩 퍼집니다. 몇 번의 교환으로 끝납니다.</p></div>
+    <div class="card bad"><h4>나쁜 소식은 느립니다</h4><p>비용이 크게 늘면 두 라우터가 서로를 경유지로 믿습니다. 거리를 조금씩 올리며 주고받습니다. 이것이 <b>무한 카운트(count-to-infinity)</b>입니다. 교재의 예에서는 44번 반복합니다.</p></div>
+  </div>
+  <div class="box concept"><span class="tag">독성 역전(poisoned reverse)</span>
+    <p>z가 y를 거쳐 x로 간다면, z는 y에게 "x까지 내 거리는 ∞"라고 말합니다. 그러면 y는 z를 거쳐 x로 가려고 하지 않습니다. 이 방법은 라우터 두 대 사이의 순환만 막습니다. 세 대 이상의 순환은 막지 못합니다.</p>
+  </div>
+</section>
+
+<!-- 4.6 -->
+<section class="sec" id="cmp">
+  <h2><span class="n">4.6</span>링크 상태와 거리 벡터 비교</h2>
+  <div class="tbl"><table>
+    <tr><th></th><th>링크 상태 (LS)</th><th>거리 벡터 (DV)</th></tr>
+    <tr><td>각 라우터가 아는 것</td><td>망 전체의 지도</td><td>이웃이 알려 준 거리</td></tr>
+    <tr><td>메시지</td><td>LSA를 모든 라우터에 플러딩</td><td>거리 벡터를 이웃에게만</td></tr>
+    <tr><td>수렴</td><td>O(n²) 계산 한 번. 진동할 수 있음</td><td>경우마다 다름. 무한 카운트 가능</td></tr>
+    <tr><td>오류의 영향</td><td>틀린 라우터는 자기 링크만 틀리게 광고합니다. 각 라우터가 자기 테이블을 따로 계산합니다.</td><td>틀린 거리가 이웃을 거쳐 망 전체로 퍼집니다.</td></tr>
+    <tr><td>예</td><td>OSPF, IS-IS</td><td>RIP</td></tr>
+  </table></div>
+</section>
+
+<!-- 4.7 -->
+<section class="sec" id="ospf">
+  <h2><span class="n">4.7</span>OSPF</h2>
+  <div class="box concept"><span class="tag">개념</span>
+    <ul>
+      <li><b>OSPF</b>는 한 자율 시스템(AS) 안에서 쓰는 링크 상태 프로토콜입니다. AS 사이의 라우팅은 BGP가 합니다(교재 §5.4).</li>
+      <li>LSA는 링크가 바뀔 때, 그리고 주기적으로(30분마다) 플러딩합니다.</li>
+      <li>링크 비용은 <b>나가는 인터페이스</b>에 붙습니다. 관리자가 정합니다.</li>
+      <li>같은 비용의 경로가 여럿이면 모두 씁니다(ECMP).</li>
+      <li>큰 AS는 <b>영역(area)</b>으로 나눕니다. 영역끼리는 백본 영역 0을 거칩니다.</li>
+    </ul>
+  </div>
+
+  <h3>이웃을 찾고 잃는 방법: Hello와 Dead</h3>
+  <div class="cards">
+    <div class="card"><p class="big">10초</p><p><b>Hello 간격.</b> 이웃에게 "나 살아 있음"을 보냅니다.</p></div>
+    <div class="card"><p class="big">40초</p><p><b>Dead 간격.</b> 이 시간 동안 Hello가 없으면 이웃이 죽었다고 봅니다.</p></div>
+  </div>
+  <div class="box steps"><span class="tag">절차 · 인접 관계(adjacency)가 만들어지는 순서</span>
+    <ol class="stepper">
+      <li><b>Init:</b> 상대의 Hello를 받았습니다.</li>
+      <li><b>2-Way:</b> 상대의 Hello 안에 내 라우터 ID가 있습니다. 양쪽이 서로를 봅니다.</li>
+      <li><b>ExStart / Exchange:</b> 각자 가진 LSA의 목록(데이터베이스 요약)을 교환합니다.</li>
+      <li><b>Loading:</b> 나에게 없는 LSA를 요청하고 받습니다.</li>
+      <li><b>Full:</b> 두 라우터의 데이터베이스가 같습니다. 이제 SPF를 실행합니다.</li>
+    </ol>
+  </div>
+
+  <h3>Task 2의 OSPF 영역</h3>
+  <figure class="dg">
+    <svg viewBox="0 0 700 260" role="img" aria-label="FRR 라우터 세 대의 삼각형 토폴로지와 서브넷">
+      <line class="ln-rt" x1="350" y1="50" x2="140" y2="210"/>
+      <line class="ln-rt" x1="350" y1="50" x2="560" y2="210"/>
+      <line class="ln-rt" x1="140" y1="210" x2="560" y2="210"/>
+      <rect class="bx-rt" x="300" y="22" width="100" height="44" rx="8"/><text x="350" y="42" text-anchor="middle" class="t-b">r1</text><text x="350" y="58" text-anchor="middle" class="t-s t-muted">1.1.1.1</text>
+      <rect class="bx-rt" x="90" y="190" width="100" height="44" rx="8"/><text x="140" y="210" text-anchor="middle" class="t-b">r2</text><text x="140" y="226" text-anchor="middle" class="t-s t-muted">2.2.2.2</text>
+      <rect class="bx-rt" x="510" y="190" width="100" height="44" rx="8"/><text x="560" y="210" text-anchor="middle" class="t-b">r3</text><text x="560" y="226" text-anchor="middle" class="t-s t-muted">3.3.3.3</text>
+      <text x="200" y="118" text-anchor="end" class="t-s t-b">net_b</text><text x="200" y="134" text-anchor="end" class="t-s t-mono t-muted">172.21.0.0/16</text>
+      <text x="500" y="118" class="t-s t-b">net_a</text><text x="500" y="134" class="t-s t-mono t-muted">172.18.0.0/16</text>
+      <text x="350" y="252" text-anchor="middle" class="t-s"><tspan class="t-b">net_c</tspan>  <tspan class="t-mono t-muted">172.20.0.0/16</tspan></text>
+      <text x="350" y="160" text-anchor="middle" class="t-s t-muted">모든 링크 비용 10</text>
+    </svg>
+    <figcaption>FRR 9.1.0 라우터 세 대. 각 라우터는 서브넷 두 개에 직접 연결됩니다.</figcaption>
+  </figure>
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 B1–B2</span>
+    <p>각 라우터는 직접 연결되지 않은 서브넷 하나를 OSPF로 배웠습니다. 비용은 20(링크 두 개)이고, 다음 홉은 두 개(ECMP)입니다.</p>
+<pre><code><span class="c"># r1 (route-before.txt)</span>
+O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
+  *                        via 172.21.0.3, eth0</code></pre>
+    <p class="small muted"><code>[110/20]</code>에서 110은 OSPF의 관리 거리, 20은 경로 비용입니다.</p>
+  </div>
+</section>
+
+<!-- 4.8 -->
+<section class="sec" id="reconv">
+  <h2><span class="n">4.8</span>장애와 재수렴: 계산보다 감지가 느립니다</h2>
+  <p>링크가 바뀐 뒤 세 라우터의 테이블이 모두 다시 맞을 때까지의 시간입니다. 0.25초마다 세 라우터를 함께 조회했습니다.</p>
+  <figure class="dg">
+    <svg viewBox="0 0 760 250" role="img" aria-label="재수렴 시간: 비용 변경 0.3초, 링크 끊기 0.4초 이하, 링크 복구 6.2에서 18.0초, 조용한 고장 38초">
+      <!-- x = 200 + 초 × 13 -->
+      <line class="ln-dash" x1="330" y1="20" x2="330" y2="200"/>
+      <line class="ln-dash" x1="720" y1="20" x2="720" y2="200"/>
+      <text x="330" y="14" text-anchor="middle" class="t-s t-muted">Hello 10초</text>
+      <text x="720" y="14" text-anchor="middle" class="t-s t-muted">Dead 40초</text>
+
+      <text x="190" y="48" text-anchor="end" class="t-s t-b">비용 변경 (C)</text>
+      <rect x="200" y="36" width="4" height="18" rx="2" class="fill-rt"><title>비용 변경: 0.22–0.29초 (4회)</title></rect>
+      <text x="212" y="50" class="t-s">0.3초</text>
+
+      <text x="190" y="90" text-anchor="end" class="t-s t-b">링크 끊기 (B4)</text>
+      <rect x="200" y="78" width="5" height="18" rx="2" class="fill-rt"><title>링크 끊기: 모두 0.4초 이내 (4회)</title></rect>
+      <text x="213" y="92" class="t-s">&lt; 0.4초</text>
+
+      <text x="190" y="132" text-anchor="end" class="t-s t-b">링크 복구 (B5)</text>
+      <rect x="281" y="120" width="153" height="18" rx="4" class="fill-rt" style="opacity:.35"><title>링크 복구: 6.2초, 11.9초, 18.0초 (3회)</title></rect>
+      <circle cx="281" cy="129" r="5" class="fill-rt"/><circle cx="355" cy="129" r="5" class="fill-rt"/><circle cx="434" cy="129" r="5" class="fill-rt"/>
+      <text x="444" y="134" class="t-s">6.2 · 11.9 · 18.0초</text>
+
+      <text x="190" y="174" text-anchor="end" class="t-s t-b">조용한 고장 (B4)</text>
+      <rect x="200" y="162" width="494" height="18" rx="4" class="fill-rt"><title>조용한 고장 (tc netem loss 100%): 37.9–38.1초</title></rect>
+      <text x="700" y="176" class="t-s">38초</text>
+
+      <line class="ln" x1="200" y1="204" x2="730" y2="204"/>
+      <g text-anchor="middle">
+        <text x="200" y="222" class="t-s t-muted">0</text>
+        <text x="330" y="222" class="t-s t-muted">10</text>
+        <text x="460" y="222" class="t-s t-muted">20</text>
+        <text x="590" y="222" class="t-s t-muted">30</text>
+        <text x="720" y="222" class="t-s t-muted">40초</text>
+      </g>
+    </svg>
+    <figcaption>막대에 마우스를 올리면 측정값이 나옵니다. 근거: <span class="kbd-file">w06-routing/out/reconverge.txt</span>, <span class="kbd-file">cost-change.txt</span></figcaption>
+  </figure>
+
+  <div class="tbl"><table>
+    <tr><th>사건</th><th>라우터가 아는 방법</th><th>시간</th></tr>
+    <tr><td>링크 끊기 (<code>ip link set down</code>)</td><td>r1이 반송파(carrier)가 끊긴 것을 바로 압니다. r1이 새 LSA를 r2를 거쳐 플러딩합니다.</td><td>&lt; 0.4초</td></tr>
+    <tr class="bad"><td>조용한 고장 (<code>tc netem loss 100%</code>)</td><td>인터페이스는 살아 있습니다. 아무도 모릅니다. Dead 타이머가 끝나야 압니다.</td><td>38초</td></tr>
+    <tr><td>링크 복구</td><td>Hello를 기다리고, 2-Way → Exchange → Loading → Full을 거친 뒤 SPF를 실행합니다.</td><td>6.2–18.0초</td></tr>
+    <tr class="hl"><td>비용 변경 (10 → 100)</td><td>바꾼 라우터가 바로 압니다. 살아 있는 인접 관계로 LSA가 퍼집니다.</td><td>0.3초</td></tr>
+  </table></div>
+
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 B4–B5, C3</span>
+    <ul>
+      <li><b>끊기는 Dead 간격과 관계없었습니다.</b> 반대편 r3는 r1을 32–39초 동안 <code>Full</code> 이웃으로 남겨 두었습니다. 그러나 r3의 경로는 이미 바뀌었습니다. r1의 새 LSA에 그 링크가 없으므로, 양방향 확인이 실패하기 때문입니다.</li>
+      <li><b>조용한 고장의 38초</b>는 Dead 40초에서 마지막 Hello 뒤 지난 시간(0–10초)을 뺀 값과 맞습니다. 그동안 ECMP가 그 링크로 해시한 흐름은 모두 버려졌습니다(블랙홀).</li>
+      <li><b>복구가 느리고 매번 다른 이유:</b> 사라진 이웃은 사건 하나로 압니다. 돌아온 이웃은 인접 관계를 단계별로 다시 만들어야 합니다. 다음 Hello까지 최대 10초를 기다리므로 시간이 매번 다릅니다.</li>
+      <li><b>r2는 비용 변경에 반응하지 않았습니다.</b> 비용은 나가는 인터페이스에 붙습니다. r2의 경로가 쓰는 r1의 나가는 인터페이스 비용은 바뀌지 않았습니다.</li>
+    </ul>
+  </div>
+  <div class="box concept"><span class="tag">실제 망의 대책 · BFD</span>
+    <p>알고리즘은 빠릅니다. 느린 것은 고장의 <b>감지</b>입니다. 그래서 실제 망은 OSPF 위에 BFD를 더합니다. BFD는 1초보다 훨씬 짧은 간격으로 이웃을 확인합니다.</p>
+  </div>
+</section>
+
+<!-- 4.9 -->
+<section class="sec" id="trace">
+  <h2><span class="n">4.9</span>traceroute로 본 남의 라우팅</h2>
+  <p>traceroute는 IP의 TTL을 1부터 늘려 보냅니다. TTL이 0이 된 라우터가 ICMP 오류를 돌려보냅니다. <a href="w05-ip-nat.html#dgram">5주차 3.3</a></p>
+  <h3>캠퍼스를 벗어나는 곳 (A2)</h3>
+  <div class="flow">
+    <span class="chip">1 · <code>172.16.0.2</code><small>캠퍼스</small></span><span class="arr">→</span>
+    <span class="chip">2 · <code>192.168.98.132</code><small>캠퍼스</small></span><span class="arr">→</span>
+    <span class="chip hl">3 · <code>163.152.233.129</code><small>캠퍼스의 마지막 홉</small></span><span class="arr">→</span>
+    <span class="chip">4 · <code>175.121.235.141</code><small>SK브로드밴드 AS9318</small></span>
+  </div>
+  <h3>바다를 건너는 곳 (A3)</h3>
+  <div class="tbl"><table>
+    <tr><th>홉</th><th>주소 · 이름</th><th>RTT</th><th>증가</th></tr>
+    <tr><td>7</td><td><code>10.222.10.159</code> (SKB 내부)</td><td>약 10 ms</td><td></td></tr>
+    <tr class="hl"><td>8</td><td><code>10.222.1.91</code> (SKB 내부)</td><td>약 124 ms</td><td><b>+114 ms</b> · 태평양</td></tr>
+    <tr><td>10</td><td><code>be2.core1.sea1.he.net</code> (시애틀)</td><td>127 ms</td><td></td></tr>
+    <tr><td>13</td><td><code>core2.bos2.he.net</code> (보스턴)</td><td>182 ms</td><td>+55 ms · 미국 대륙</td></tr>
+  </table></div>
+  <p>한 홉에서만 100 ms 이상 늘어납니다. 그 구간이 해저 케이블입니다. 홉 7과 8에는 이름이 없습니다. 그러므로 케이블의 이름은 추정만 할 수 있습니다.</p>
+  <div class="cards">
+    <div class="card"><h4>애니캐스트 1.1.1.1 (A4)</h4><p>13홉, 12 ms. 12 ms로는 한국 밖에 갈 수 없습니다. 복제 서버는 국내에 있습니다. 홉 수는 ISP 사이의 연결 방식을 보여 줍니다. 거리를 보여 주는 것은 RTT입니다.</p></div>
+    <div class="card"><h4><code>* * *</code> ① (A5)</h4><p>라우터가 패킷은 전달하지만 ICMP로 답하지 않습니다. <b>뒤의 홉은 다시 답합니다.</b></p></div>
+    <div class="card"><h4><code>* * *</code> ② (A5)</h4><p>목적지 근처의 방화벽이 탐침을 버립니다. <b>그 뒤로는 아무도 답하지 않습니다.</b></p></div>
+  </div>
+  <p class="small muted">근거: <span class="kbd-file">w06-routing/out/traceroute.txt</span>. <code>www.korea.ac.kr</code>은 우리 학교라 캠퍼스를 벗어나지 않습니다. <code>www.stanford.edu</code>는 AWS 애니캐스트 주소입니다. 그래서 SNU와 <code>mirrors.mit.edu</code>로 바꾸어 측정했습니다.</p>
+</section>
+
+<!-- 4.10 -->
+<section class="sec" id="incr">
+  <h2><span class="n">4.10</span>SPF를 덜 돌리기</h2>
+  <div class="box concept"><span class="tag">문제</span>
+    <p>링크 하나가 계속 끊겼다 살아나면(플래핑, flapping), 영역의 모든 라우터가 매번 SPF를 다시 실행합니다. 라우터의 CPU가 이 일로 가득 찰 수 있습니다.</p>
+  </div>
+  <div class="box concept"><span class="tag">링크 하나가 바뀐 뒤 사실인 것</span>
+    <ul>
+      <li>대부분의 목적지는 영향을 받지 않습니다.</li>
+      <li>링크가 <b>끊기면</b>, 그 링크를 쓰던 경우에만 영향이 있습니다.</li>
+      <li>링크가 <b>살아나거나 싸지면</b>, 더 짧은 경로가 생길 때만 영향이 있습니다. 이미 아는 거리와 비교하면 SPF 없이 알 수 있습니다.</li>
+    </ul>
+  </div>
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 3</span>
+    <p>사건 사이에 출발지에서 각 노드까지의 최단 거리 <code>dist</code>를 보관합니다. 노드당 숫자 하나, O(V)입니다.</p>
+    <div class="tbl"><table>
+      <tr><th>사건</th><th>처리</th></tr>
+      <tr><td>끊김 · 비싸짐, 최단 경로에 없는 링크</td><td>무시합니다.</td></tr>
+      <tr><td>끊김 · 비싸짐, 다른 같은 비용의 진입로가 있음</td><td>거리는 그대로입니다. 첫 홉만 다시 정합니다.</td></tr>
+      <tr><td>살아남 · 싸짐</td><td><code>dist[a] + c ≥ dist[b]</code>이면 무시합니다. 짧아지면 개선된 노드만 고칩니다.</td></tr>
+      <tr class="bad"><td>끊김 · 비싸짐, 유일한 최단 진입로를 잃음</td><td><b>전체 SPF</b>를 실행합니다.</td></tr>
+    </table></div>
+    <div class="cards">
+      <div class="card bad"><h4>FullRecompute</h4><p class="big" style="color:var(--warn)">1,001</p><p>SPF 실행 횟수</p></div>
+      <div class="card good"><h4>YourRouter</h4><p class="big" style="color:var(--example)">177</p><p>SPF 실행 횟수 · <b>82% 절감</b> · 1,000개 사건 모두 정답</p></div>
+    </div>
+    <p><b>R5 · 실행 시간은 왜 비슷하거나 느린가:</b> 파이썬에서는 dict 연산의 비용이 큽니다. 실제 라우터에서 부족한 것은 메모리가 아니라 제어 평면의 CPU입니다. CPU가 바쁘면 Hello를 놓칩니다. 그러면 인접 관계가 끊기고 플래핑이 더 늘어납니다. 그래서 숫자를 조금 더 저장하고 SPF를 건너뛰는 쪽이 맞습니다.</p>
+  </div>
+</section>
+
+<!-- quiz -->
+<section class="sec" id="quiz">
+  <h2><span class="n">✓</span>스스로 확인하기</h2>
+  <div class="box check"><span class="tag">확인 질문 · 눌러서 답 보기</span>
+    <details class="q"><summary><code>u</code>에서 <code>w</code>로 갈 때 첫 홉이 <code>w</code>가 아닌 이유는?</summary>
+      <p class="a">직접 링크의 비용은 5입니다. <code>u-x-y-w</code>는 3입니다. 라우터는 비용이 가장 작은 경로의 첫 홉 <code>x</code>를 씁니다.</p></details>
+    <details class="q"><summary>포워딩 테이블의 첫 홉이 반드시 직접 이웃이어야 하는 이유는?</summary>
+      <p class="a">라우터는 패킷을 자기 인터페이스로만 내보낼 수 있습니다. 그 인터페이스의 반대편이 직접 이웃입니다.</p></details>
+    <details class="q"><summary>거리 벡터에서 나쁜 소식이 느리게 퍼지는 이유는?</summary>
+      <p class="a">두 라우터가 서로를 경유지로 믿습니다. 각자 상대가 말한 거리에 비용을 더해 조금씩 올립니다. 다른 경로가 더 싸질 때까지 이 교환이 반복됩니다.</p></details>
+    <details class="q"><summary>링크를 끊었을 때 0.4초 안에 재수렴했습니다. Dead 간격 40초와 맞지 않는 이유는?</summary>
+      <p class="a">r1이 반송파 끊김을 바로 알았기 때문입니다. r1이 새 LSA를 플러딩했고, 다른 라우터는 그 LSA로 SPF를 실행했습니다. Dead 타이머가 필요한 것은 인터페이스가 살아 있는 조용한 고장입니다.</p></details>
+    <details class="q"><summary>링크 복구가 링크 끊기보다 느린 이유는?</summary>
+      <p class="a">사라진 이웃은 사건 하나로 압니다. 돌아온 이웃은 Hello 확인, 데이터베이스 교환, LSA 수신을 거쳐 Full이 되어야 SPF를 실행할 수 있습니다.</p></details>
+    <details class="q"><summary>비용 변경이 장애보다 빨리 반영되는 이유는?</summary>
+      <p class="a">비용을 바꾼 라우터는 바로 압니다. LSA는 살아 있는 인접 관계로 바로 퍼집니다. 장애는 먼저 감지되어야 합니다.</p></details>
+    <details class="q"><summary>링크가 살아났을 때 SPF 없이 무시해도 되는 조건은?</summary>
+      <p class="a">새 링크 (a, b, c)에 대해 <code>dist[a] + c ≥ dist[b]</code>이고 <code>dist[b] + c ≥ dist[a]</code>이면 더 짧은 경로가 생기지 않습니다.</p></details>
+  </div>
+</section>
+
+<div class="pager">
+  <a href="w05-ip-nat.html"><small>이전</small>← 5주차 · IP와 NAT</a>
+  <a class="next" href="w07-ethernet-arp.html"><small>다음</small>7주차 · 이더넷과 ARP →</a>
+</div>
+</main>
+</div>
+</body>
+</html>

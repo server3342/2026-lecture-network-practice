@@ -4,8 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>3주차 DNS와 CDN</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="style.css">
 <script src="theme.js"></script>
+<script src="tips.js" defer></script>
 </head>
 <body class="wk-dns">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -16,13 +19,15 @@
 </defs></svg>
 
 <header class="topbar"><div class="topbar-inner">
-  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <a class="brand" href="index.html">3–7주차 개념 정리</a>
   <nav class="nav">
     <a href="index.html">개요</a>
     <a href="flow.html">요청 따라가기</a>
     <a class="on" href="w03-dns.html">3주 DNS</a>
     <a href="w04-tcp.html">4주 TCP</a>
     <a href="w05-ip-nat.html">5주 IP·NAT</a>
+    <a href="w06-routing.html">6주 라우팅</a>
+    <a href="w07-ethernet-arp.html">7주 이더넷·ARP</a>
   </nav>
   <button class="theme-btn" type="button">테마</button>
 </div></header>
@@ -69,7 +74,7 @@
   <h2><span class="n">1.1</span>DNS가 해결하는 문제</h2>
   <div class="box concept"><span class="tag">개념</span>
     <p>호스트를 가리키는 방법은 두 가지입니다.</p>
-    <div class="cards" style="margin:8px 0">
+    <div class="cards" style="margin:var(--s-2) 0">
       <div class="card"><h4>이름 <code>www.korea.ac.kr</code></h4><p>사람이 기억하기 쉽습니다. 길이가 일정하지 않습니다. 라우터는 이름을 처리하지 않습니다.</p></div>
       <div class="card"><h4>주소 <code>163.152.6.10</code></h4><p>32비트 숫자입니다. 라우터가 처리합니다. 사람이 기억하기 어렵습니다.</p></div>
     </div>
@@ -165,8 +170,8 @@
 <section class="sec" id="rec">
   <h2><span class="n">1.4</span>재귀 질의와 반복 질의</h2>
   <div class="cards">
-    <div class="card" style="border-top:5px solid var(--tcp)"><h4>재귀 질의 (recursive)</h4><p>"답을 끝까지 찾아서 주십시오."</p><p class="small muted">받은 서버가 다른 서버들에게 대신 묻습니다.</p></div>
-    <div class="card" style="border-top:5px solid var(--dns)"><h4>반복 질의 (iterative)</h4><p>"아는 만큼만 주십시오."</p><p class="small muted">받은 서버는 다음에 물을 서버를 알려 줍니다.</p></div>
+    <div class="card" style="border-top:var(--s-1) solid var(--tcp)"><h4>재귀 질의 (recursive)</h4><p>"답을 끝까지 찾아서 주십시오."</p><p class="small muted">받은 서버가 다른 서버들에게 대신 묻습니다.</p></div>
+    <div class="card" style="border-top:var(--s-1) solid var(--dns)"><h4>반복 질의 (iterative)</h4><p>"아는 만큼만 주십시오."</p><p class="small muted">받은 서버는 다음에 물을 서버를 알려 줍니다.</p></div>
   </div>
 
   <figure class="dg">
@@ -548,13 +553,13 @@ self.entries[name] = (address, <span class="k">now + ttl</span>)          <span 
     <p>④에서 CDN이 보는 것은 <b>사용자가 아니라 로컬 DNS 서버</b>의 주소입니다. 사용자가 먼 공용 리졸버(예: <code>8.8.8.8</code>)를 쓰면 CDN은 사용자의 위치를 잘못 알 수 있습니다.</p>
   </div>
   <div class="cards">
-    <div class="card"><h4>애니캐스트 (anycast)</h4><p>여러 위치의 서버가 <b>같은 주소</b>를 씁니다. 라우팅이 가까운 위치로 보냅니다. CNAME이 없으므로 DNS만 보아서는 CDN을 알 수 없습니다.</p></div>
+    <div class="card"><h4>애니캐스트 (anycast)</h4><p>여러 위치의 서버가 <b>같은 주소</b>를 씁니다. 라우팅이 가까운 위치로 보냅니다. CNAME이 없으므로 DNS만 보아서는 CDN을 알 수 없습니다. 6주차에 traceroute로 1.1.1.1까지 가 보면 13홉, 12 ms 만에 국내의 복제 서버가 답합니다(<a href="w06-routing.html#trace">6주차 4.9</a>).</p></div>
     <div class="card"><h4>AS (Autonomous System)</h4><p>한 조직이 운영하는 네트워크입니다. 번호(ASN)를 가집니다. 주소의 AS를 보면 그 주소의 실제 소유자를 알 수 있습니다.</p></div>
   </div>
 
   <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 Part B</span>
     <p><a class="kbd-file" href="../w03-dns/task2_steering.py">task2_steering.py</a>가 12개 사이트의 CNAME 체인을 따라갑니다. <code>asn_of()</code>는 Team Cymru의 DNS 서비스로 주소의 AS를 찾습니다.</p>
-    <h3 style="margin-top:12px">"제3자 CDN인가"를 판정하는 규칙</h3>
+    <h3 style="margin-top:var(--s-3)">"제3자 CDN인가"를 판정하는 규칙</h3>
     <div class="tbl"><table>
       <tr><th>규칙</th><th>내용</th><th>틀린 사이트</th></tr>
       <tr><td>단순 규칙</td><td>체인 끝 이름의 마지막 두 라벨을 사이트와 비교</td><td><code>www.bbc.co.uk</code> (<code>co.uk</code>가 한 접미사), <code>www.github.com</code> (CNAME 없이 Microsoft AS)</td></tr>

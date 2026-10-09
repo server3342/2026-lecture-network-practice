@@ -4,8 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>4주차 TCP</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="style.css">
 <script src="theme.js"></script>
+<script src="tips.js" defer></script>
 </head>
 <body class="wk-tcp">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -16,13 +19,15 @@
 </defs></svg>
 
 <header class="topbar"><div class="topbar-inner">
-  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <a class="brand" href="index.html">3–7주차 개념 정리</a>
   <nav class="nav">
     <a href="index.html">개요</a>
     <a href="flow.html">요청 따라가기</a>
     <a href="w03-dns.html">3주 DNS</a>
     <a class="on" href="w04-tcp.html">4주 TCP</a>
     <a href="w05-ip-nat.html">5주 IP·NAT</a>
+    <a href="w06-routing.html">6주 라우팅</a>
+    <a href="w07-ethernet-arp.html">7주 이더넷·ARP</a>
   </nav>
   <button class="theme-btn" type="button">테마</button>
 </div></header>
@@ -250,7 +255,7 @@
 
   <div class="box example"><span class="tag">이 프로젝트에서 · Task 1</span>
     <p><a class="kbd-file" href="../w04-tcp/task1_rdt.py">task1_rdt.py</a>는 <b>선택적 반복</b>을 구현합니다. 채널: 손실 10%, 중복 3%, 순서 바뀜. 2,000바이트 = 8바이트 패킷 250개.</p>
-    <h3 style="margin-top:10px">송신 측 <code>Sender.step()</code></h3>
+    <h3 style="margin-top:var(--s-3)">송신 측 <code>Sender.step()</code></h3>
     <ol class="stepper">
       <li>ACK 하나를 받아 그 번호를 <code>acked</code>에 표시합니다. 중복 ACK는 같은 표시를 다시 할 뿐입니다.</li>
       <li><code>base</code>의 패킷이 확인되었으면 <code>base</code>를 앞으로 옮깁니다. (윈도우 이동)</li>
@@ -264,7 +269,7 @@ if seq &gt;= self.next:
 while self.next in self.buf:            <span class="c"># 3. 이어진 부분만 출력에 붙임.</span>
     self.out += self.buf.pop(self.next)
     self.next += 1</code></pre>
-    <div class="box warn" style="margin:10px 0"><span class="tag">왜 중복 데이터에도 ACK를 다시 보내는가</span>
+    <div class="box warn" style="margin:var(--s-3) 0"><span class="tag">왜 중복 데이터에도 ACK를 다시 보내는가</span>
       <p>처음 보낸 ACK가 손실되었을 수 있습니다. ACK를 다시 보내지 않으면 송신 측은 영원히 재전송합니다(livelock).</p>
     </div>
     <div class="cards">
@@ -409,14 +414,14 @@ TimeoutInterval = EstimatedRTT + 4·DevRTT</code></pre>
   <h2><span class="n">2.10</span>처리량, RTT, 대역폭-지연 곱</h2>
   <div class="box concept"><span class="tag">두 식</span>
     <div class="cards">
-      <div class="card"><h4>처리량</h4><p class="big" style="font-size:22px">≈ 윈도우 ÷ RTT</p><p class="small muted">RTT마다 윈도우만큼 보내기 때문</p></div>
-      <div class="card"><h4>BDP</h4><p class="big" style="font-size:22px">= 대역폭 × RTT</p><p class="small muted">링크를 가득 채우는 데 필요한 윈도우</p></div>
+      <div class="card"><h4>처리량</h4><p class="big" style="font-size:var(--t-title2);line-height:var(--l-title2)">≈ 윈도우 ÷ RTT</p><p class="small muted">RTT마다 윈도우만큼 보내기 때문</p></div>
+      <div class="card"><h4>BDP</h4><p class="big" style="font-size:var(--t-title2);line-height:var(--l-title2)">= 대역폭 × RTT</p><p class="small muted">링크를 가득 채우는 데 필요한 윈도우</p></div>
     </div>
     <p>같은 윈도우라도 RTT가 길면 처리량이 낮습니다. 슬로 스타트는 RTT마다 윈도우를 두 배로 하므로, RTT가 길면 윈도우가 커지는 데도 시간이 더 걸립니다.</p>
   </div>
 
   <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 B3–B5</span>
-    <figure class="dg" style="margin-top:4px">
+    <figure class="dg" style="margin-top:var(--s-1)">
       <svg viewBox="0 0 720 170" role="img" aria-label="두 네트워크의 처리량과 핸드셰이크 시간 비교">
         <text x="20" y="22" class="t-s t-b">처리량 중앙값 (Mbps)</text>
         <text x="20" y="54" class="t-s">캠퍼스 Wi-Fi</text>
@@ -545,7 +550,7 @@ def on_loss(self):
     self.slow_start = False
     self.window = max(2.0, self.window * <span class="k">self.BACKOFF</span>)   <span class="c"># ×0.5</span>
     self.quiet = int(self.window) * self.QUIET</code></pre>
-    <div class="box concept" style="margin:10px 0"><span class="tag">quiet가 필요한 이유</span>
+    <div class="box concept" style="margin:var(--s-3) 0"><span class="tag">quiet가 필요한 이유</span>
       <p>큐가 한 번 넘치면 패킷 여러 개가 버려집니다. 타임아웃은 하나씩 따로 옵니다. 이것은 <b>혼잡 사건 하나</b>입니다. 감소도 한 번만 해야 합니다. TCP도 한 윈도우 안의 손실에는 한 번만 반응합니다.</p>
     </div>
     <div class="cards">

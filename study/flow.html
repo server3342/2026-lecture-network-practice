@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>요청 한 번 따라가기</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">3–5주차 개념 정리</a>
+  <nav class="nav">
+    <a href="index.html">개요</a>
+    <a class="on" href="flow.html">요청 따라가기</a>
+    <a href="w03-dns.html">3주 DNS</a>
+    <a href="w04-tcp.html">4주 TCP</a>
+    <a href="w05-ip-nat.html">5주 IP·NAT</a>
+  </nav>
+  <button class="theme-btn" type="button">테마</button>
+</div></header>
+
+<div class="layout">
+<aside class="toc">
+  <b>이 페이지</b>
+  <ol>
+    <li><a href="#setup"><span class="n">1</span>예시의 조건</a></li>
+    <li><a href="#terms"><span class="n">2</span>이 페이지의 용어</a></li>
+    <li><a href="#overview"><span class="n">3</span>전체 그림</a></li>
+    <li><a href="#s-dhcp"><span class="n">4</span>준비: 주소 받기</a></li>
+    <li><a href="#s-dns"><span class="n">5</span>이름을 주소로</a></li>
+    <li><a href="#s-hop"><span class="n">6</span>첫 홉 정하기</a></li>
+    <li><a href="#s-tcp"><span class="n">7</span>연결 만들기</a></li>
+    <li><a href="#s-tls"><span class="n">8</span>암호화와 요청</a></li>
+    <li><a href="#s-data"><span class="n">9</span>데이터 받기</a></li>
+    <li><a href="#s-close"><span class="n">10</span>연결 닫기</a></li>
+    <li><a href="#try"><span class="n">11</span>직접 확인하기</a></li>
+    <li><a href="#quiz"><span class="n">✓</span>스스로 확인하기</a></li>
+  </ol>
+</aside>
+
+<main>
+<div class="hero">
+  <span class="eyebrow">예시 · 실제 측정값</span>
+  <h1>요청 한 번 따라가기<br><code style="font-size:.6em">curl https://speed.cloudflare.com/…</code></h1>
+  <p class="lead">노트북에서 명령 한 번을 실행할 때 일어나는 일을 순서대로 씁니다. 단계마다 그 단계를 보여 주는 패킷 번호와 시각을 붙였습니다.</p>
+  <div class="meta">
+    <span>측정: 2026-09-29, 세종캠퍼스 Wi-Fi</span>
+    <span>근거: <span class="kbd-file">w04-tcp/out/tcp.pcapng</span> 외 3개 파일</span>
+  </div>
+</div>
+
+<!-- 1 -->
+<section class="sec" id="setup">
+  <h2><span class="n">1</span>예시의 조건</h2>
+  <p>이 페이지는 4주차 Task 2의 첫 번째 측정을 예시로 씁니다. 모든 값은 이 저장소의 파일에 있습니다.</p>
+  <div class="tbl"><table>
+    <tr><th>항목</th><th>값</th><th>근거 파일</th></tr>
+    <tr><td>명령</td><td><code>curl -o /dev/null https://speed.cloudflare.com/__down?bytes=5000000</code></td><td><span class="kbd-file">w04-tcp/out/throughput.json</span></td></tr>
+    <tr><td>노트북 주소</td><td><code>172.16.25.130/24</code></td><td rowspan="3"><span class="kbd-file">w05-ip-nat/out/addresses.json</span></td></tr>
+    <tr><td>기본 게이트웨이</td><td><code>172.16.25.1</code></td></tr>
+    <tr><td>노트북의 DNS 설정</td><td><code>127.0.0.53</code> (노트북 안의 스텁 리졸버)</td></tr>
+    <tr><td>서버 주소</td><td><code>172.66.0.218</code>, 포트 443</td><td rowspan="2"><span class="kbd-file">w04-tcp/out/tcp.pcapng</span> (TCP 스트림 0)</td></tr>
+    <tr><td>캡처한 패킷</td><td>285개, 첫 SYN부터 마지막 ACK까지 153.3 ms</td></tr>
+    <tr><td>공인 주소</td><td><code>163.152.233.xxx</code> (마스킹함)</td><td><span class="kbd-file">w05-ip-nat/out/addresses.json</span></td></tr>
+  </table></div>
+  <div class="box warn">
+    <span class="tag">시각을 읽는 방법</span>
+    <p>이 페이지의 시각 <code>t</code>는 캡처의 시각입니다. 첫 SYN을 <code>t = 0</code>으로 합니다. DNS는 SYN보다 먼저 일어나므로 캡처에 없습니다. DNS 시간은 <code>curl</code>이 잰 값을 씁니다.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="sec" id="terms">
+  <h2><span class="n">2</span>이 페이지의 용어</h2>
+  <p>한 용어는 한 가지 뜻으로만 씁니다. <a href="index.html#how">개요의 고정 용어</a>에 다음 용어를 더합니다.</p>
+  <div class="tbl"><table>
+    <tr><th>용어</th><th>이 페이지에서의 뜻</th></tr>
+    <tr><td>노트북</td><td>명령을 실행한 호스트. 클라이언트입니다.</td></tr>
+    <tr><td>서버</td><td><code>172.66.0.218</code>의 호스트. 5 MB를 보내는 쪽입니다.</td></tr>
+    <tr><td>게이트웨이</td><td>노트북의 기본 게이트웨이 <code>172.16.25.1</code>. 노트북 밖의 첫 라우터입니다.</td></tr>
+    <tr><td>질의(query)</td><td>DNS 질문 메시지. DNS에만 씁니다.</td></tr>
+    <tr><td>요청(request)</td><td>HTTP 요청 메시지. HTTP에만 씁니다.</td></tr>
+    <tr><td>패킷</td><td>캡처 파일의 한 줄. <code>#번호</code>로 가리킵니다.</td></tr>
+    <tr><td>왕복 시간(RTT)</td><td>노트북이 보낸 뒤 답이 돌아올 때까지의 시간.</td></tr>
+  </table></div>
+</section>
+
+<!-- 3 -->
+<section class="sec" id="overview">
+  <h2><span class="n">3</span>전체 그림</h2>
+  <p>요청 하나는 6개 구간을 차례로 지납니다. 아래 그림은 캡처의 시각을 비율대로 그렸습니다.</p>
+
+  <figure class="dg">
+    <svg viewBox="0 0 760 170" role="img" aria-label="요청 한 번의 시간표. 핸드셰이크 8.7 ms, TLS 11.8 ms, 서버 대기 30.8 ms, 데이터 89.5 ms, 종료 7.4 ms">
+      <!-- x = 40 + t(ms) × 4.4 -->
+      <rect class="bx-dns" x="32.5" y="40" width="7.5" height="28" rx="2"/>
+      <text x="36" y="30" text-anchor="middle" class="t-s t-dns t-b">DNS</text>
+      <rect class="bx-tcp" x="40" y="40" width="38.5" height="28" rx="2"/>
+      <rect class="bx2" x="101" y="40" width="52" height="28" rx="2"/>
+      <rect class="bx-chk" x="153" y="40" width="135" height="28" rx="2"/>
+      <rect class="bx-tcp" x="288" y="40" width="394" height="28" rx="2"/>
+      <rect class="bx-tcp" x="682" y="40" width="32.5" height="28" rx="2"/>
+
+      <text x="59" y="88" text-anchor="middle" class="t-s t-tcp t-b">연결</text>
+      <text x="59" y="102" text-anchor="middle" class="t-s t-muted">8.7 ms</text>
+      <text x="127" y="88" text-anchor="middle" class="t-s t-b">TLS</text>
+      <text x="127" y="102" text-anchor="middle" class="t-s t-muted">11.8 ms</text>
+      <text x="220" y="88" text-anchor="middle" class="t-s t-chk t-b">서버 대기</text>
+      <text x="220" y="102" text-anchor="middle" class="t-s t-muted">30.8 ms</text>
+      <text x="485" y="88" text-anchor="middle" class="t-s t-tcp t-b">데이터 5 MB</text>
+      <text x="485" y="102" text-anchor="middle" class="t-s t-muted">89.5 ms</text>
+      <text x="698" y="88" text-anchor="middle" class="t-s t-tcp t-b">종료</text>
+      <text x="698" y="102" text-anchor="middle" class="t-s t-muted">7.4 ms</text>
+
+      <line class="ln" x1="40" y1="128" x2="722" y2="128"/>
+      <g class="t-s t-muted">
+        <line class="ln" x1="40" y1="124" x2="40" y2="132"/><text x="40" y="148" text-anchor="middle" class="t-s t-muted">0</text>
+        <line class="ln" x1="150" y1="124" x2="150" y2="132"/><text x="150" y="148" text-anchor="middle" class="t-s t-muted">25</text>
+        <line class="ln" x1="260" y1="124" x2="260" y2="132"/><text x="260" y="148" text-anchor="middle" class="t-s t-muted">50</text>
+        <line class="ln" x1="370" y1="124" x2="370" y2="132"/><text x="370" y="148" text-anchor="middle" class="t-s t-muted">75</text>
+        <line class="ln" x1="480" y1="124" x2="480" y2="132"/><text x="480" y="148" text-anchor="middle" class="t-s t-muted">100</text>
+        <line class="ln" x1="590" y1="124" x2="590" y2="132"/><text x="590" y="148" text-anchor="middle" class="t-s t-muted">125</text>
+        <line class="ln" x1="700" y1="124" x2="700" y2="132"/><text x="700" y="148" text-anchor="middle" class="t-s t-muted">150 ms</text>
+      </g>
+    </svg>
+    <figcaption>DNS(1.7 ms)는 SYN보다 먼저 끝납니다. 연결과 데이터는 4주차, TLS는 이 강의의 범위 밖입니다.</figcaption>
+  </figure>
+
+  <p>다음 그림은 같은 연결의 주요 패킷입니다. 세로 간격은 비율대로가 아닙니다.</p>
+  <figure class="dg">
+    <svg viewBox="0 0 760 640" role="img" aria-label="노트북, NAT, 서버 사이의 패킷 순서">
+      <defs><marker id="a-f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs>
+      <rect class="bx" x="80" y="10" width="140" height="40" rx="6"/>
+      <text x="150" y="28" text-anchor="middle" class="t-b">노트북</text>
+      <text x="150" y="43" text-anchor="middle" class="t-s t-mono t-muted">172.16.25.130</text>
+      <rect class="bx-ip" x="270" y="10" width="140" height="40" rx="6"/>
+      <text x="340" y="28" text-anchor="middle" class="t-b t-ip">캠퍼스 NAT</text>
+      <text x="340" y="43" text-anchor="middle" class="t-s t-muted">공인 163.152.233.x</text>
+      <rect class="bx" x="610" y="10" width="140" height="40" rx="6"/>
+      <text x="680" y="28" text-anchor="middle" class="t-b">서버</text>
+      <text x="680" y="43" text-anchor="middle" class="t-s t-mono t-muted">172.66.0.218:443</text>
+      <line class="ln" x1="150" y1="50" x2="150" y2="600"/>
+      <line class="ln-dash" x1="340" y1="50" x2="340" y2="600"/>
+      <line class="ln" x1="680" y1="50" x2="680" y2="600"/>
+
+      <!-- 시각 열 -->
+      <g text-anchor="end">
+        <text x="140" y="84" class="t-s t-mono t-muted">0.0</text>
+        <text x="140" y="152" class="t-s t-mono t-muted">8.7</text>
+        <text x="140" y="188" class="t-s t-mono t-muted">8.8</text>
+        <text x="140" y="240" class="t-s t-mono t-muted">13.8</text>
+        <text x="140" y="308" class="t-s t-mono t-muted">20.0</text>
+        <text x="140" y="344" class="t-s t-mono t-muted">25.6</text>
+        <text x="140" y="412" class="t-s t-mono t-muted">56.4</text>
+        <text x="140" y="500" class="t-s t-mono t-muted">145.9</text>
+        <text x="140" y="568" class="t-s t-mono t-muted">149.8</text>
+        <text x="140" y="592" class="t-s t-mono t-muted">153.3</text>
+      </g>
+
+      <!-- #1 SYN -->
+      <line class="ln-tcp" x1="150" y1="80" x2="678" y2="104" marker-end="url(#a-f)"/>
+      <circle cx="340" cy="88.6" r="4" class="fill-ip"/>
+      <text x="420" y="78" class="t-s t-b t-tcp">#1 SYN · seq 1111356914 · MSS 1460</text>
+      <!-- #2 SYN+ACK -->
+      <line class="ln-tcp" x1="680" y1="124" x2="152" y2="148" marker-end="url(#a-f)"/>
+      <circle cx="340" cy="139.3" r="4" class="fill-ip"/>
+      <text x="420" y="122" class="t-s t-b t-tcp">#2 SYN+ACK · ack 1111356915 · MSS 1250</text>
+      <!-- #3 ACK -->
+      <line class="ln-tcp" x1="150" y1="166" x2="678" y2="190" marker-end="url(#a-f)"/>
+      <text x="420" y="166" class="t-s t-b t-tcp">#3 ACK · 연결 수립</text>
+      <!-- #4 ClientHello -->
+      <line class="ln" x1="150" y1="236" x2="678" y2="260" marker-end="url(#a-f)"/>
+      <text x="420" y="236" class="t-s t-b">#4 TLS ClientHello</text>
+      <!-- #6 -->
+      <line class="ln" x1="680" y1="280" x2="152" y2="304" marker-end="url(#a-f)"/>
+      <text x="420" y="278" class="t-s t-b">#6 서버의 TLS 응답</text>
+      <!-- #9 -->
+      <line class="ln" x1="150" y1="340" x2="678" y2="364" marker-end="url(#a-f)"/>
+      <text x="420" y="338" class="t-s t-b">#8 TLS 마침 · #9 HTTP 요청 (암호화)</text>
+      <!-- 데이터 -->
+      <path class="area-pipe" d="M 680 384 L 152 408 L 152 470 L 680 446 Z"/>
+      <line class="ln-tcp" x1="680" y1="384" x2="152" y2="408" marker-end="url(#a-f)"/>
+      <line class="ln-tcp" x1="680" y1="446" x2="152" y2="470" marker-end="url(#a-f)"/>
+      <text x="420" y="382" class="t-s t-b t-tcp">#11~ 응답 데이터 · 슬로 스타트</text>
+      <text x="420" y="434" text-anchor="middle" class="t-s t-muted">데이터 프레임 145개, ACK 약 130개 (생략)</text>
+      <!-- FIN -->
+      <line class="ln-tcp" x1="150" y1="496" x2="678" y2="520" marker-end="url(#a-f)"/>
+      <text x="420" y="494" class="t-s t-b t-tcp">#282 FIN (노트북)</text>
+      <line class="ln-tcp" x1="680" y1="540" x2="152" y2="564" marker-end="url(#a-f)"/>
+      <text x="420" y="538" class="t-s t-b t-tcp">#283 FIN (서버) · #284·#285 ACK</text>
+      <text x="340" y="628" text-anchor="middle" class="t-s t-ip">● = NAT가 주소와 포트를 바꾸는 지점</text>
+    </svg>
+    <figcaption>왼쪽 숫자는 캡처의 시각(ms)입니다. 패킷 번호는 <span class="kbd-file">tcp.pcapng</span>의 번호입니다.</figcaption>
+  </figure>
+</section>
+
+<!-- 4 -->
+<section class="sec wk-ip" id="s-dhcp">
+  <h2><span class="n">4</span>준비: 노트북이 주소를 받습니다</h2>
+  <p>이 단계는 명령을 실행하기 전에 끝납니다. 노트북이 Wi-Fi에 연결할 때 일어납니다. <a href="w05-ip-nat.html#dhcp">5주차 3.9</a></p>
+  <ol class="stepper">
+    <li style="--wk:var(--ip)"><b>노트북이 DHCP Request 메시지를 브로드캐스트합니다.</b> 출발지 주소는 <code>0.0.0.0</code>입니다. 노트북에 아직 주소가 없기 때문입니다. 목적지 주소는 <code>255.255.255.255</code>입니다. 노트북은 이전에 받은 주소를 다시 쓰겠다고 묻습니다. <span class="muted">→ <span class="kbd-file">dhcp.pcapng</span> #1</span></li>
+    <li style="--wk:var(--ip)"><b>DHCP 서버가 ACK로 답합니다.</b> 서버는 <code>172.16.0.7</code>이고, 7.1 ms 뒤에 답했습니다. 노트북은 ACK의 값으로 다음 네 가지를 설정합니다.
+      <ul>
+        <li>주소와 마스크: <code>172.16.25.130/24</code></li>
+        <li>기본 게이트웨이: <code>172.16.25.1</code></li>
+        <li>DNS 서버의 주소</li>
+        <li>임대 시간. 측정 시점에 1,293초가 남아 있었습니다.</li>
+      </ul>
+      <span class="muted">→ <span class="kbd-file">dhcp.pcapng</span> #2, <span class="kbd-file">addresses.json</span></span></li>
+  </ol>
+  <div class="box concept">
+    <span class="tag">처음 연결할 때</span>
+    <p>기억한 주소가 없으면 메시지가 4개입니다: Discover → Offer → Request → ACK. 핫스팟 캡처(<span class="kbd-file">dhcp.pcapng</span> #3–#6)가 이 경우입니다. 4개 메시지는 34 ms 안에 끝났습니다.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="sec wk-dns" id="s-dns">
+  <h2><span class="n">5</span>노트북이 이름을 주소로 바꿉니다</h2>
+  <p>노트북은 이름으로 패킷을 보낼 수 없습니다. 먼저 주소를 얻어야 합니다. <a href="w03-dns.html#rec">3주차 1.4</a></p>
+  <ol class="stepper" style="counter-reset: st 2">
+    <li style="--wk:var(--dns)"><b>사용자가 명령을 실행합니다.</b> <code>curl</code>이 URL을 세 부분으로 나눕니다.
+      <div class="tbl"><table>
+        <tr><th>부분</th><th>값</th><th>쓰는 곳</th></tr>
+        <tr><td>스킴</td><td><code>https</code></td><td>포트 443과 TLS를 정합니다.</td></tr>
+        <tr><td>이름</td><td><code>speed.cloudflare.com</code></td><td>DNS 질의에 씁니다.</td></tr>
+        <tr><td>경로</td><td><code>/__down?bytes=5000000</code></td><td>HTTP 요청에 씁니다.</td></tr>
+      </table></div></li>
+    <li style="--wk:var(--dns)"><b><code>curl</code>이 운영체제에 주소를 묻습니다.</b> 운영체제는 질의를 <code>127.0.0.53</code>으로 보냅니다. 이 주소는 노트북 안의 스텁 리졸버(systemd-resolved)입니다.</li>
+    <li style="--wk:var(--dns)"><b>스텁 리졸버가 캐시를 확인합니다.</b> 캐시에 답이 있으면 바로 답합니다. 답이 없으면 DHCP로 받은 DNS 서버에 재귀 질의를 보냅니다.</li>
+    <li style="--wk:var(--dns)"><b>답이 옵니다: <code>172.66.0.218</code>.</b> 이름 해석은 1.7 ms 걸렸습니다. <span class="muted">→ <code>time_namelookup</code></span></li>
+  </ol>
+
+  <div class="box example">
+    <span class="tag">이 프로젝트에서 · 1.7 ms가 뜻하는 것</span>
+    <p>루트부터 반복 질의를 하면 훨씬 오래 걸립니다. 3주차 캡처에서 <code>www.korea.ac.kr</code>의 반복 질의는 365 ms 걸렸습니다.</p>
+    <div class="tbl"><table>
+      <tr><th>패킷</th><th>질의 대상</th><th>응답</th><th>걸린 시간</th></tr>
+      <tr><td>#1–#2</td><td>루트 <code>198.41.0.4</code></td><td>위임: <code>.kr</code> 서버 목록과 glue</td><td>288.7 ms</td></tr>
+      <tr><td>#3–#4</td><td><code>.kr</code> 서버 <code>210.101.61.1</code></td><td>위임: <code>korea.ac.kr</code> 서버와 glue</td><td>5.3 ms</td></tr>
+      <tr><td>#5–#6</td><td>권한 서버 <code>163.152.11.6</code></td><td>답: <code>163.152.6.10</code></td><td>29.7 ms</td></tr>
+    </table></div>
+    <p>그러므로 1.7 ms의 답은 캐시에서 왔습니다. 그 캐시는 노트북 안에 있거나 캠퍼스 DNS 서버에 있습니다. 이 측정으로는 둘을 구별할 수 없습니다.</p>
+    <p>핫스팟 측정에서는 캐시의 효과가 직접 보입니다. 첫 실행은 44.7 ms, 둘째 실행부터는 1.7–2.2 ms였습니다. <span class="src">→ <span class="kbd-file">throughput.json</span></span></p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="sec wk-ip" id="s-hop">
+  <h2><span class="n">6</span>노트북이 첫 홉을 정합니다</h2>
+  <p>노트북은 서버로 가는 전체 경로를 모릅니다. 노트북은 첫 홉만 정합니다. <a href="w05-ip-nat.html#lpm">5주차 3.7</a></p>
+  <ol class="stepper" style="counter-reset: st 6">
+    <li style="--wk:var(--ip)"><b>커널이 라우팅 표에서 목적지 <code>172.66.0.218</code>을 찾습니다.</b> 커널은 최장 프리픽스 일치를 씁니다.
+      <div class="tbl"><table>
+        <tr><th>항목</th><th>다음 홉</th><th><code>172.66.0.218</code>과 일치?</th></tr>
+        <tr class="bad"><td><code>172.16.25.0/24</code></td><td>직접 (같은 서브넷)</td><td>아니오. 앞 24비트가 <code>172.66.0</code>입니다.</td></tr>
+        <tr class="bad"><td><code>172.17.0.0/16</code></td><td>docker0</td><td>아니오. 앞 16비트가 <code>172.66</code>입니다.</td></tr>
+        <tr class="hl"><td><code>0.0.0.0/0</code></td><td><code>172.16.25.1</code></td><td>예. 길이 0은 모든 주소와 일치합니다.</td></tr>
+      </table></div>
+      일치한 항목은 기본 경로 하나입니다. 그러므로 첫 홉은 게이트웨이 <code>172.16.25.1</code>입니다. <span class="muted">→ <span class="kbd-file">addresses.json</span>의 <code>ip_route</code></span></li>
+    <li style="--wk:var(--muted)"><b>노트북이 게이트웨이의 MAC 주소를 찾습니다.</b> 노트북은 ARP를 씁니다. ARP는 7주차의 내용입니다. 이 단계 뒤에 프레임의 두 주소는 서로 다른 장치를 가리킵니다.
+      <ul>
+        <li>프레임의 목적지 MAC 주소: 게이트웨이</li>
+        <li>IP 데이터그램의 목적지 주소: 서버 <code>172.66.0.218</code></li>
+      </ul></li>
+  </ol>
+</section>
+
+<!-- 7 -->
+<section class="sec wk-tcp" id="s-tcp">
+  <h2><span class="n">7</span>노트북과 서버가 연결을 만듭니다</h2>
+  <p>HTTPS는 TCP를 씁니다. 데이터를 보내기 전에 3-way handshake를 합니다. <a href="w04-tcp.html#hs">4주차 2.7</a></p>
+  <ol class="stepper" style="counter-reset: st 8">
+    <li style="--wk:var(--tcp)"><b>운영체제가 소켓에 임시 포트를 붙입니다.</b> 포트는 <code>54826</code>입니다. 연결은 다음 4개 값으로 구별합니다: <code>(172.16.25.130, 54826, 172.66.0.218, 443)</code>. <a href="w04-tcp.html#mux">4주차 2.2</a></li>
+    <li style="--wk:var(--tcp)"><b><code>t = 0</code>: 노트북이 SYN을 보냅니다.</b> SYN에는 다음 값이 있습니다.
+      <ul>
+        <li>ISN: <code>1111356914</code></li>
+        <li>MSS 1460, 윈도우 스케일 10(×1024), SACK 허용</li>
+        <li>윈도우 64,240. SYN의 윈도우에는 스케일을 적용하지 않습니다.</li>
+        <li>IP 헤더의 TTL: 64</li>
+      </ul>
+      <span class="muted">→ #1</span></li>
+    <li style="--wk:var(--ip)"><b>캠퍼스 NAT가 출발지를 바꿉니다.</b> 출발지 <code>172.16.25.130:54826</code>을 <code>163.152.233.xxx:새 포트</code>로 바꿉니다. NAT는 이 대응을 변환 표에 기록합니다. 캡처는 노트북에서 했습니다. 그러므로 바뀐 값은 캡처에 없습니다. <a href="w05-ip-nat.html#nat">5주차 3.10</a>
+      <span class="muted">→ <span class="kbd-file">tracepath-campus.txt</span>: 1·2번 홉은 사설 주소, 3번 홉 <code>163.152.233.129</code>부터 공인 주소</span></li>
+    <li style="--wk:var(--ip)"><b>라우터들이 SYN을 서버까지 옮깁니다.</b> 각 라우터는 목적지 주소로 출력 링크를 고릅니다. 각 라우터는 TTL을 1 줄입니다. 노트북에 도착한 서버 패킷의 TTL은 55였습니다. 서버가 64로 보냈다면 라우터 9개를 지났습니다.</li>
+    <li style="--wk:var(--tcp)"><b><code>t = 8.7 ms</code>: 서버가 SYN+ACK를 보냅니다.</b>
+      <ul>
+        <li>서버의 ISN: <code>3798358670</code></li>
+        <li>ack: <code>1111356915</code> = 노트북의 ISN + 1. SYN이 순서 번호 하나를 씁니다.</li>
+        <li>MSS 1250, 윈도우 스케일 13(×8192)</li>
+      </ul>
+      NAT는 변환 표를 찾습니다. NAT는 목적지를 <code>172.16.25.130:54826</code>으로 되돌립니다. 8.7 ms가 이 연결의 첫 RTT 표본입니다. <span class="muted">→ #2</span></li>
+    <li style="--wk:var(--tcp)"><b><code>t = 8.8 ms</code>: 노트북이 ACK를 보냅니다.</b> 연결이 만들어졌습니다. 노트북은 서버에 1250바이트 이하의 세그먼트를 보냅니다. 서버는 노트북에 1460바이트 이하의 세그먼트를 보냅니다. <span class="muted">→ #3</span></li>
+  </ol>
+</section>
+
+<!-- 8 -->
+<section class="sec" id="s-tls">
+  <h2><span class="n">8</span>노트북이 암호화를 맞추고 요청을 보냅니다</h2>
+  <p>HTTPS는 TCP 위에서 TLS로 암호화합니다. TLS는 이 강의의 범위 밖입니다. 이 페이지는 순서만 씁니다.</p>
+  <ol class="stepper" style="counter-reset: st 14">
+    <li style="--wk:var(--muted)"><b><code>t = 13.8 ms</code>: 노트북이 TLS ClientHello를 보냅니다.</b> 노트북이 쓸 수 있는 암호 방식을 알립니다. <span class="muted">→ #4</span></li>
+    <li style="--wk:var(--muted)"><b><code>t = 20.0 ms</code>: 서버가 TLS 응답을 보냅니다.</b> ClientHello부터 6.2 ms 걸렸습니다. 왕복 한 번입니다. <span class="muted">→ #6</span></li>
+    <li style="--wk:var(--muted)"><b><code>t = 25.1 ms</code>: 노트북이 TLS 협상을 끝냅니다.</b> <span class="muted">→ #8</span></li>
+    <li style="--wk:var(--tcp)"><b><code>t = 25.6 ms</code>: 노트북이 HTTP 요청을 보냅니다.</b> 요청의 내용은 <code>GET /__down?bytes=5000000</code>입니다. 요청은 암호화되어 있습니다. 그러므로 캡처에서 이 내용을 읽을 수 없습니다. <span class="muted">→ #9</span></li>
+  </ol>
+</section>
+
+<!-- 9 -->
+<section class="sec wk-tcp" id="s-data">
+  <h2><span class="n">9</span>서버가 데이터를 보냅니다</h2>
+  <p>서버는 5 MB를 보냅니다. 보내는 양은 혼잡 윈도우와 수신 윈도우로 정해집니다. <a href="w04-tcp.html#cc">4주차 2.12</a></p>
+  <ol class="stepper" style="counter-reset: st 18">
+    <li style="--wk:var(--tcp)"><b><code>t = 56.4 ms</code>: 첫 응답 데이터가 도착합니다.</b> 요청을 보내고 30.8 ms 뒤입니다. RTT는 약 8.7 ms입니다. 그러므로 남은 약 22 ms는 네트워크가 아닌 서버 쪽에서 쓴 시간으로 보입니다. <span class="muted">→ #11</span></li>
+    <li style="--wk:var(--tcp)"><b>서버가 슬로 스타트로 보냅니다.</b> 첫 묶음 #11–#18은 0.2 ms 안에 도착합니다. 노트북은 ACK(#19)로 답합니다. ACK가 올 때마다 서버의 혼잡 윈도우가 커집니다. 그러므로 묶음은 RTT마다 커집니다.</li>
+    <li style="--wk:var(--tcp)"><b>노트북의 수신 윈도우가 커집니다.</b> 36,864바이트(#19)에서 4,588,544바이트(#282)까지 커졌습니다. 그러나 전송 중인 데이터는 최대 약 193 KB였습니다. 그러므로 제한한 것은 수신 윈도우가 아닌 혼잡 윈도우입니다. 이 값은 BDP(179 Mbps × 7.5 ms ≈ 168 KB)와 같은 크기입니다. <a href="w04-tcp.html#bdp">4주차 2.10</a></li>
+    <li style="--wk:var(--tcp)"><b>서버가 마지막 데이터를 보냅니다.</b> 서버는 5,014,135바이트를 보냈습니다. 본문 5,000,000바이트에 HTTP 헤더와 TLS의 추가 바이트가 더해진 값입니다.</li>
+  </ol>
+  <div class="box warn">
+    <span class="tag">캡처에 MSS보다 큰 패킷이 보이는 이유</span>
+    <p>캡처에는 64,376바이트의 패킷도 있습니다. 이 값은 MSS 1460보다 큽니다. 네트워크 카드와 커널이 받은 세그먼트를 합친 뒤에 캡처 프로그램이 봤기 때문입니다(GRO). 보내는 쪽도 같습니다(TSO). 1,646바이트의 ClientHello(#4)가 그 예입니다. 링크 위의 실제 세그먼트는 MSS 이하입니다.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="sec wk-tcp" id="s-close">
+  <h2><span class="n">10</span>노트북과 서버가 연결을 닫습니다</h2>
+  <ol class="stepper" style="counter-reset: st 22">
+    <li style="--wk:var(--tcp)"><b><code>t = 145.9 ms</code>: 노트북이 FIN을 보냅니다.</b> 노트북은 더 보낼 데이터가 없습니다. <span class="muted">→ #282</span></li>
+    <li style="--wk:var(--tcp)"><b><code>t = 149.8 ms</code>: 서버도 FIN을 보냅니다.</b> 이 FIN의 ack는 1811입니다. 이 값은 노트북의 FIN을 아직 확인하지 않은 값입니다. 두 FIN이 거의 같은 때에 엇갈렸습니다. <span class="muted">→ #283</span></li>
+    <li style="--wk:var(--tcp)"><b><code>t = 153.3 ms</code>: 양쪽이 상대의 FIN을 ACK로 확인합니다.</b> 연결이 닫혔습니다. 캡처에는 모두 285개 패킷이 있습니다. NAT의 변환 표 항목은 일정 시간 뒤에 지워집니다. <span class="muted">→ #284, #285</span></li>
+  </ol>
+</section>
+
+<!-- 11 -->
+<section class="sec" id="try">
+  <h2><span class="n">11</span>직접 확인하기</h2>
+  <div class="box warn">
+    <span class="tag">시작하기 전에</span>
+    <ul>
+      <li>VPN과 터널(Cloudflare WARP, Tailscale 등)이 켜져 있는지 확인하십시오. 켜져 있으면 경로와 시간이 바뀝니다.</li>
+      <li>원본 캡처는 <code>raw/</code>에 두십시오. <code>out/</code>에 넣기 전에 <code>mask.py</code>로 마스킹하십시오.</li>
+    </ul>
+  </div>
+  <div class="box steps">
+    <span class="tag">절차</span>
+    <ol>
+      <li>첫 홉을 확인하십시오.
+        <pre><code>ip route get 172.66.0.218</code></pre>
+        결과의 <code>via</code> 뒤에 기본 게이트웨이의 주소가 있어야 합니다.</li>
+      <li>DNS 캐시를 확인하십시오. 같은 명령을 두 번 실행하십시오.
+        <pre><code>resolvectl query speed.cloudflare.com</code></pre>
+        두 번째 결과에 <code>Data from: cache</code>가 있어야 합니다.</li>
+      <li>다른 터미널에서 캡처를 시작하십시오. <code>&lt;인터페이스&gt;</code>에는 Wi-Fi 인터페이스의 이름을 쓰십시오.
+        <pre><code>sudo tcpdump -i &lt;인터페이스&gt; -w raw/req.pcap tcp port 443</code></pre></li>
+      <li>요청을 보내고 구간별 시간을 출력하십시오.
+        <pre><code>curl -o /dev/null -s -w <span class="c">'dns %{time_namelookup}  tcp %{time_connect}  tls %{time_appconnect}  first %{time_starttransfer}  total %{time_total}\n'</span> \
+  https://speed.cloudflare.com/__down?bytes=5000000</code></pre></li>
+      <li>캡처를 멈추십시오 (<code>Ctrl+C</code>).</li>
+      <li>처음 3개 패킷을 확인하십시오.
+        <pre><code>tshark -r raw/req.pcap -c 3</code></pre>
+        SYN, SYN+ACK, ACK가 차례로 있어야 합니다.</li>
+      <li>4단계의 시간과 캡처의 시각을 이 페이지의 <a href="#overview">시간표</a>와 비교하십시오.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- quiz -->
+<section class="sec" id="quiz">
+  <h2><span class="n">✓</span>스스로 확인하기</h2>
+  <div class="box check">
+    <span class="tag">확인 질문</span>
+    <details class="q"><summary>노트북이 보낸 프레임에서 목적지 MAC 주소와 목적지 IP 주소는 왜 다른 장치를 가리킵니까?</summary>
+      <div class="a">IP 주소는 마지막 목적지(서버)를 가리킵니다. MAC 주소는 이 링크의 다음 장치(게이트웨이)를 가리킵니다. 라우터를 지날 때마다 프레임은 새로 만들어지고, IP 목적지 주소는 그대로 남습니다.</div></details>
+    <details class="q"><summary>핫스팟의 첫 실행에서 DNS는 44.7 ms, 둘째 실행에서는 1.8 ms였습니다. 왜 다릅니까?</summary>
+      <div class="a">첫 실행의 답은 캐시에 없었습니다. 그래서 리졸버가 다른 서버에 질의했습니다. 둘째 실행부터는 TTL이 지나지 않은 답이 캐시에 있었습니다.</div></details>
+    <details class="q"><summary>SYN+ACK의 ack가 <code>1111356915</code>인 이유는 무엇입니까?</summary>
+      <div class="a">노트북의 ISN은 <code>1111356914</code>입니다. SYN은 데이터가 없지만 순서 번호 하나를 씁니다. 그러므로 서버가 다음에 기다리는 번호는 ISN + 1입니다.</div></details>
+    <details class="q"><summary>수신 윈도우는 4.6 MB까지 열렸습니다. 그러나 전송 중인 데이터는 약 193 KB였습니다. 무엇이 양을 제한했습니까?</summary>
+      <div class="a">서버의 혼잡 윈도우입니다. 보내는 양은 min(수신 윈도우, 혼잡 윈도우)입니다. 전송이 약 17 RTT 만에 끝났으므로, 혼잡 윈도우는 대부분 슬로 스타트 중이었습니다.</div></details>
+    <details class="q"><summary>NAT가 주소를 바꾸는 모습이 이 캡처에 보이지 않는 이유는 무엇입니까?</summary>
+      <div class="a">캡처는 노트북에서 했습니다. 노트북은 NAT 안쪽에 있습니다. 노트북에서는 바뀌기 전의 주소(<code>172.16.25.130</code>)만 보입니다. 바뀐 주소는 NAT 바깥에서 캡처해야 보입니다.</div></details>
+  </div>
+</section>
+
+<div class="pager">
+  <a href="index.html"><small>이전</small>← 개요와 용어집</a>
+  <a class="next" href="w03-dns.html"><small>다음</small>3주차 · DNS와 CDN →</a>
+</div>
+</main>
+</div>
+</body>
+</html>

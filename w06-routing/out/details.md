@@ -1,7 +1,7 @@
 # Week 6 · detailed observations
 
 The short version is in `observation.md`. This file has the numbers and the reasoning behind each line.
-Raw per-router timings are in `reconverge.txt`, and the tables are in `route-before.txt`, `route-after.txt` and `cost-change.txt`.
+Raw per-router timings are in `reconverge.txt`, the debug-log re-measurement is in `debug-restore.txt`, and the tables are in `route-before.txt`, `route-after.txt` and `cost-change.txt`.
 
 **Task 1 — link state by hand.**
 `dijkstra()` is a plain heap Dijkstra. `forwarding_table()` does not rebuild paths. Each heap entry carries
@@ -29,16 +29,15 @@ task needs, so I swapped them and kept them as reference:
 
 *A2 — leaving campus:* hop 3 `163.152.233.129` is the last campus hop, and hop 4 `175.121.235.141` is
 **SK Broadband (AS9318)**, the first hop outside. All three off-campus paths leave there. Even the on-campus
-`korea.ac.kr` path goes through `163.152.205.206`, a KU /24 that SK Broadband originates (looked up via RIPEstat).
-That is probably the leased link between the two campuses, at +6 ms (inference).
+`korea.ac.kr` path goes through `163.152.205.206`. It sits in KU's registered /16 (`KUCCNET`), but its /24
+`163.152.205.0/24` is announced by SK Broadband (AS9318), according to RIPEstat and RADB. The registry records do not
+say what the link is used for.
 
 *A3 — the ocean:* on the MIT path, hop 7 `10.222.10.159` answers in about 10 ms and hop 8 `10.222.1.91` in about
 **124 ms**. One hop adds +114 ms, and every other hop adds 0–8 ms. Hop 10 is `be2.core1.sea1.he.net` (Hurricane
 Electric, **Seattle**, 127 ms), and hop 13 `core2.bos2.he.net` (Boston, 182 ms) adds the US continental crossing
 (+55 ms). So the Pacific is crossed inside SK Broadband's network, between hops 7 and 8. Those hops are private 10.x
-addresses with no hostnames, so the trace cannot name the cable. The US Pacific Northwest landing points to one of the
-Korea–Oregon systems (NCP or TPE), with HE's Seattle node as the first named hop after landing. That is an
-inference, not something the trace shows.
+addresses with no hostnames, so the trace cannot identify the cable.
 
 *A4 — anycast:* the UDP run reached `one.one.one.one` in **13 hops** at about **12 ms**. Hop 12, `141.101.82.x`, is
 Cloudflare AS13335 at about 6–17 ms. The path goes SK Broadband → DREAMLINE (AS9457) → Cloudflare. 13 hops looks
@@ -80,8 +79,21 @@ r1's new LSA no longer lists net_a. So the config's timers explain the neighbour
 To see the timers govern the routes, I ran one **silent failure**: `tc netem loss 100%` on both ends, so the
 interfaces stay up but nothing gets through. Now nobody learns anything until the dead timer fires. Routes moved at
 **+37.9 to +38.1 s** on all three routers, and the neighbours were dropped at +37.7 s (r3) and +38.6 s (r1). That fits
-Dead 40 s minus the 0–10 s since the last hello. During those 38 s, the flows ECMP had hashed onto the r1–r3 link
-were black-holed.
+Dead 40 s minus the 0–10 s since the last hello.
+*Data plane during a silent failure (re-measured 2026-10-13, `debug-restore.txt` part B):* from r1 I pinged every
+0.2 s along a flow that the ECMP hash put on the r1–r3 link (`172.19.0.3 → 172.21.0.3`), and along a control flow
+hashed via r2. The control flow never lost a packet. The hashed flow lost **every** packet until its output port
+changed, and two different mechanisms ended the outage:
+- In a 50 s run, the next hop's ARP entry started `REACHABLE`, stayed so for 24.5 s, then went `DELAY` (5 s) and
+  `PROBE`. Before ARP gave up, r1's OSPF dead timer fired at +31.6 s and installed the single path via r2. **161 pings
+  lost, 32.2 s.**
+- In a run that started with the ARP entry `STALE`, it went `DELAY` (5 s) → `PROBE` (3 × 1 s) → `FAILED` at +8.4 s.
+  At that moment the kernel stopped choosing that next hop, although OSPF still had both next hops installed and
+  `fib_multipath_use_neigh` is 0. **41 pings lost, 8.2 s.** (The route uses a kernel nexthop object, `nhid`.)
+- A first 55 s run moved the flow after about 2–3 s. I did not record the ARP state at its start, so its timing
+  is not explained by this data.
+So the outage lasts until either OSPF's dead timer or the kernel's ARP failure detection notices, whichever comes
+first. Which one comes first depends on how recently the next hop's ARP entry was confirmed.
 
 *B5 — restoring (3 runs):* the whole area was right again only after **18.0, 11.9 and 6.2 s**. That is 20–60× slower
 than the cut, and the times vary a lot. A neighbour that disappears is noticed by one event: the carrier drops, or
@@ -90,10 +102,22 @@ hello that lists itself (2-Way). The next hello can be up to 10 s away, which is
 +6.6 and +5.8 s). Then the routers exchange database descriptions, request and load the LSAs they are missing
 (Loading → Full), re-originate the router-LSA and network-LSA, flood them, and only then run SPF. r2 regained ECMP
 at +0.3 s, because r1 immediately advertised net_a as a stub (it is directly attached) and that needs no adjacency.
-In runs 1 and 2, r3 changed its route 5–10 s *after* reaching Full. LSA ages and `show ip ospf` put r3's last SPF at
-the same moment as its route change, so the wait is between LSA arrival and SPF. Likely causes are the MinLSInterval
-(5 s) on re-origination and the SPF throttle. I tried to confirm this with `debug ospf`, but FRR could not open the log
-file, so it remains unconfirmed.
+In runs 1 and 2, r3 changed its route 5–10 s *after* reaching Full.
+*Why, measured with debug logs (re-run 2026-10-13, 3 more restores, `debug-restore.txt` part A):* the same pattern
+appeared in all three new runs. The whole area was right at +14.1, +14.5 and +14.2 s, r3 reached Full at +8.9, +9.2
+and +9.0 s, and r3's route changed **5.23 s after Full** every time. The SPF throttle is not the cause: r3 scheduled
+every SPF with a delay of **0 ms** and ran it at once. MinLSInterval is not the cause either: r1 originated its new
+router-LSA twice within 2 ms (on the DR election change and again at Full). The second copy reached r3 directly
+1–2 ms after the first had arrived through r2, and r3 **discarded** it (`LSA is received recently`, `ospf_lsa_discard()
+point 5`). That is the **MinLSArrival** rule (1,000 ms): a new instance of the same LSA arriving within 1 s of the
+previous one is dropped. r2 discarded the same way (9 times in the log, r3 3 times). r1 had sent that copy reliably,
+got no acknowledgement, and **retransmitted it after the 5 s RxmtInterval**. r3 installed the retransmission, ran SPF
+with a 0 ms delay, and changed the route within 4 ms. So the extra 5 s is MinLSArrival discard plus RxmtInterval.
+*Why the first attempt showed nothing:* `log file /tmp/ospf.log` failed with `can't open logfile` because the only
+root daemon, `watchfrr`, cannot open the frr-owned file in sticky `/tmp` (host `fs.protected_regular = 2`; root
+`open(O_CREAT)` there returns EACCES). vtysh stops at the first failing `-c`, so the `debug ospf` commands chained
+after it never ran. The frr daemons themselves can write that file. Logging to an frr-owned `/var/log/frr` and
+enabling debug in separate vtysh calls works.
 
 *C — changing a cost:* raising r1 `eth0` (r1–r2) from 10 to 100 moved r1's path to net_c onto r3 only, and r3's path to
 net_b onto r2 only (ECMP → single path). It took **+0.27 s and +0.23 s**, and setting it back took +0.22 s and +0.29 s.

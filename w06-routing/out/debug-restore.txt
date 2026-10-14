@@ -1,0 +1,131 @@
+# w06 재측정 (2026-10-13 UTC 04:32-04:47) - FRR 9.1.0, OSPF debug 로그 (log timestamp precision 6)
+# 이번 실행의 매핑: r1 eth0 = net_a 172.20.0.0/16 (r1-r3), r1 eth1 = net_b 172.19.0.0/16 (r1-r2), net_c 172.21.0.0/16 (r2-r3)
+# 로깅: /var/log/frr (frr 소유) 에 log file, debug ospf event|nsm|ism|lsa|zebra 를 각각 별도 vtysh 호출로 켬
+# r3 설정값 (show ip ospf): SPF initial delay 0 ms, hold 50-5000 ms, LSA minimum interval 5000 ms, LSA minimum arrival 1000 ms
+# r1 eth0 (show ip ospf interface): Hello 10s, Dead 40s, Wait 40s, Retransmit 5
+
+## A. 링크 복구 3회: r1 eth0 down 50초 뒤 up. 시각은 'ip link set eth0 up' 기준 초
+### restore 1 - r3
+  +  0.057  NSM 1.1.1.1 Down -> Init (HelloReceived)
+  +  0.058  LSA rcvd Type1 1.1.1.1
+  +  0.058  SPF scheduled, delay 0 ms
+  +  0.058  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  +  0.058  SPF RUN
+  +  8.906  NSM 1.1.1.1 Init -> ExStart (2-WayReceived)
+  +  8.906  LSA rcvd Type1 1.1.1.1
+  +  8.906  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  +  8.906  NSM 1.1.1.1 ExStart -> Exchange (NegotiationDone)
+  +  8.907  NSM 1.1.1.1 Exchange -> Full (ExchangeDone)
+  +  8.907  SPF scheduled, delay 0 ms
+  +  8.907  LSA install Type1 id 3.3.3.3 ar 3.3.3.3
+  +  8.907  SPF already scheduled
+  +  8.907  LSA install Type2 id 172.20.0.2 ar 3.3.3.3
+  +  8.907  SPF RUN
+  +  8.908  LSA rcvd Type1 1.1.1.1
+  + 13.906  LSA rcvd Type2 172.20.0.3
+  + 14.142  LSA rcvd Type1 1.1.1.1
+  + 14.142  SPF scheduled, delay 0 ms
+  + 14.142  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  + 14.142  SPF RUN
+  + 14.143  route add 172.19.0.0/16 via 172.20.0.3
+  + 14.143  route add 172.19.0.0/16 via 172.21.0.3
+### restore 2 - r3
+  +  0.061  NSM 1.1.1.1 Down -> Init (HelloReceived)
+  +  0.062  LSA rcvd Type1 1.1.1.1
+  +  0.062  SPF scheduled, delay 0 ms
+  +  0.062  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  +  0.062  SPF RUN
+  +  9.246  NSM 1.1.1.1 Init -> ExStart (2-WayReceived)
+  +  9.246  LSA rcvd Type1 1.1.1.1
+  +  9.246  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  +  9.246  NSM 1.1.1.1 ExStart -> Exchange (NegotiationDone)
+  +  9.246  NSM 1.1.1.1 Exchange -> Full (ExchangeDone)
+  +  9.246  SPF scheduled, delay 0 ms
+  +  9.246  LSA install Type1 id 3.3.3.3 ar 3.3.3.3
+  +  9.246  SPF already scheduled
+  +  9.246  LSA install Type2 id 172.20.0.2 ar 3.3.3.3
+  +  9.247  SPF RUN
+  +  9.247  LSA rcvd Type1 1.1.1.1
+  + 14.480  LSA rcvd Type1 1.1.1.1
+  + 14.480  SPF scheduled, delay 0 ms
+  + 14.480  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  + 14.480  SPF RUN
+  + 14.481  route add 172.19.0.0/16 via 172.20.0.3
+  + 14.481  route add 172.19.0.0/16 via 172.21.0.3
+### restore 3 - r3
+  +  0.053  LSA rcvd Type1 1.1.1.1
+  +  0.053  SPF scheduled, delay 0 ms
+  +  0.053  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  +  0.053  NSM 1.1.1.1 Down -> Init (HelloReceived)
+  +  0.053  SPF RUN
+  +  8.969  NSM 1.1.1.1 Init -> ExStart (2-WayReceived)
+  +  8.969  NSM 1.1.1.1 ExStart -> Exchange (NegotiationDone)
+  +  8.969  LSA rcvd Type1 1.1.1.1
+  +  8.969  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  +  8.969  NSM 1.1.1.1 Exchange -> Full (ExchangeDone)
+  +  8.969  SPF scheduled, delay 0 ms
+  +  8.969  LSA install Type1 id 3.3.3.3 ar 3.3.3.3
+  +  8.969  SPF already scheduled
+  +  8.969  LSA install Type2 id 172.20.0.2 ar 3.3.3.3
+  +  8.970  SPF RUN
+  +  8.971  LSA rcvd Type1 1.1.1.1
+  + 13.969  LSA rcvd Type2 172.20.0.3
+  + 14.203  LSA rcvd Type1 1.1.1.1
+  + 14.203  SPF scheduled, delay 0 ms
+  + 14.203  LSA install Type1 id 1.1.1.1 ar 1.1.1.1
+  + 14.203  SPF RUN
+  + 14.203  route add 172.19.0.0/16 via 172.20.0.3
+  + 14.203  route add 172.19.0.0/16 via 172.21.0.3
+
+### 버려진 LSA (r3 로그 원문, restore 1)
+04:33:22.359938 OSPF: [NVWQG-0MJEV] LSA[Type1:1.1.1.1]: 0x7aa61b6b6640 new LSA created with Link State Update
+04:33:22.359940 OSPF: [N0X8S-XBM60] LSA Type-1 from 1.1.1.1, ID: 1.1.1.1, ADV: 1.1.1.1
+04:33:22.359944 OSPF: [GAG1P-PT9JG] default:LSA[Flooding]: start, NBR 1.1.1.1 (Full), cur(0x7aa61b6b6010), New-LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+04:33:22.359946 OSPF: [SWMWR-PCW95] default:LSA[Flooding]: LSA is received recently.
+04:33:22.359946 OSPF: [KPJSK-WQXZ5] ospf_lsa_discard() in ospf_ls_upd() point 5: lsa 0x7aa61b6b6640 Type-1
+
+### r1 이 보낸 router-LSA 와 재전송 (restore 1, r1 로그 원문 발췌)
+04:33:22.357738 OSPF: [ZX14J-XCW80] ospf_make_ls_upd: List Iteration 0 LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+04:33:22.358087 OSPF: [Z7T7A-E24GB] RXmtL(0)++, NBR(3.3.3.3(default)), LSA[Type2,id(172.20.0.2),ar(3.3.3.3)]
+04:33:22.358091 OSPF: [Z7T7A-E24GB] RXmtL(1)++, NBR(3.3.3.3(default)), LSA[Type2,id(172.20.0.3),ar(1.1.1.1)]
+04:33:22.358097 OSPF: [J91RT-VKRP4] NSM[eth0:172.20.0.3:3.3.3.3:default]: State change ExStart -> Exchange (NegotiationDone)
+04:33:22.358578 OSPF: [J91RT-VKRP4] NSM[eth0:172.20.0.3:3.3.3.3:default]: State change Exchange -> Full (ExchangeDone)
+04:33:22.358665 OSPF: [Z7T7A-E24GB] RXmtL(2)++, NBR(3.3.3.3(default)), LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+04:33:22.358672 OSPF: [Q193T-DWSAG] LSA[Type1:1.1.1.1]: router-LSA refresh
+04:33:22.358902 OSPF: [ZX14J-XCW80] ospf_make_ls_upd: List Iteration 0 LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+04:33:22.358930 OSPF: [ZX14J-XCW80] ospf_make_ls_upd: List Iteration 0 LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+04:33:22.360119 OSPF: [QPT3G-B8GVC] RXmtL(3)--, NBR(3.3.3.3(default)), LSA[Type2,id(172.20.0.2),ar(3.3.3.3)]
+04:33:27.358692 OSPF: [QPT3G-B8GVC] RXmtL(2)--, NBR(3.3.3.3(default)), LSA[Type2,id(172.20.0.3),ar(1.1.1.1)]
+04:33:27.591261 OSPF: [ZX14J-XCW80] ospf_make_ls_upd: List Iteration 0 LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+04:33:27.595084 OSPF: [QPT3G-B8GVC] RXmtL(1)--, NBR(3.3.3.3(default)), LSA[Type1,id(1.1.1.1),ar(1.1.1.1)]
+
+### 요약 (3회 모두 같은 순서)
+restore 1: r3 Full +8.907 | r1 의 새 router-LSA 를 r3 가 버림 +8.908 | r1 재전송 +14.139 (Full 뒤 5.23 s) | r3 경로 변경 +14.143 | r3 SPF 예약 지연 ['0'] ms
+restore 2: r3 Full +9.246 | r1 의 새 router-LSA 를 r3 가 버림 +9.248 | r1 재전송 +14.479 (Full 뒤 5.23 s) | r3 경로 변경 +14.481 | r3 SPF 예약 지연 ['0'] ms
+restore 3: r3 Full +8.969 | r1 의 새 router-LSA 를 r3 가 버림 +8.971 | r1 재전송 +14.201 (Full 뒤 5.23 s) | r3 경로 변경 +14.203 | r3 SPF 예약 지연 ['0'] ms
+MinLSArrival 로 버린 횟수 (전체 로그): r1 0, r2 9, r3 3
+
+## B. 조용한 고장 (tc netem loss 100%, r1 eth0 와 r3 eth0) - 데이터 평면
+# 흐름 A: r1 172.19.0.3 -> 172.21.0.3 (ECMP 해시로 r1-r3 링크 eth0 사용), 흐름 B: 172.19.0.3 -> 172.21.0.2 (r2 경유 eth1)
+# r1 sysctl: fib_multipath_hash_policy 0, fib_multipath_use_neigh 0. 커널 7.0.0-38-generic
+
+### B1. 50초 측정, 시작 시 172.20.0.2 ARP = REACHABLE (0.3초 간격: 시각, 흐름 A 출력 포트, ARP 상태, 172.21/16 의 nexthop 수)
+     65 04:46:30.222 dev eth0 REACHABLE 2 
+     13 04:46:55.310 dev eth0 DELAY 2 
+      6 04:47:00.355 dev eth0 PROBE 2 
+      2 04:47:02.662 dev eth1 PROBE 0 
+     43 04:47:03.431 dev eth1 FAILED 0 
+netem on 04:46:30.793 / off 04:47:20.130
+r1 로그: 04:47:02.378882 NSM 3.3.3.3 Inactivity timer expire -> 04:47:02.381721 Route add 172.21.0.0/16 nexthop 172.19.0.2 eth1
+흐름 A ping (0.2초 간격): 260개 중 161개 손실 = 32.2 초 (seq 1-161)
+
+### B2. 12초 측정, 시작 시 ARP = STALE
+netem on 04:42:09.726: DELAY (04:42:09.8-14.6) -> PROBE (15.1-17.7) -> FAILED 04:42:18.2, 이때 출력 포트 eth0 -> eth1. OSPF 경로는 그대로 (nexthop 2개)
+흐름 A ping: seq 1-41 손실 = 8.2 초
+
+### B3. 12.6초 측정, 시작 시 ARP = REACHABLE: 끝까지 REACHABLE, eth0, 흐름 A ping 62개 손실 = 12.4 초 (측정 끝까지 전부)
+
+### B4. 55초 측정 (흐름 A, B 각각 0.5초 간격 1회 ping, 1초 타임아웃). 시작 ARP 상태는 기록하지 않음
+흐름 A: +0~+2 s 손실 (eth0), +2~+3 s 에 eth1 로 바뀌며 손실 2회 섞임, +3 s 이후 정상 (eth1)
+흐름 B: 109회 모두 정상 (eth1)
+r1 OSPF: 04:40:02.36 (+36.6 s) Inactivity timer expire -> 단일 경로 eth1

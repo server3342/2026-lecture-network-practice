@@ -1,0 +1,75 @@
+# measured 2026-10-13 13:49 KST, campus Wi-Fi, WARP off, no Tailscale exit node
+# TCP connect to :443, 7 tries per address; min / median in ms; '-' = no connection
+www.microsoft.com    system  104.94.218.45    min    5.8  med    6.2  (7/7)
+www.microsoft.com    google  23.49.206.40     min    5.9  med    6.4  (7/7)
+www.microsoft.com    quad9   184.28.184.92    min   32.8  med   34.5  (7/7)
+www.adobe.com        system  23.35.218.147    min    5.8  med    7.1  (7/7)
+www.adobe.com        system  23.35.218.149    min    6.0  med    6.4  (7/7)
+www.adobe.com        system  23.35.218.148    min    6.4  med    6.6  (7/7)
+www.adobe.com        google  23.76.153.115    min    5.9  med    6.8  (7/7)
+www.adobe.com        google  23.76.153.121    min    5.1  med    5.8  (7/7)
+www.adobe.com        quad9   23.215.106.161   min  292.3  med  309.4  (7/7)
+www.adobe.com        quad9   23.215.106.160   min  301.4  med  321.5  (7/7)
+www.cnn.com          system  146.75.51.5      min    4.9  med    5.9  (7/7)
+www.cnn.com          google  151.101.3.5      min    6.2  med    6.7  (7/7)
+www.cnn.com          google  151.101.131.5    min    4.9  med    6.1  (7/7)
+www.cnn.com          google  151.101.67.5     min    6.1  med    6.4  (7/7)
+www.cnn.com          google  151.101.195.5    min    5.5  med    6.0  (7/7)
+www.cnn.com          quad9   151.101.67.5     min    5.3  med    5.5  (7/7)
+www.cnn.com          quad9   151.101.131.5    min    5.2  med    6.8  (7/7)
+www.cnn.com          quad9   151.101.195.5    min    5.0  med    6.3  (7/7)
+www.cnn.com          quad9   151.101.3.5      min    5.2  med    6.1  (7/7)
+www.apple.com        system  104.94.216.37    min    5.5  med    6.5  (7/7)
+www.apple.com        google  23.217.69.53     min   37.1  med   38.7  (7/7)
+www.apple.com        quad9   23.217.180.246   min   35.8  med   36.0  (7/7)
+www.stanford.edu     system  15.197.167.90    min    5.1  med    6.2  (7/7)
+www.stanford.edu     system  3.33.186.135     min    5.4  med    8.0  (7/7)
+www.stanford.edu     google  15.197.167.90    min    7.5  med    8.1  (7/7)
+www.stanford.edu     google  3.33.186.135     min    5.6  med    7.1  (7/7)
+www.stanford.edu     quad9   15.197.167.90    min    6.6  med    7.7  (7/7)
+www.stanford.edu     quad9   3.33.186.135     min    6.0  med    7.0  (7/7)
+www.bbc.co.uk        system  146.75.48.81     min    5.8  med    7.4  (7/7)
+www.bbc.co.uk        google  151.101.128.81   min    6.0  med    8.0  (7/7)
+www.bbc.co.uk        google  151.101.0.81     min    6.9  med    8.0  (7/7)
+www.bbc.co.uk        google  151.101.64.81    min    6.1  med    7.3  (7/7)
+www.bbc.co.uk        google  151.101.192.81   min    6.5  med    7.7  (7/7)
+www.bbc.co.uk        quad9   151.101.0.81     min    5.6  med    7.0  (7/7)
+www.bbc.co.uk        quad9   151.101.128.81   min    6.0  med    7.9  (7/7)
+www.bbc.co.uk        quad9   151.101.64.81    min    5.7  med    8.3  (7/7)
+www.bbc.co.uk        quad9   151.101.192.81   min    6.0  med    7.3  (7/7)
+www.spotify.com      system  146.75.51.42     min    6.3  med    7.9  (7/7)
+www.spotify.com      google  151.101.67.42    min    5.0  med    5.8  (7/7)
+www.spotify.com      google  151.101.3.42     min    5.6  med    6.1  (7/7)
+www.spotify.com      google  151.101.195.42   min    5.1  med    6.7  (7/7)
+www.spotify.com      google  151.101.131.42   min    6.0  med    6.9  (7/7)
+www.spotify.com      quad9   151.101.67.42    min    5.7  med    6.4  (7/7)
+www.spotify.com      quad9   151.101.131.42   min    5.0  med    6.5  (7/7)
+www.spotify.com      quad9   151.101.195.42   min    5.5  med    6.8  (7/7)
+www.spotify.com      quad9   151.101.3.42     min    5.8  med    7.1  (7/7)
+www.github.com       system  20.200.245.247   min    6.5  med    7.6  (7/7)
+www.github.com       google  20.200.245.247   min    6.2  med    6.5  (7/7)
+www.github.com       quad9   20.27.177.113    min   29.3  med   32.0  (7/7)
+www.wikipedia.org    system  103.102.166.224  min   67.2  med   74.8  (7/7)
+www.wikipedia.org    google  103.102.166.224  min   68.1  med   69.2  (7/7)
+www.wikipedia.org    quad9   103.102.166.224  min   67.5  med   74.4  (7/7)
+www.nytimes.com      system  146.75.49.164    min    5.9  med    6.2  (7/7)
+www.nytimes.com      google  151.101.129.164  min    5.5  med    6.8  (7/7)
+www.nytimes.com      google  151.101.193.164  min    5.3  med    6.1  (7/7)
+www.nytimes.com      google  151.101.1.164    min    6.2  med    6.5  (7/7)
+www.nytimes.com      google  151.101.65.164   min    6.0  med    6.3  (7/7)
+www.nytimes.com      quad9   151.101.65.164   min    5.1  med    6.7  (7/7)
+www.nytimes.com      quad9   151.101.1.164    min    5.4  med    6.0  (7/7)
+www.nytimes.com      quad9   151.101.193.164  min    5.2  med    6.1  (7/7)
+www.nytimes.com      quad9   151.101.129.164  min    5.4  med    6.2  (7/7)
+
+# per site: best (min) RTT of each resolver's answer set
+www.microsoft.com    system    5.8  google    5.9  quad9   32.8
+www.adobe.com        system    5.8  google    5.1  quad9  292.3
+www.cnn.com          system    4.9  google    4.9  quad9    5.0
+www.apple.com        system    5.5  google   37.1  quad9   35.8
+www.stanford.edu     system    5.1  google    5.6  quad9    6.0
+www.bbc.co.uk        system    5.8  google    6.0  quad9    5.6
+www.spotify.com      system    6.3  google    5.0  quad9    5.0
+www.github.com       system    6.5  google    6.2  quad9   29.3
+www.wikipedia.org    system   67.2  google   68.1  quad9   67.5
+www.nytimes.com      system    5.9  google    5.3  quad9    5.1

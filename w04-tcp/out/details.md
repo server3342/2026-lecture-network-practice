@@ -38,8 +38,13 @@ then duplication, then reordering. It also passes seeds 1, 2, 3, 7, 42 and 999.
   first byte varied 48–214 ms). The LTE link is the bottleneck for the whole transfer, so it is steadier.
 - **B5:** with about 5× the handshake time (≈ RTT) the hotspot's window takes 5× longer wall-clock to reach the
   pipe size (slow start doubles once per RTT), and throughput of a window-limited flow is window ÷ RTT — so a
-  worse RTT lowers throughput even at equal raw capacity. The two are not independent; here the hotspot is also
-  simply slower, so I cannot separate the two effects with this data.
+  worse RTT lowers throughput even at equal raw capacity. To separate RTT from the hotspot's own capacity I
+  re-measured on campus Wi-Fi (2026-10-13, `rtt-only.txt`): same target, from a container with `tc netem delay 31ms`
+  on its interface, alternating with no added delay, 5 runs each. Without added delay: median **209.6 Mbps**
+  (handshake 6.8 ms; one outlier run at 11.7 Mbps). With +31 ms: median **85.2 Mbps**, all five between 84.9 and
+  88.0 (handshake 37.9 ms, the hotspot's 38.1 ms). So on the same link, raising the RTT to the hotspot's value alone
+  cut throughput by about 60 %. The hotspot's 57.8 Mbps is lower still, so the remaining 85 → 58 Mbps is the hotspot
+  link itself. The two measurements are two weeks apart, which this comparison cannot correct for.
 
 **Task 3 — congestion control.**
 R5: the baseline's goodput is highest because keeping 64 packets in flight keeps the link busy every slot, but it

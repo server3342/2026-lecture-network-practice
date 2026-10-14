@@ -14,11 +14,10 @@ the table is ambiguous and silently keeping one would forward some packets to a 
 identical entry twice is harmless; different networks of equal length never both match one address.)
 
 **Task 2 — where am I.** Full answers, with the table, are in `out/report.md`.
-- *NATs:* at least one on each network (a private address inside, a different public address outside). I can prove
-  only one on each: the campus traceroute goes from private to public in three hops; the hotspot's traceroute shows
-  carrier-internal private/reserved hops that are consistent with carrier-grade NAT on top of the phone's own, but the
-  campus path has private hops too, so a traceroute does not prove it. What would settle it is the phone's cellular-side
-  address, which I could not read.
+- *NATs:* at least one on each network (a private address inside, a different public address outside). I did not
+  establish the exact number on either. Both traceroutes pass private or reserved hops, but a traceroute shows where
+  private addresses are used, not where translation happens. The deciding fact is the outside address of each
+  translating device (the campus NAT's, and the phone's cellular-side address), and I could not read either.
 - *What changed:* both the private address (`172.16.25.130` → `10.53.36.69`) and the public one
   (`163.152.233.x` → `118.235.95.x`) changed, because each is handed out by a different network's DHCP/NAT.
   The mask (/24) was the same by coincidence.

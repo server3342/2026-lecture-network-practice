@@ -24,18 +24,17 @@ would be no way to send it the first packet.
 
 ## A5 · How many NATs?
 - Both private ranges differ from the public address, so there is at least one NAT on each network.
-- **Campus:** one NAT is certain (`172.16.25.130` → `163.152.233.xxx`). No `100.64.0.0/10` address on the
-  interface. `tracepath` (`out/tracepath-campus.txt`): `172.16.0.2` → `192.168.98.132` (private) → `163.152.233.129`
-  (public, the same /24 as my translated address) → the ISP. The first public address appears at hop 3, right after the
-  private ones, which fits a single NAT at the campus edge.
-- **Hotspot:** at least **one** NAT, in the phone (the laptop's `10.53.36.69` is translated to whatever the phone
-  holds on the cellular side). Whether there is a **second**, at the carrier, I could not establish. `tracepath`
-  (`out/tracepath-hotspot.txt`) goes phone (`10.53.36.187`) → `255.0.0.1`…`255.0.0.4` (reserved 240/4 space) →
-  `172.28.1.x` (RFC 1918) → first public address at hop 10. That is *consistent with* carrier-grade NAT, but it is
-  not evidence for it: the campus path also passes private hops (`192.168.98.132`, later `10.103.1.142`, `10.222.x.x`)
-  inside the provider's own network with no extra NAT implied. A traceroute shows where private space is used, not
-  where translation happens. I could not read the phone's own cellular address from the laptop; that address is the
-  discriminating fact.
+- **Campus:** at least **one** NAT (`172.16.25.130` inside, `163.152.233.xxx` seen by the server). No
+  `100.64.0.0/10` address on the interface. `tracepath` (`out/tracepath-campus.txt`): `172.16.0.2` →
+  `192.168.98.132` (private) → `163.152.233.129` (public, the same /24 as my translated address) → the ISP. Whether
+  there is more than one NAT I did not establish: that needs the outside address of each translating device, and I
+  could not read the campus NAT's.
+- **Hotspot:** at least **one** NAT (`10.53.36.69` inside, `118.235.95.x` seen by the server). Whether there is a
+  second I did not establish. `tracepath` (`out/tracepath-hotspot.txt`) goes phone (`10.53.36.187`) →
+  `255.0.0.1`…`255.0.0.4` (reserved 240/4 space) → `172.28.1.x` (RFC 1918) → first public address at hop 10. These
+  private hops do not count NATs: the campus path also passes private hops (`192.168.98.132`, later `10.103.1.142`,
+  `10.222.x.x`). A traceroute shows where private addresses are used, not where translation happens. I could not read
+  the phone's cellular-side address, which is the fact that would decide it.
 - **How to tell one from two:** read the address on the phone's/router's *outside* interface. If it is private or in
   `100.64.0.0/10` (and differs from the public address seen by a server), there is a second NAT. A traceroute alone cannot count NATs.
 - The interface on `tailscale0` has a `100.x` address. That is Tailscale's overlay (it uses the CGNAT block by

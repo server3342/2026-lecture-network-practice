@@ -1,0 +1,20 @@
+# w04 B5 보강: 같은 캠퍼스 Wi-Fi 링크에서 RTT 만 늘려 처리량 비교 (2026-10-13 13:5x KST, WARP off, Tailscale exit node 없음)
+# lab 컨테이너(--cap-add NET_ADMIN) 안에서 eth0 에 tc netem delay 31ms 를 걸고 끔을 번갈아 5회씩. 대상은 task2_measure.py 와 같은 https://speed.cloudflare.com/__down?bytes=5000000
+# handshake = curl time_connect - time_namelookup (task2_measure.py 와 같은 정의). Mbps = size*8/time_total
+ Network 2026-lecture-network-practice_default Creating 
+ Network 2026-lecture-network-practice_default Creating 
+ Network 2026-lecture-network-practice_default Created 
+ Network 2026-lecture-network-practice_default Created 
+round 1  added  0 ms  handshake    6.3 ms  total  3.408 s     11.7 Mbps
+round 1  added 31 ms  handshake   40.0 ms  total  0.470 s     85.1 Mbps
+round 2  added  0 ms  handshake    7.6 ms  total  0.396 s    101.0 Mbps
+round 2  added 31 ms  handshake   37.9 ms  total  0.470 s     85.2 Mbps
+round 3  added  0 ms  handshake    7.3 ms  total  0.191 s    209.6 Mbps
+round 3  added 31 ms  handshake   37.9 ms  total  0.468 s     85.4 Mbps
+round 4  added  0 ms  handshake    6.8 ms  total  0.176 s    227.0 Mbps
+round 4  added 31 ms  handshake   36.8 ms  total  0.455 s     88.0 Mbps
+round 5  added  0 ms  handshake    6.3 ms  total  0.173 s    230.7 Mbps
+round 5  added 31 ms  handshake   38.1 ms  total  0.471 s     84.9 Mbps
+added  0 ms: median 209.6 Mbps (min 11.7, max 230.7), handshake median 6.8 ms
+added 31 ms: median 85.2 Mbps (min 84.9, max 88.0), handshake median 37.9 ms
+비교: 2026-09-29 핫스팟(KT LTE) 실측 중앙값 57.8 Mbps, handshake 중앙값 38.1 ms (throughput.json)

@@ -24,8 +24,15 @@ wrong (`wikimedia.org` is a different zone but the same owner) and `www.github.c
 in Microsoft's AS, but its own service). Steering: 8 of 10 CDN-hosted sites answered differently to a different
 resolver and 3 of 10 (Akamai) answered differently on the phone network; those 3 were stable across two
 campus runs, so it is the network and not time (asking Google or Quad9 twice back to back differed for 1–3 of 10
-sites, so some resolver-to-resolver differences are plain rotation). That supports "the answer depends on the asker" but not "the answer is *near*": I did not measure
-latency, and for the Fastly sites the difference followed the resolver family, not my location.
+sites, so some resolver-to-resolver differences are plain rotation). That supports "the answer depends on the asker". For "the answer is *near*" I measured latency afterwards
+(2026-10-13, campus Wi-Fi, `latency.txt`): TCP connect time to port 443, 7 tries per address, to every address each
+resolver returned. The campus (system) resolver's answer was within 1.3 ms of the fastest answer set for all 10 sites
+(4.9–6.5 ms, except `www.wikipedia.org`, where all three resolvers returned the same address at 67 ms). Where the
+resolvers disagreed on Akamai- and Microsoft-hosted sites, Quad9's answers were far slower: `www.adobe.com` 292 ms against
+5–6 ms, `www.apple.com` 36 ms (Google 37 ms) against 5.5 ms, `www.microsoft.com` 33 ms, `www.github.com` 29 ms. For
+the Fastly sites the different address families (`146.75.x` vs. `151.101.x`) gave the same 5–6 ms. So on this
+network, asking the local resolver got a near replica every time, and asking a public resolver sometimes got a far
+one. The phone-network side of this was not re-measured.
 
 **Task 3 — cache.**
 The baseline has two faults with one root cause, it throws the TTL away (`FIXED_LIFETIME = 60`): correctness —

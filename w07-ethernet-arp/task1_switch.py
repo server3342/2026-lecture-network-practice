@@ -29,8 +29,23 @@ class Switch:
     BROADCAST = "ff:ff:ff:ff:ff:ff"
     AGE_SECONDS = 300
 
+    # Each entry is mac -> (port, last_seen). Learning overwrites both, so a
+    # station that moves is believed at once (R3) and a station that keeps
+    # talking keeps its entry fresh. Aging (R4) is the same timestamp read the
+    # other way: evidence nobody has repeated for AGE_SECONDS is dropped.
+    # The clock is the newest frame time seen - the switch has no other.
+
     def __init__(self, ports):
-        raise NotImplementedError("write your switch")
+        self.ports = ports
+        self.entries = {}                      # mac -> (port, last_seen)
+        self.now = 0.0
+
+    def _age(self, now):
+        """Forget every entry not refreshed within AGE_SECONDS of `now`."""
+        self.now = max(self.now, now)
+        cutoff = self.now - self.AGE_SECONDS
+        for mac in [m for m, (_, seen) in self.entries.items() if seen < cutoff]:
+            del self.entries[mac]
 
     def handle(self, frame, in_port):
         """Learn from the source, then decide where the frame goes.
@@ -46,11 +61,23 @@ class Switch:
         Rule 5 is why a switch works at all before it has learned anything, and
         it is also what Task 3 is about.
         """
-        raise NotImplementedError
+        src, dst, now = frame
+        self._age(now)
+        # Broadcast is a destination, never a source; do not learn it.
+        if src != self.BROADCAST:
+            self.entries[src] = (in_port, now)
+
+        everyone_else = [p for p in range(self.ports) if p != in_port]
+        if dst == self.BROADCAST or dst not in self.entries:
+            return everyone_else
+        out = self.entries[dst][0]
+        # Destination sits behind the arrival port: it already heard the frame.
+        return [] if out == in_port else [out]
 
     def table(self):
         """{mac: port} as currently learned. Aged-out entries must be gone."""
-        raise NotImplementedError
+        self._age(self.now)
+        return {mac: port for mac, (port, _) in self.entries.items()}
 
 
 # ------------------------------------------------------------------- harness

@@ -155,6 +155,28 @@
       <li>송신 측은 데이터가 손실되었다고 판단하고 다시 보냅니다.</li>
       <li>수신 측은 <b>같은 데이터를 두 번</b> 받습니다. 순서 번호가 없으면 이것을 구별할 수 없습니다.</li>
     </ol>
+    <figure class="dg" style="margin-bottom:0">
+      <svg viewBox="0 0 700 250" role="img" aria-label="ACK가 손실되면 송신 측의 타이머가 끝나 같은 패킷을 다시 보내고, 수신 측은 순서 번호로 중복을 알아보고 버린 뒤 ACK를 다시 보냅니다.">
+        <text x="120" y="20" text-anchor="middle" class="t-b">송신 측</text>
+        <text x="580" y="20" text-anchor="middle" class="t-b">수신 측</text>
+        <line class="ln" x1="120" y1="30" x2="120" y2="240"/><line class="ln" x1="580" y1="30" x2="580" y2="240"/>
+        <line class="ln-tcp" x1="120" y1="44" x2="578" y2="74" marker-end="url(#a-t)"/>
+        <text x="350" y="50" text-anchor="middle" class="t-s t-tcp t-b">데이터 seq 7</text>
+        <text x="590" y="78" class="t-s t-ok">전달 ✓</text>
+        <line class="ln-dash" x1="580" y1="82" x2="380" y2="96"/>
+        <text x="370" y="100" text-anchor="end" class="t-s t-warn t-b">✕ ACK 7 손실</text>
+        <!-- 타이머 -->
+        <rect class="bx-chk" x="104" y="44" width="10" height="110" rx="3"/>
+        <text x="98" y="104" text-anchor="end" class="t-s t-chk t-b">타이머</text>
+        <text x="98" y="160" text-anchor="end" class="t-s t-warn t-b">시간 초과</text>
+        <line class="ln-tcp" x1="120" y1="154" x2="578" y2="184" marker-end="url(#a-t)"/>
+        <text x="350" y="160" text-anchor="middle" class="t-s t-tcp t-b">재전송 seq 7</text>
+        <text x="590" y="180" class="t-s t-warn t-b">중복!</text>
+        <text x="590" y="196" class="t-s t-muted">seq 7은 이미 받음 → 버림</text>
+        <line class="ln-dash" x1="580" y1="200" x2="122" y2="230" marker-end="url(#a-m)"/>
+        <text x="350" y="230" text-anchor="middle" class="t-s t-ok t-b">ACK 7 (다시 보냄)</text>
+      </svg>
+    </figure>
   </div>
 </section>
 
@@ -438,6 +460,64 @@ TimeoutInterval = EstimatedRTT + 4·DevRTT</code></pre>
     <p><b>계산:</b> 179 Mbps × 7.5 ms ≈ <b>168 KB</b>. 실제로 동시에 보낸 최대량 193 KB와 같은 크기입니다.</p>
     <p><b>B5:</b> 처리량은 RTT에 반비례하고, 윈도우가 자라는 속도도 RTT에 묶여 있습니다. 그래서 핸드셰이크 시간과 처리량은 독립이 아닙니다.</p>
     <p class="small muted">주의: 핫스팟 측정은 IPv6로 연결되었고 캠퍼스는 IPv4였습니다. 두 측정은 링크뿐 아니라 IP 버전도 다릅니다.</p>
+
+    <h3>RTT의 효과와 링크의 효과 나누기</h3>
+    <div class="box concept" style="margin-top:var(--s-2)"><span class="tag">일반 원리</span>
+      <p>두 네트워크를 비교하면 RTT와 링크 용량이 <b>함께</b> 바뀝니다. 두 원인을 나누려면 <b>한 변수만</b> 바꿉니다.</p>
+      <ul>
+        <li>같은 링크에 인위적 지연(<code>tc netem delay</code>)을 더해 RTT만 다른 링크의 값으로 맞춥니다.</li>
+        <li>윈도우가 처리량을 제한하는 동안은 처리량 ≈ 윈도우 ÷ RTT입니다. 짧은 전송은 대부분 슬로 스타트 안에서 끝나므로 이 영향이 큽니다.</li>
+        <li>(같은 링크, 원래 RTT) → (같은 링크, 늘린 RTT)의 차이 = RTT의 효과. (같은 링크, 늘린 RTT) → (다른 링크)의 차이 = 링크 자체의 효과.</li>
+        <li>측정 날짜가 다르면 그 차이는 보정되지 않습니다. 가능하면 같은 시간대에 번갈아 잽니다.</li>
+      </ul>
+    </div>
+    <p>예: 핫스팟은 RTT도 길고 링크 자체도 다릅니다. 2026-10-13에 <b>같은 캠퍼스 링크</b>에서 RTT만 바꾸어 다시 쟀습니다.</p>
+    <ol class="stepper">
+      <li>lab 컨테이너의 <code>eth0</code>에 <code>tc netem delay 31ms</code>를 걸었습니다. 핸드셰이크가 핫스팟과 같은 약 38 ms가 됩니다.</li>
+      <li>지연을 건 측정과 끈 측정을 번갈아 5번씩 했습니다. 대상은 Task 2와 같은 5 MB 파일입니다.</li>
+    </ol>
+    <figure class="dg" style="margin-top:var(--s-1)">
+      <svg viewBox="0 0 720 250" role="img" aria-label="처리량 비교. 캠퍼스 지연 없음 중앙값 209.6 Mbps, 캠퍼스에 31 ms 지연을 더하면 85.2 Mbps, 핫스팟 57.8 Mbps. 210에서 85까지는 RTT 때문이고 85에서 58까지는 핫스팟 링크 때문입니다.">
+        <!-- x = 200 + Mbps × 2 -->
+        <g class="ln-dash" style="opacity:.6">
+          <line x1="300" y1="24" x2="300" y2="186"/><line x1="400" y1="24" x2="400" y2="186"/>
+          <line x1="500" y1="24" x2="500" y2="186"/><line x1="600" y1="24" x2="600" y2="186"/>
+        </g>
+        <line class="ln" x1="200" y1="188" x2="680" y2="188"/>
+        <g class="t-s t-muted" text-anchor="middle">
+          <text x="200" y="204">0</text><text x="300" y="204">50</text><text x="400" y="204">100</text>
+          <text x="500" y="204">150</text><text x="600" y="204">200</text><text x="672" y="204">Mbps</text>
+        </g>
+        <!-- 행 1: 캠퍼스, 지연 없음 -->
+        <text x="190" y="44" text-anchor="end" class="t-s t-b">캠퍼스 · 지연 없음</text>
+        <text x="190" y="60" text-anchor="end" class="t-s t-muted">RTT 6.8 ms</text>
+        <rect x="200" y="36" width="419.2" height="22" rx="3" class="fill-tcp"/>
+        <g class="fill-muted" style="opacity:.9"><circle cx="223.4" cy="68" r="3.5"/><circle cx="402" cy="68" r="3.5"/><circle cx="619.2" cy="68" r="3.5"/><circle cx="654" cy="68" r="3.5"/><circle cx="661.4" cy="68" r="3.5"/></g>
+        <text x="626" y="52" class="t-s t-b">209.6</text>
+        <text x="232" y="80" class="t-s t-muted">· 각 회 (11.7은 한 번 튄 값)</text>
+        <!-- 행 2: 캠퍼스 + 31 ms -->
+        <text x="190" y="104" text-anchor="end" class="t-s t-b">캠퍼스 · +31 ms</text>
+        <text x="190" y="120" text-anchor="end" class="t-s t-muted">RTT 37.9 ms</text>
+        <rect x="200" y="96" width="170.4" height="22" rx="3" class="fill-tcp" style="opacity:.6"/>
+        <g class="fill-muted"><circle cx="369.8" cy="128" r="3.5"/><circle cx="370.4" cy="128" r="3.5"/><circle cx="370.8" cy="128" r="3.5"/><circle cx="376" cy="128" r="3.5"/><circle cx="370.2" cy="128" r="3.5"/></g>
+        <text x="378" y="112" class="t-s t-b">85.2 <tspan class="t-muted" style="font-weight:400">(5회 모두 84.9–88.0)</tspan></text>
+        <!-- 행 3: 핫스팟 -->
+        <text x="190" y="158" text-anchor="end" class="t-s t-b">핫스팟 (9-29 측정)</text>
+        <text x="190" y="174" text-anchor="end" class="t-s t-muted">RTT 38.1 ms</text>
+        <rect x="200" y="150" width="115.6" height="22" rx="3" class="fill-muted"/>
+        <line class="ln" x1="302" y1="180" x2="335.2" y2="180"/>
+        <text x="324" y="166" class="t-s t-b">57.8 <tspan class="t-muted" style="font-weight:400">(범위 51.0–67.6)</tspan></text>
+        <!-- 분해 -->
+        <path class="ln-warn" d="M619 222 H371" marker-end="url(#a-w)"/>
+        <text x="495" y="240" text-anchor="middle" class="t-s t-warn t-b">−124 Mbps · RTT만 늘린 효과 (약 60%)</text>
+        <path class="ln" d="M370 222 H317" marker-end="url(#a-m)"/>
+        <text x="300" y="240" text-anchor="end" class="t-s t-b">−27 · 핫스팟 링크 자체</text>
+      </svg>
+      <figcaption>근거: <span class="kbd-file">w04-tcp/out/rtt-only.txt</span>. 같은 링크에서 RTT를 핫스팟 값으로 올리기만 해도 처리량이 약 60% 줄었습니다.</figcaption>
+    </figure>
+    <div class="box warn" style="margin-bottom:0"><span class="tag">이 비교의 한계</span>
+      <p>재측정(10-13)과 핫스팟 측정(9-29)은 날짜가 2주 다릅니다. 이 비교로는 그 차이를 보정할 수 없습니다. 같은 캠퍼스 링크도 9-29에는 중앙값 178.8, 10-13에는 209.6 Mbps였습니다.</p>
+    </div>
   </div>
 </section>
 
@@ -623,6 +703,8 @@ def on_loss(self):
       <p class="a">흐름 제어는 수신 측 버퍼를 보호하고 rwnd로 직접 알림을 받습니다. 혼잡 제어는 네트워크를 보호하고 손실과 지연으로 상태를 추정합니다.</p></details>
     <details class="q"><summary>고정 윈도우 64가 goodput이 가장 높은데도 가장 나쁜 송신자인 이유는?</summary>
       <p class="a">37%를 버리고 큐를 늘 가득 채워서 다른 흐름에 지연과 손실을 줍니다. goodput은 그 피해를 세지 않습니다. 모두가 이렇게 하면 혼잡 붕괴입니다.</p></details>
+    <details class="q"><summary>핫스팟이 캠퍼스보다 느린 것이 RTT 때문인지 링크 때문인지 어떻게 나눌 수 있습니까?</summary>
+      <p class="a">한 변수만 바꿉니다. 같은 캠퍼스 링크에 <code>tc netem</code>으로 지연만 더해 RTT를 핫스팟과 같게 맞췄습니다. 처리량이 210에서 85 Mbps로 떨어졌으므로 이만큼은 RTT의 효과입니다. 핫스팟의 58 Mbps와의 나머지 차이가 링크 자체의 몫입니다.</p></details>
     <details class="q"><summary>타임아웃과 중복 ACK 3개에 TCP가 다르게 반응하는 이유는?</summary>
       <p class="a">중복 ACK는 뒤의 세그먼트가 도착하고 있다는 뜻이므로 가벼운 혼잡입니다(절반). 타임아웃은 아무것도 도착하지 않는다는 뜻이므로 심한 혼잡입니다(1 MSS로).</p></details>
   </div>

@@ -222,6 +222,33 @@
     <div class="card good"><h4>좋은 소식은 빠릅니다</h4><p>비용이 줄면 새 거리가 이웃마다 한 번씩 퍼집니다. 몇 번의 교환으로 끝납니다.</p></div>
     <div class="card bad"><h4>나쁜 소식은 느립니다</h4><p>비용이 크게 늘면 두 라우터가 서로를 경유지로 믿습니다. 거리를 조금씩 올리며 주고받습니다. 이것이 <b>무한 카운트(count-to-infinity)</b>입니다. 교재의 예에서는 44번 반복합니다.</p></div>
   </div>
+  <figure class="dg">
+    <svg viewBox="0 0 760 250" role="img" aria-label="무한 카운트. x와 y 사이 링크 비용이 4에서 60으로 늘면, y와 z가 x까지의 거리를 서로 하나씩 올리며 주고받다가 z가 직접 링크 50을 고른 뒤에야 끝납니다.">
+      <!-- 작은 그래프 -->
+      <g text-anchor="middle">
+        <line class="ln" x1="40" y1="40" x2="120" y2="40"/><line class="ln-warn" x1="40" y1="40" x2="80" y2="100"/><line class="ln" x1="80" y1="100" x2="120" y2="40"/>
+        <circle cx="40" cy="40" r="13" class="bx-rt"/><text x="40" y="45" class="t-b">x</text>
+        <circle cx="80" cy="100" r="13" class="bx"/><text x="80" y="105" class="t-b">y</text>
+        <circle cx="120" cy="40" r="13" class="bx"/><text x="120" y="45" class="t-b">z</text>
+        <text x="80" y="30" class="t-s">50</text><text x="44" y="80" class="t-s t-warn t-b">4→60</text><text x="112" y="80" class="t-s">1</text>
+      </g>
+      <!-- 축: x = 170 + (i × 12.5 − 90 + 90) , y = 200 − 거리 × 3 -->
+      <line class="ln" x1="170" y1="200" x2="750" y2="200"/>
+      <line class="ln" x1="170" y1="40" x2="170" y2="200"/>
+      <g class="t-s t-muted" text-anchor="end"><text x="162" y="191">4</text><text x="162" y="143">20</text><text x="162" y="53">50</text></g>
+      <line class="ln-dash" x1="170" y1="50" x2="750" y2="50"/>
+      <text x="746" y="44" text-anchor="end" class="t-s t-muted">z의 직접 링크 50</text>
+      <g transform="translate(80 0)">
+        <polyline class="ln-rt" style="stroke-width:2.5" points="90.0,182 102.5,182 115.0,176 127.5,176 140.0,170 152.5,170 165.0,164 177.5,164 190.0,158 202.5,158 215.0,152 227.5,152 240.0,146 252.5,146 265.0,140 277.5,140 290.0,134 302.5,134 315.0,128 327.5,128 340.0,122 352.5,122 365.0,116 377.5,116 390.0,110 402.5,110 415.0,104 427.5,104 440.0,98 452.5,98 465.0,92 477.5,92 490.0,86 502.5,86 515.0,80 527.5,80 540.0,74 552.5,74 565.0,68 577.5,68 590.0,62 602.5,62 615.0,56 627.5,56 640.0,50 652.5,50 665.0,47"/>
+        <polyline class="ln-tcp" style="stroke-width:2;stroke-dasharray:5 3" points="90.0,185 102.5,179 115.0,179 127.5,173 140.0,173 152.5,167 165.0,167 177.5,161 190.0,161 202.5,155 215.0,155 227.5,149 240.0,149 252.5,143 265.0,143 277.5,137 290.0,137 302.5,131 315.0,131 327.5,125 340.0,125 352.5,119 365.0,119 377.5,113 390.0,113 402.5,107 415.0,107 427.5,101 440.0,101 452.5,95 465.0,95 477.5,89 490.0,89 502.5,83 515.0,83 527.5,77 540.0,77 552.5,71 565.0,71 577.5,65 590.0,65 602.5,59 615.0,59 627.5,53 640.0,53 652.5,50 665.0,50"/>
+      </g>
+      <text x="200" y="150" class="t-s t-rt t-b">y의 D(x): 6, 8, 10, … 51</text>
+      <text x="200" y="166" class="t-s t-tcp t-b">z의 D(x): 7, 9, 11, … 50</text>
+      <text x="170" y="222" class="t-s t-muted">교환 → (y는 z를, z는 y를 경유지로 믿고 1씩 올림)</text>
+      <text x="170" y="240" class="t-s">끝나는 때: z가 y를 거치는 값(1 + D<tspan dy="3" style="font-size:8px">y</tspan><tspan dy="-3">)이 직접 링크 50보다 커질 때</tspan></text>
+    </svg>
+    <figcaption>비용 값은 교재 §5.2.2의 예입니다. 일반적으로, 우회 경로의 비용이 클수록 교환 횟수가 늘어납니다. 세로축은 x까지의 거리입니다.</figcaption>
+  </figure>
   <div class="box concept"><span class="tag">독성 역전(poisoned reverse)</span>
     <p>z가 y를 거쳐 x로 간다면, z는 y에게 "x까지 내 거리는 ∞"라고 말합니다. 그러면 y는 z를 거쳐 x로 가려고 하지 않습니다. 이 방법은 라우터 두 대 사이의 순환만 막습니다. 세 대 이상의 순환은 막지 못합니다.</p>
   </div>
@@ -298,10 +325,10 @@ O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
   <h2><span class="n">4.8</span>장애와 재수렴: 계산보다 감지가 느립니다</h2>
   <p>링크가 바뀐 뒤 세 라우터의 테이블이 모두 다시 맞을 때까지의 시간입니다. 0.25초마다 세 라우터를 함께 조회했습니다.</p>
   <figure class="dg">
-    <svg viewBox="0 0 760 250" role="img" aria-label="재수렴 시간: 비용 변경 0.3초, 링크 끊기 0.4초 이하, 링크 복구 6.2에서 18.0초, 조용한 고장 38초">
+    <svg viewBox="0 0 760 280" role="img" aria-label="재수렴 시간: 비용 변경 0.3초, 링크 끊기 0.4초 이하, 링크 복구 첫 측정 6.2에서 18.0초, debug 재측정 14.1에서 14.5초, 조용한 고장 38초">
       <!-- x = 200 + 초 × 13 -->
-      <line class="ln-dash" x1="330" y1="20" x2="330" y2="200"/>
-      <line class="ln-dash" x1="720" y1="20" x2="720" y2="200"/>
+      <line class="ln-dash" x1="330" y1="20" x2="330" y2="234"/>
+      <line class="ln-dash" x1="720" y1="20" x2="720" y2="234"/>
       <text x="330" y="14" text-anchor="middle" class="t-s t-muted">Hello 10초</text>
       <text x="720" y="14" text-anchor="middle" class="t-s t-muted">Dead 40초</text>
 
@@ -309,47 +336,163 @@ O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
       <rect x="200" y="36" width="4" height="18" rx="2" class="fill-rt"><title>비용 변경: 0.22–0.29초 (4회)</title></rect>
       <text x="212" y="50" class="t-s">0.3초</text>
 
-      <text x="190" y="90" text-anchor="end" class="t-s t-b">링크 끊기 (B4)</text>
-      <rect x="200" y="78" width="5" height="18" rx="2" class="fill-rt"><title>링크 끊기: 모두 0.4초 이내 (4회)</title></rect>
-      <text x="213" y="92" class="t-s">&lt; 0.4초</text>
+      <text x="190" y="88" text-anchor="end" class="t-s t-b">링크 끊기 (B4)</text>
+      <rect x="200" y="76" width="5" height="18" rx="2" class="fill-rt"><title>링크 끊기: 모두 0.4초 이내 (4회)</title></rect>
+      <text x="213" y="90" class="t-s">&lt; 0.4초</text>
 
-      <text x="190" y="132" text-anchor="end" class="t-s t-b">링크 복구 (B5)</text>
-      <rect x="281" y="120" width="153" height="18" rx="4" class="fill-rt" style="opacity:.35"><title>링크 복구: 6.2초, 11.9초, 18.0초 (3회)</title></rect>
-      <circle cx="281" cy="129" r="5" class="fill-rt"/><circle cx="355" cy="129" r="5" class="fill-rt"/><circle cx="434" cy="129" r="5" class="fill-rt"/>
-      <text x="444" y="134" class="t-s">6.2 · 11.9 · 18.0초</text>
+      <text x="190" y="128" text-anchor="end" class="t-s t-b">링크 복구 (B5)</text>
+      <text x="190" y="142" text-anchor="end" class="t-s t-muted">첫 측정 3회</text>
+      <rect x="281" y="116" width="153" height="18" rx="4" class="fill-rt" style="opacity:.35"><title>링크 복구: 6.2초, 11.9초, 18.0초 (3회)</title></rect>
+      <circle cx="281" cy="125" r="5" class="fill-rt"/><circle cx="355" cy="125" r="5" class="fill-rt"/><circle cx="434" cy="125" r="5" class="fill-rt"/>
+      <text x="444" y="130" class="t-s">6.2 · 11.9 · 18.0초</text>
 
-      <text x="190" y="174" text-anchor="end" class="t-s t-b">조용한 고장 (B4)</text>
-      <rect x="200" y="162" width="494" height="18" rx="4" class="fill-rt"><title>조용한 고장 (tc netem loss 100%): 37.9–38.1초</title></rect>
-      <text x="700" y="176" class="t-s">38초</text>
+      <text x="190" y="168" text-anchor="end" class="t-s t-b">링크 복구 (B5)</text>
+      <text x="190" y="182" text-anchor="end" class="t-s t-muted">debug 재측정 3회</text>
+      <rect x="383" y="156" width="6" height="18" rx="3" class="fill-rt" style="opacity:.35"><title>링크 복구 재측정: 14.1초, 14.5초, 14.2초 (3회)</title></rect>
+      <circle cx="383.3" cy="165" r="5" class="fill-rt"/><circle cx="384.6" cy="165" r="5" class="fill-rt"/><circle cx="388.5" cy="165" r="5" class="fill-rt"/>
+      <text x="398" y="170" class="t-s">14.1 · 14.2 · 14.5초 (4.8의 아래 그림)</text>
 
-      <line class="ln" x1="200" y1="204" x2="730" y2="204"/>
+      <text x="190" y="214" text-anchor="end" class="t-s t-b">조용한 고장 (B4)</text>
+      <rect x="200" y="202" width="494" height="18" rx="4" class="fill-rt"><title>조용한 고장 (tc netem loss 100%): 37.9–38.1초</title></rect>
+      <text x="700" y="216" class="t-s">38초</text>
+
+      <line class="ln" x1="200" y1="238" x2="730" y2="238"/>
       <g text-anchor="middle">
-        <text x="200" y="222" class="t-s t-muted">0</text>
-        <text x="330" y="222" class="t-s t-muted">10</text>
-        <text x="460" y="222" class="t-s t-muted">20</text>
-        <text x="590" y="222" class="t-s t-muted">30</text>
-        <text x="720" y="222" class="t-s t-muted">40초</text>
+        <text x="200" y="256" class="t-s t-muted">0</text>
+        <text x="330" y="256" class="t-s t-muted">10</text>
+        <text x="460" y="256" class="t-s t-muted">20</text>
+        <text x="590" y="256" class="t-s t-muted">30</text>
+        <text x="720" y="256" class="t-s t-muted">40초</text>
       </g>
     </svg>
-    <figcaption>막대에 마우스를 올리면 측정값이 나옵니다. 근거: <span class="kbd-file">w06-routing/out/reconverge.txt</span>, <span class="kbd-file">cost-change.txt</span></figcaption>
+    <figcaption>막대에 마우스를 올리면 측정값이 나옵니다. 근거: <span class="kbd-file">w06-routing/out/reconverge.txt</span>, <span class="kbd-file">cost-change.txt</span>, <span class="kbd-file">debug-restore.txt</span></figcaption>
   </figure>
 
   <div class="tbl"><table>
     <tr><th>사건</th><th>라우터가 아는 방법</th><th>시간</th></tr>
     <tr><td>링크 끊기 (<code>ip link set down</code>)</td><td>r1이 반송파(carrier)가 끊긴 것을 바로 압니다. r1이 새 LSA를 r2를 거쳐 플러딩합니다.</td><td>&lt; 0.4초</td></tr>
     <tr class="bad"><td>조용한 고장 (<code>tc netem loss 100%</code>)</td><td>인터페이스는 살아 있습니다. 아무도 모릅니다. Dead 타이머가 끝나야 압니다.</td><td>38초</td></tr>
-    <tr><td>링크 복구</td><td>Hello를 기다리고, 2-Way → Exchange → Loading → Full을 거친 뒤 SPF를 실행합니다.</td><td>6.2–18.0초</td></tr>
+    <tr><td>링크 복구</td><td>Hello를 기다리고, 2-Way → Exchange → Loading → Full을 거친 뒤 SPF를 실행합니다. 재측정에서는 Full 뒤에 LSA 재전송을 5초 더 기다렸습니다.</td><td>6.2–18.0초 (재측정 14.1–14.5초)</td></tr>
     <tr class="hl"><td>비용 변경 (10 → 100)</td><td>바꾼 라우터가 바로 압니다. 살아 있는 인접 관계로 LSA가 퍼집니다.</td><td>0.3초</td></tr>
   </table></div>
 
   <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 B4–B5, C3</span>
     <ul>
       <li><b>끊기는 Dead 간격과 관계없었습니다.</b> 반대편 r3는 r1을 32–39초 동안 <code>Full</code> 이웃으로 남겨 두었습니다. 그러나 r3의 경로는 이미 바뀌었습니다. r1의 새 LSA에 그 링크가 없으므로, 양방향 확인이 실패하기 때문입니다.</li>
-      <li><b>조용한 고장의 38초</b>는 Dead 40초에서 마지막 Hello 뒤 지난 시간(0–10초)을 뺀 값과 맞습니다. 그동안 ECMP가 그 링크로 해시한 흐름은 모두 버려졌습니다(블랙홀).</li>
-      <li><b>복구가 느리고 매번 다른 이유:</b> 사라진 이웃은 사건 하나로 압니다. 돌아온 이웃은 인접 관계를 단계별로 다시 만들어야 합니다. 다음 Hello까지 최대 10초를 기다리므로 시간이 매번 다릅니다.</li>
+      <li><b>조용한 고장의 38초</b>는 Dead 40초에서 마지막 Hello 뒤 지난 시간(0–10초)을 뺀 값과 맞습니다. 그동안 데이터가 어떻게 되었는지는 아래 "조용한 고장 동안의 패킷"에서 측정했습니다.</li>
+      <li><b>복구가 느리고 매번 다른 이유:</b> 사라진 이웃은 사건 하나로 압니다. 돌아온 이웃은 인접 관계를 단계별로 다시 만들어야 합니다. 다음 Hello까지 최대 10초를 기다리므로 시간이 매번 다릅니다. 첫 측정의 3회 중 2회는 r3가 Full이 된 <b>뒤에도</b> 5–10초가 더 걸렸습니다. 그 이유는 아래에서 debug 로그로 확인했습니다.</li>
       <li><b>r2는 비용 변경에 반응하지 않았습니다.</b> 비용은 나가는 인터페이스에 붙습니다. r2의 경로가 쓰는 r1의 나가는 인터페이스 비용은 바뀌지 않았습니다.</li>
     </ul>
   </div>
+  <h3>복구 시간은 무엇으로 이루어지는가</h3>
+  <div class="box concept"><span class="tag">일반 원리</span>
+    <p>링크가 살아난 뒤 경로가 바뀔 때까지의 시간은 네 부분의 합입니다.</p>
+    <p class="lead" style="text-align:center"><b>복구 ≈ Hello 대기 (0 ~ Hello 간격) + DB 교환 + LSA 전달 + SPF</b></p>
+    <ul>
+      <li><b>Hello 대기</b>는 위상에 따라 0부터 Hello 간격까지 달라집니다. 복구 시간이 매번 다른 주된 이유입니다.</li>
+      <li><b>LSA 전달</b>은 보통 몇 ms입니다. 그러나 LSA가 버려지면 송신 측이 ACK를 못 받아 <b>RxmtInterval</b> 뒤에 다시 보냅니다. 이때 복구가 그만큼 늘어납니다.</li>
+      <li>LSA가 버려지는 대표적인 경우가 <b>MinLSArrival</b>입니다. 같은 LSA의 새 인스턴스가 직전 것보다 MinLSArrival 안에 도착하면 받는 쪽이 버립니다.</li>
+      <li><b>SPF</b>는 SPF throttle(지연 타이머)만큼 늦어질 수 있습니다.</li>
+    </ul>
+  </div>
+  <h3>예: Full 뒤 5.23초 (debug 로그)</h3>
+  <p>이 실습에서 첫 측정 3회 중 2회는 Full 뒤에도 5–10초가 더 걸렸습니다. 어느 부분이 늘어났는지 보려고 OSPF debug 로그를 켜고 복구를 3번 더 했습니다(2026-10-13). 3번 모두 순서가 같았습니다. 아래는 1회째의 r3 로그입니다. 시각은 링크를 다시 올린 때가 0입니다. 이 영역의 설정값(<code>show ip ospf</code>): Hello 10초, MinLSArrival 1초, RxmtInterval 5초.</p>
+  <figure class="dg">
+    <svg viewBox="0 0 760 330" role="img" aria-label="복구 1회째 타임라인. 0.06초 r3가 r1의 Hello를 받음. 8.907초 Full. 8.908초 r1이 직접 보낸 새 router-LSA를 r3가 MinLSArrival 규칙으로 버림. 14.139초 r1이 5초 재전송 간격 뒤 다시 보냄. 14.142초 SPF 실행, 14.143초 경로 변경.">
+      <!-- x = 60 + 초 × 44 -->
+      <line class="ln" x1="60" y1="150" x2="720" y2="150"/>
+      <g class="t-s t-muted" text-anchor="middle">
+        <text x="60" y="168">0</text><text x="280" y="168">5</text><text x="500" y="168">10</text><text x="720" y="168">15초</text>
+      </g>
+      <g class="ln-dash"><line x1="280" y1="146" x2="280" y2="154"/><line x1="500" y1="146" x2="500" y2="154"/></g>
+      <!-- 구간 -->
+      <rect x="62.5" y="120" width="389.4" height="22" rx="4" class="bx-chk"/>
+      <text x="257" y="136" text-anchor="middle" class="t-s t-b">Init: r1의 Hello에 r3가 아직 없음 (다음 Hello 대기)</text>
+      <rect x="451.9" y="120" width="230.2" height="22" rx="4" class="bx-warn"/>
+      <text x="567" y="136" text-anchor="middle" class="t-s t-b">5.23초 · 재전송 대기</text>
+      <!-- 사건 -->
+      <g class="fill-rt"><circle cx="62.5" cy="150" r="5"/><circle cx="451.9" cy="150" r="5"/><circle cx="682.2" cy="150" r="6"/></g>
+      <line class="ln-rt" x1="62.5" y1="155" x2="62.5" y2="190"/>
+      <text x="62" y="206" class="t-s t-b">+0.06</text><text x="62" y="222" class="t-s">r1의 Hello 받음</text><text x="62" y="238" class="t-s t-muted">Down → Init</text>
+      <line class="ln-rt" x1="451.9" y1="155" x2="451.9" y2="190"/>
+      <text x="452" y="206" text-anchor="middle" class="t-s t-b">+8.907</text><text x="452" y="222" text-anchor="middle" class="t-s">2-Way → Full</text><text x="452" y="238" text-anchor="middle" class="t-s t-muted">(1 ms 안에 끝남)</text>
+      <line class="ln-rt" x1="682.2" y1="156" x2="682.2" y2="190"/>
+      <text x="740" y="206" text-anchor="end" class="t-s t-b">+14.139 재전송 도착</text><text x="740" y="222" text-anchor="end" class="t-s">SPF 지연 0 ms로 실행</text><text x="740" y="238" text-anchor="end" class="t-s t-ok t-b">+14.143 경로 변경</text>
+      <!-- 확대 -->
+      <path class="ln-dash" d="M451.9 116 L300 96 M451.9 116 L610 96"/>
+      <rect class="bx" x="190" y="10" width="530" height="86" rx="8"/>
+      <text x="204" y="30" class="t-s t-b">확대: +8.906 ~ +8.908초 (2 ms)</text>
+      <text x="204" y="50" class="t-s">① r1이 router-LSA를 2 ms 사이에 <tspan class="t-b">두 번</tspan> 만듦 (DR 변경 때, Full 때)</text>
+      <text x="204" y="68" class="t-s">② 첫 번째가 r2를 거쳐 먼저 도착 → 설치. 두 번째가 1–2 ms 뒤 직접 도착</text>
+      <text x="204" y="86" class="t-s t-warn t-b">③ "LSA is received recently" → MinLSArrival(1초) 규칙으로 버림, ACK 없음</text>
+      <!-- 범례 아래 설명 -->
+      <text x="60" y="274" class="t-s">r1은 그 LSA를 신뢰적으로 보냈으므로 ACK를 기다립니다. ACK가 오지 않아 <tspan class="t-b">RxmtInterval 5초</tspan> 뒤에 다시 보냅니다.</text>
+      <text x="60" y="294" class="t-s">r3는 SPF를 매번 0 ms 지연으로 바로 실행했습니다. 그러므로 SPF throttle은 원인이 아닙니다.</text>
+      <text x="60" y="314" class="t-s t-muted">2·3회째: Full +9.246 / +8.969 → 경로 변경 +14.481 / +14.203. 세 번 모두 Full 뒤 5.23초.</text>
+    </svg>
+    <figcaption>근거: <span class="kbd-file">w06-routing/out/debug-restore.txt</span> Part A. 버린 횟수(전체 로그): r2 9번, r3 3번.</figcaption>
+  </figure>
+  <div class="cards">
+    <div class="card"><h4>MinLSArrival (1초)</h4><p>같은 LSA의 새 인스턴스가 직전 것보다 1초 안에 오면 버립니다. LSA 폭주로부터 라우터를 보호합니다.</p></div>
+    <div class="card"><h4>RxmtInterval (5초)</h4><p>보낸 LSA에 ACK가 없으면 이 간격 뒤에 다시 보냅니다. 버려진 LSA는 이것으로 복구됩니다.</p></div>
+    <div class="card bad"><h4>두 규칙이 겹치면</h4><p>보호 장치가 정상 LSA를 버리고, 재전송 타이머가 그 몫을 5초 늦게 메웁니다.</p></div>
+  </div>
+  <p class="small muted">처음에는 debug 로그가 남지 않았습니다. <code>log file /tmp/ospf.log</code>가 실패했기 때문입니다. 호스트의 <code>fs.protected_regular = 2</code> 때문에 root인 <code>watchfrr</code>가 sticky <code>/tmp</code> 안의 frr 소유 파일을 열지 못했습니다. vtysh는 첫 번째로 실패한 <code>-c</code>에서 멈추므로, 뒤에 이어 쓴 <code>debug ospf</code> 명령도 실행되지 않았습니다. frr 소유의 <code>/var/log/frr</code>에 쓰고, debug를 따로 켜서 해결했습니다.</p>
+
+  <h3>조용한 고장 동안의 패킷 (데이터 평면)</h3>
+  <div class="box concept"><span class="tag">일반 원리</span>
+    <p>인터페이스가 살아 있는 고장은 두 계층이 따로 감지합니다. 패킷 손실은 <b>먼저 감지한 쪽</b>에서 끝납니다.</p>
+    <p class="lead" style="text-align:center"><b>손실 시간 ≈ min( Dead − 마지막 Hello 뒤 경과 , ARP 실패 감지 )</b></p>
+    <ul>
+      <li><b>제어 평면:</b> OSPF Dead 타이머가 끝나면 그 다음 홉을 경로에서 뺍니다.</li>
+      <li><b>데이터 평면:</b> 커널의 ARP 항목은 응답이 없으면 DELAY → PROBE → FAILED로 갑니다. FAILED인 다음 홉은 ECMP에서 쓰지 않을 수 있습니다(커널 동작에 따라 다름).</li>
+      <li>ARP 쪽 시간은 그 항목이 마지막으로 확인된 때에 따라 달라집니다. 막 확인된 항목은 오래 REACHABLE로 남습니다.</li>
+      <li>고장 난 링크로 해시되지 않은 흐름은 손실이 없습니다. ECMP는 흐름 단위로 경로를 고르기 때문입니다.</li>
+    </ul>
+  </div>
+  <p>예: r1에서 0.2초마다 ping을 두 흐름으로 보냈습니다. 흐름 A는 ECMP 해시가 r1–r3 링크(고장 낸 링크)에 둔 흐름입니다. 흐름 B는 r2를 거치는 대조 흐름입니다.</p>
+  <figure class="dg">
+    <svg viewBox="0 0 760 290" role="img" aria-label="조용한 고장 두 번. 1회: ARP가 24.5초 REACHABLE, 5초 DELAY, 그 뒤 PROBE. 31.6초에 OSPF dead 타이머가 경로를 바꿔 손실이 32.2초에 끝남. 2회: ARP가 STALE로 시작해 DELAY 5초, PROBE 3초 뒤 8.4초에 FAILED, 그때 커널이 그 다음 홉을 쓰지 않아 손실이 8.2초에 끝남.">
+      <!-- x = 160 + 초 × 15 -->
+      <g class="ln-dash"><line x1="310" y1="24" x2="310" y2="236"/><line x1="460" y1="24" x2="460" y2="236"/><line x1="610" y1="24" x2="610" y2="236"/></g>
+      <text x="160" y="16" class="t-s t-muted">netem loss 100% 시작 = 0</text>
+      <!-- 1회 -->
+      <text x="20" y="40" class="t-s t-b">1회 (50초)</text>
+      <text x="150" y="58" text-anchor="end" class="t-s">r1의 ARP 상태</text>
+      <rect x="160" y="46" width="367.5" height="18" rx="3" class="bx-ok"/><text x="343" y="59" text-anchor="middle" class="t-s">REACHABLE 24.5초</text>
+      <rect x="527.5" y="46" width="75" height="18" rx="3" class="bx-chk"/><text x="565" y="59" text-anchor="middle" class="t-s">DELAY 5</text>
+      <rect x="602.5" y="46" width="35" height="18" rx="3" class="bx-warn"/><text x="620" y="59" text-anchor="middle" class="t-s">P</text>
+      <text x="150" y="82" text-anchor="end" class="t-s">흐름 A 손실</text>
+      <rect x="160" y="70" width="483" height="18" rx="3" class="fill-warn"/>
+      <text x="650" y="84" class="t-s t-warn t-b">32.2초 (161개)</text>
+      <path class="ln-rt" style="stroke-width:3" d="M634 40 V114"/>
+      <text x="630" y="124" text-anchor="end" class="t-s t-rt t-b">+31.6 OSPF dead 타이머 → 단일 경로</text>
+      <!-- 2회 -->
+      <text x="20" y="160" class="t-s t-b">2회 (12초)</text>
+      <text x="150" y="178" text-anchor="end" class="t-s">r1의 ARP 상태</text>
+      <rect x="160" y="166" width="75" height="18" rx="3" class="bx-chk"/><text x="197" y="179" text-anchor="middle" class="t-s">DELAY 5</text>
+      <rect x="235" y="166" width="45" height="18" rx="3" class="bx-warn"/><text x="257" y="179" text-anchor="middle" class="t-s">PROBE 3</text>
+      <rect x="286" y="166" width="70" height="18" rx="3" class="bx2"/><text x="321" y="179" text-anchor="middle" class="t-s">FAILED</text>
+      <text x="150" y="202" text-anchor="end" class="t-s">흐름 A 손실</text>
+      <rect x="160" y="190" width="123" height="18" rx="3" class="fill-warn"/>
+      <text x="290" y="204" class="t-s t-warn t-b">8.2초 (41개)</text>
+      <path class="ln-eth" style="stroke-width:3" d="M286 160 V214"/>
+      <text x="292" y="226" class="t-s t-eth t-b">+8.4 ARP FAILED → 커널이 다른 다음 홉을 씀 (OSPF는 아직 2개 유지)</text>
+      <line class="ln" x1="160" y1="240" x2="740" y2="240"/>
+      <g class="t-s t-muted" text-anchor="middle">
+        <text x="160" y="256">0</text><text x="310" y="256">10</text><text x="460" y="256">20</text><text x="610" y="256">30</text><text x="730" y="256">38초</text>
+      </g>
+      <text x="160" y="280" class="t-s">손실은 <tspan class="t-rt t-b">OSPF dead 타이머</tspan>와 <tspan class="t-eth t-b">커널의 ARP 실패 감지</tspan> 중 먼저 오는 쪽에서 끝났습니다.</text>
+    </svg>
+    <figcaption>근거: <span class="kbd-file">debug-restore.txt</span> Part B. P = PROBE. 2회는 12초만 측정해서 그 뒤의 OSPF 동작은 그림에 없습니다.</figcaption>
+  </figure>
+  <ul>
+    <li>대조 흐름 B는 패킷을 하나도 잃지 않았습니다(55초 측정에서 109번 모두 정상). 손실은 고장 난 링크로 해시된 흐름에만 생겼습니다.</li>
+    <li>어느 쪽이 먼저 오는지는 그 다음 홉의 ARP 항목이 언제 마지막으로 확인되었는지에 달렸습니다. 1회는 막 확인된 <code>REACHABLE</code>로 시작해서 ARP가 늦었습니다. 2회는 <code>STALE</code>로 시작해서 ARP가 먼저 끝났습니다.</li>
+    <li>2회에서 커널은 OSPF가 다음 홉 두 개를 그대로 둔 채로도 실패한 쪽을 쓰지 않았습니다. <code>fib_multipath_use_neigh</code>는 0이었습니다. 경로는 커널 nexthop 객체(<code>nhid</code>)를 썼습니다.</li>
+    <li>먼저 한 55초 측정은 약 2–3초 만에 흐름이 옮겨졌습니다. 그때 ARP 상태를 기록하지 않아서 이 자료로는 설명할 수 없습니다.</li>
+  </ul>
+
   <div class="box concept"><span class="tag">실제 망의 대책 · BFD</span>
     <p>알고리즘은 빠릅니다. 느린 것은 고장의 <b>감지</b>입니다. 그래서 실제 망은 OSPF 위에 BFD를 더합니다. BFD는 1초보다 훨씬 짧은 간격으로 이웃을 확인합니다.</p>
   </div>
@@ -374,7 +517,29 @@ O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
     <tr><td>10</td><td><code>be2.core1.sea1.he.net</code> (시애틀)</td><td>127 ms</td><td></td></tr>
     <tr><td>13</td><td><code>core2.bos2.he.net</code> (보스턴)</td><td>182 ms</td><td>+55 ms · 미국 대륙</td></tr>
   </table></div>
-  <p>한 홉에서만 100 ms 이상 늘어납니다. 그 구간이 해저 케이블입니다. 홉 7과 8에는 이름이 없습니다. 그러므로 케이블의 이름은 추정만 할 수 있습니다.</p>
+  <figure class="dg">
+    <svg viewBox="0 0 760 210" role="img" aria-label="MIT 경로의 홉별 RTT. 7번 홉 10 ms에서 8번 홉 124 ms로 한 번에 114 ms가 늘고, 10번 시애틀 127 ms, 13번 보스턴 182 ms입니다.">
+      <!-- x = 80 + 홉 × 46, y = 170 − ms × 0.75 -->
+      <line class="ln" x1="80" y1="170" x2="720" y2="170"/>
+      <line class="ln" x1="80" y1="20" x2="80" y2="170"/>
+      <g class="ln-dash" style="opacity:.6"><line x1="80" y1="95" x2="720" y2="95"/><line x1="80" y1="32.5" x2="720" y2="32.5"/></g>
+      <g class="t-s t-muted" text-anchor="end"><text x="72" y="174">0</text><text x="72" y="99">100</text><text x="72" y="37">183 ms</text></g>
+      <polyline class="ln-rt" style="stroke-width:2.5" points="402,162.5 448,77 540,74.75 678,33.5"/>
+      <g class="fill-rt"><circle cx="402" cy="162.5" r="5"/><circle cx="448" cy="77" r="5"/><circle cx="540" cy="74.75" r="5"/><circle cx="678" cy="33.5" r="5"/></g>
+      <rect x="406" y="78" width="38" height="84" class="bx-warn" style="opacity:.5"/>
+      <text x="398" y="120" text-anchor="end" class="t-s t-warn t-b">+114 ms</text>
+      <text x="398" y="136" text-anchor="end" class="t-s t-warn">한 홉 = 태평양</text>
+      <text x="402" y="186" text-anchor="middle" class="t-s t-b">7</text><text x="448" y="186" text-anchor="middle" class="t-s t-b">8</text>
+      <text x="540" y="186" text-anchor="middle" class="t-s t-b">10</text><text x="678" y="186" text-anchor="middle" class="t-s t-b">13</text>
+      <text x="402" y="202" text-anchor="middle" class="t-s t-muted">SKB 10 ms</text><text x="456" y="202" class="t-s t-muted">SKB 124</text>
+      <text x="540" y="64" text-anchor="middle" class="t-s">시애틀 127</text><text x="678" y="24" text-anchor="middle" class="t-s">보스턴 182</text>
+      <text x="609" y="68" text-anchor="middle" class="t-s t-muted">+55 미국 대륙</text>
+      <text x="90" y="40" class="t-s t-muted">RTT</text>
+      <text x="720" y="202" text-anchor="end" class="t-s t-muted">홉 번호</text>
+    </svg>
+    <figcaption>홉 1–6과 9, 11–12는 각 0–8 ms씩 늘어서 생략했습니다. 근거: <span class="kbd-file">w06-routing/out/traceroute.txt</span></figcaption>
+  </figure>
+  <p>한 홉에서만 100 ms 이상 늘어납니다. 그 구간에서 바다를 건넙니다. 홉 7과 8은 이름이 없는 SKB 사설 주소입니다. 그러므로 어떤 케이블인지는 traceroute로 알 수 없습니다.</p>
   <div class="cards">
     <div class="card"><h4>애니캐스트 1.1.1.1 (A4)</h4><p>13홉, 12 ms. 12 ms로는 한국 밖에 갈 수 없습니다. 복제 서버는 국내에 있습니다. 홉 수는 ISP 사이의 연결 방식을 보여 줍니다. 거리를 보여 주는 것은 RTT입니다.</p></div>
     <div class="card"><h4><code>* * *</code> ① (A5)</h4><p>라우터가 패킷은 전달하지만 ICMP로 답하지 않습니다. <b>뒤의 홉은 다시 답합니다.</b></p></div>
@@ -427,6 +592,10 @@ O>* 172.20.0.0/16 [110/20] via 172.18.0.3, eth1
       <p class="a">r1이 반송파 끊김을 바로 알았기 때문입니다. r1이 새 LSA를 플러딩했고, 다른 라우터는 그 LSA로 SPF를 실행했습니다. Dead 타이머가 필요한 것은 인터페이스가 살아 있는 조용한 고장입니다.</p></details>
     <details class="q"><summary>링크 복구가 링크 끊기보다 느린 이유는?</summary>
       <p class="a">사라진 이웃은 사건 하나로 압니다. 돌아온 이웃은 Hello 확인, 데이터베이스 교환, LSA 수신을 거쳐 Full이 되어야 SPF를 실행할 수 있습니다.</p></details>
+    <details class="q"><summary>재측정에서 r3가 Full이 된 뒤 경로가 바뀔 때까지 매번 5.23초가 걸렸습니다. SPF가 늦게 돈 것입니까?</summary>
+      <p class="a">아닙니다. r3는 SPF를 0 ms 지연으로 바로 실행했습니다. r1이 2 ms 사이에 보낸 두 번째 router-LSA를 r3가 MinLSArrival(1초) 규칙으로 버렸고, r1이 ACK를 받지 못해 RxmtInterval(5초) 뒤에 다시 보냈습니다. 그 재전송을 받은 뒤에야 SPF가 새 지도로 돌았습니다.</p></details>
+    <details class="q"><summary>조용한 고장에서 OSPF dead 타이머보다 손실이 먼저 끝난 경우가 있었습니다. 무엇이 끝냈습니까?</summary>
+      <p class="a">r1 커널의 ARP 실패 감지입니다. 다음 홉의 ARP 항목이 DELAY(5초)와 PROBE(1초 × 3)를 거쳐 FAILED가 되자, 커널은 OSPF가 다음 홉 두 개를 그대로 두었는데도 실패한 쪽을 쓰지 않았습니다.</p></details>
     <details class="q"><summary>비용 변경이 장애보다 빨리 반영되는 이유는?</summary>
       <p class="a">비용을 바꾼 라우터는 바로 압니다. LSA는 살아 있는 인접 관계로 바로 퍼집니다. 장애는 먼저 감지되어야 합니다.</p></details>
     <details class="q"><summary>링크가 살아났을 때 SPF 없이 무시해도 되는 조건은?</summary>

@@ -140,7 +140,7 @@
       <text x="150" y="28" text-anchor="middle" class="t-b">노트북</text>
       <text x="150" y="43" text-anchor="middle" class="t-s t-mono t-muted">172.16.25.130</text>
       <rect class="bx-ip" x="270" y="10" width="140" height="40" rx="6"/>
-      <text x="340" y="28" text-anchor="middle" class="t-b t-ip">캠퍼스 NAT</text>
+      <text x="340" y="28" text-anchor="middle" class="t-b t-ip">캠퍼스 NAT (1단 이상)</text>
       <text x="340" y="43" text-anchor="middle" class="t-s t-muted">공인 163.152.233.x</text>
       <rect class="bx" x="610" y="10" width="140" height="40" rx="6"/>
       <text x="680" y="28" text-anchor="middle" class="t-b">서버</text>
@@ -287,7 +287,7 @@
         <li>IP 헤더의 TTL: 64</li>
       </ul>
       <span class="muted">→ #1</span></li>
-    <li style="--wk:var(--ip)"><b>캠퍼스 NAT가 출발지를 바꿉니다.</b> 출발지 <code>172.16.25.130:54826</code>을 <code>163.152.233.xxx:새 포트</code>로 바꿉니다. NAT는 이 대응을 변환 표에 기록합니다. 캡처는 노트북에서 했습니다. 그러므로 바뀐 값은 캡처에 없습니다. <a href="w05-ip-nat.html#nat">5주차 3.10</a>
+    <li style="--wk:var(--ip)"><b>캠퍼스 NAT가 출발지를 바꿉니다.</b> 출발지 <code>172.16.25.130:54826</code>을 공인 <code>주소:새 포트</code>로 바꿉니다. NAT는 이 대응을 변환 표에 기록합니다. 그림에는 NAT를 하나로 그렸습니다. 실제로 몇 단인지는 노트북에서 확인할 수 없습니다. 확인된 것은 "최소 1단"뿐입니다. 캡처는 노트북에서 했습니다. 그러므로 바뀐 값은 캡처에 없습니다. <a href="w05-ip-nat.html#nat">5주차 3.10</a>
       <span class="muted">→ <span class="kbd-file">tracepath-campus.txt</span>: 1·2번 홉은 사설 주소, 3번 홉 <code>163.152.233.129</code>부터 공인 주소</span></li>
     <li style="--wk:var(--ip)"><b>라우터들이 SYN을 서버까지 옮깁니다.</b> 각 라우터는 목적지 주소로 출력 링크를 고릅니다. 각 라우터는 TTL을 1 줄입니다. 노트북에 도착한 서버 패킷의 TTL은 55였습니다. 서버가 64로 보냈다면 라우터 9개를 지났습니다.</li>
     <li style="--wk:var(--tcp)"><b><code>t = 8.7 ms</code>: 서버가 SYN+ACK를 보냅니다.</b>

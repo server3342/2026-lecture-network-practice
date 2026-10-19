@@ -60,9 +60,6 @@
   </div>
 </div>
 
-<div class="box warn"><span class="tag">이 페이지의 실습 상자</span>
-  <p>7주차 실습은 아직 진행 전입니다. 그러므로 "실습에서" 상자에는 측정값이 없습니다. 상자에는 각 Task에서 확인할 항목과 관련 개념만 적었습니다. <code>observation.md</code>의 질문에 대한 답은 적지 않았습니다.</p>
-</div>
 
 <div class="cards">
   <div class="card"><h4>Task 1 · 학습 스위치</h4><p>학습, 플러딩, 에이징 규칙을 정확히 구현합니다.</p><p class="small muted">5.4 · 5.8 · 5.9</p></div>
@@ -185,14 +182,14 @@
   <h3>요청과 응답</h3>
   <figure class="dg">
     <svg viewBox="0 0 760 290" role="img" aria-label="ARP 요청은 브로드캐스트로 모두에게, 응답은 유니캐스트로 요청자에게만">
-      <rect class="bx" x="40" y="10" width="170" height="42" rx="6"/><text x="125" y="29" text-anchor="middle" class="t-b">노트북</text><text x="125" y="45" text-anchor="middle" class="t-s t-mono t-muted">172.16.25.130</text>
-      <rect class="bx2" x="300" y="10" width="170" height="42" rx="6"/><text x="385" y="29" text-anchor="middle" class="t-b">다른 호스트</text><text x="385" y="45" text-anchor="middle" class="t-s t-mono t-muted">172.16.25.x</text>
-      <rect class="bx-eth" x="560" y="10" width="170" height="42" rx="6"/><text x="645" y="29" text-anchor="middle" class="t-b">게이트웨이</text><text x="645" y="45" text-anchor="middle" class="t-s t-mono t-muted">172.16.25.1</text>
+      <rect class="bx" x="40" y="10" width="170" height="42" rx="6"/><text x="125" y="29" text-anchor="middle" class="t-b">노트북</text><text x="125" y="45" text-anchor="middle" class="t-s t-mono t-muted">172.16.19.21</text>
+      <rect class="bx2" x="300" y="10" width="170" height="42" rx="6"/><text x="385" y="29" text-anchor="middle" class="t-b">다른 호스트</text><text x="385" y="45" text-anchor="middle" class="t-s t-mono t-muted">172.16.19.x</text>
+      <rect class="bx-eth" x="560" y="10" width="170" height="42" rx="6"/><text x="645" y="29" text-anchor="middle" class="t-b">게이트웨이</text><text x="645" y="45" text-anchor="middle" class="t-s t-mono t-muted">172.16.19.1</text>
       <line class="ln" x1="125" y1="52" x2="125" y2="280"/><line class="ln" x1="385" y1="52" x2="385" y2="280"/><line class="ln" x1="645" y1="52" x2="645" y2="280"/>
 
       <line class="ln-eth" x1="125" y1="90" x2="383" y2="104" marker-end="url(#a-e)"/>
       <line class="ln-eth" x1="125" y1="90" x2="643" y2="118" marker-end="url(#a-e)"/>
-      <text x="140" y="78" class="t-b t-eth">① 요청: "172.16.25.1은 누구입니까?"</text>
+      <text x="140" y="78" class="t-b t-eth">① 요청: "172.16.19.1은 누구입니까?"</text>
       <text x="140" y="138" class="t-s t-mono">목적지 MAC FF:FF:FF:FF:FF:FF</text>
       <text x="140" y="154" class="t-s t-muted">= 브로드캐스트. 모두가 받습니다.</text>
       <text x="140" y="170" class="t-s t-muted">찾는 MAC 칸은 00:00:00:00:00:00</text>
@@ -200,11 +197,11 @@
       <text x="395" y="154" class="t-s t-muted">✓ 게이트웨이: 자기 IP</text>
 
       <line class="ln-eth" x1="645" y1="206" x2="127" y2="232" marker-end="url(#a-e)"/>
-      <text x="630" y="198" text-anchor="end" class="t-b t-eth">② 응답: "172.16.25.1은 나입니다"</text>
+      <text x="630" y="198" text-anchor="end" class="t-b t-eth">② 응답: "172.16.19.1은 나입니다"</text>
       <text x="395" y="252" class="t-s t-mono">목적지 MAC = 노트북 MAC</text>
       <text x="395" y="268" class="t-s t-muted">= 유니캐스트. 노트북만 받습니다.</text>
     </svg>
-    <figcaption>EtherType <code>0x0806</code>. 주소는 <a href="flow.html#setup">요청 따라가기</a>의 캠퍼스 예시입니다.</figcaption>
+    <figcaption>EtherType <code>0x0806</code>. 주소는 Task 2의 캠퍼스 측정(2026-10-13)입니다. DHCP는 날마다 다른 주소를 줄 수 있습니다. <a href="flow.html#setup">요청 따라가기</a>의 예시(5주차)는 <code>172.16.25.130</code>을 받았습니다.</figcaption>
   </figure>
   <div class="cards">
     <div class="card good"><h4>플러그 앤 플레이</h4><p>관리자가 테이블을 설정하지 않습니다. 노드가 스스로 채웁니다.</p></div>
@@ -214,12 +211,68 @@
   <div class="box concept"><span class="tag">Linux에서 보기</span>
     <p><code>ip neigh</code>는 항목의 상태를 보여 줍니다. <code>REACHABLE</code>은 최근에 확인한 항목입니다. <code>STALE</code>은 오래되었지만 아직 쓰는 항목입니다. 다음에 쓸 때 다시 확인합니다.</p>
   </div>
-  <div class="box example"><span class="tag">실습에서 · Task 2</span>
+  <div class="box concept"><span class="tag">일반 원리 · ARP 테이블에 무엇이 들어오는가</span>
     <ul>
-      <li>Part A: ARP 테이블을 비운 뒤 <code>ping</code>과 <code>curl</code>을 실행합니다. 어느 항목이 먼저 돌아오는지 봅니다(A2).</li>
-      <li>A4: 멀리 있는 웹 서버가 테이블에 있는지 확인합니다. 5.6절의 내용과 연결하십시오.</li>
-      <li>Part B: 요청과 응답의 <b>목적지 MAC</b>을 비교합니다(B2–B3).</li>
-      <li><code>tshark -i</code>는 컨테이너에서 실패합니다. 호스트에서 캡처하거나 <code>tcpdump -w</code>를 쓰십시오.</li>
+      <li>ARP 테이블에는 내가 프레임을 <b>직접</b> 보낸 이웃만 들어옵니다. 곧 각 데이터그램의 <b>다음 홉</b>입니다.</li>
+      <li>목적지가 서브넷 밖이면 다음 홉은 게이트웨이입니다. 그래서 인터넷의 서버를 몇 개 방문해도 테이블에는 게이트웨이 하나만 생깁니다(5.6).</li>
+      <li>테이블에 항목이 없으면 첫 패킷은 ARP 왕복만큼 늦습니다. 그다음 패킷은 캐시된 항목을 씁니다.</li>
+      <li>요청은 상대의 MAC을 모르므로 브로드캐스트입니다. 응답은 요청에 요청자의 MAC이 들어 있으므로 유니캐스트입니다.</li>
+    </ul>
+  </div>
+  <div class="box concept"><span class="tag">일반 원리 · 브로드캐스트 부하</span>
+    <p>브로드캐스트는 서브넷의 <b>모든</b> 호스트가 받아서 처리합니다. 호스트가 N대이고 각각 분당 r개를 보내면, 호스트마다 분당 <b>N × r</b>개를 처리합니다. 서브넷이 커질수록 부하가 호스트 수에 비례해 늘어납니다.</p>
+    <figure class="dg" style="margin-bottom:0">
+      <svg viewBox="0 0 720 150" role="img" aria-label="r이 분당 1개일 때 호스트 하나가 처리할 ARP 브로드캐스트. /24는 분당 254개, /16은 분당 약 65,000개로 초당 약 1,000개입니다.">
+        <!-- 로그 눈금: x = 160 + 100 × log10(개/분) -->
+        <line class="ln" x1="160" y1="100" x2="700" y2="100"/>
+        <g class="t-s t-muted" text-anchor="middle">
+          <text x="160" y="116">1</text><text x="260" y="116">10</text><text x="360" y="116">100</text><text x="460" y="116">1,000</text><text x="560" y="116">10,000</text><text x="660" y="116">100,000</text>
+        </g>
+        <text x="430" y="140" text-anchor="middle" class="t-s t-muted">호스트 하나가 처리할 ARP 브로드캐스트 (개/분, 로그 눈금, r = 1개/분)</text>
+        <text x="150" y="38" text-anchor="end" class="t-s t-b">/24 (254대)</text>
+        <rect x="160" y="24" width="240.5" height="22" rx="3" class="fill-eth" style="opacity:.55"/>
+        <text x="408" y="40" class="t-s">254 /분 · 문제없음</text>
+        <text x="150" y="76" text-anchor="end" class="t-s t-b">/16 (65,534대)</text>
+        <rect x="160" y="62" width="481.6" height="22" rx="3" class="fill-warn"/>
+        <text x="648" y="78" class="t-s t-warn t-b">≈ 1,000 /초</text>
+      </svg>
+    </figure>
+    <p class="small muted">Wi-Fi에서는 브로드캐스트를 가장 낮은 기본 속도로, ACK 없이 보냅니다. 그래서 무선에서는 부담이 더 큽니다.</p>
+  </div>
+
+  <div class="box example"><span class="tag">예: 이 실습에서 · Task 2</span>
+    <p>2026-10-13 캠퍼스 Wi-Fi. 노트북 <code>172.16.19.21/24</code>, 게이트웨이 <code>172.16.19.1</code>. Linux에는 <code>arp</code> 명령이 없어서 <code>ip neigh</code>로 보고 <code>ip neigh flush</code>로 비웠습니다. 그다음 게이트웨이에 ping을 보내고 <code>https://www.korea.ac.kr</code>을 받았습니다.</p>
+    <figure class="dg">
+      <svg viewBox="0 0 760 270" role="img" aria-label="ARP 테이블. 비우기 전 172.16.19.1 REACHABLE과 172.16.0.7 STALE 두 항목, 비운 뒤 172.16.19.1 REACHABLE 한 항목. 아래는 캡처: 0초 요청 브로드캐스트, 0.088초 응답 유니캐스트. 첫 ping 90.6 ms, 다음 두 ping 1.9–3.2 ms.">
+        <text x="20" y="22" class="t-s t-b">비우기 전</text>
+        <rect class="bx" x="20" y="30" width="260" height="30" rx="4"/><text x="32" y="50" class="t-s t-mono">172.16.19.1  <tspan class="t-ok t-b">REACHABLE</tspan></text>
+        <rect class="bx" x="20" y="62" width="260" height="30" rx="4"/><text x="32" y="82" class="t-s t-mono">172.16.0.7   <tspan class="t-muted">STALE</tspan></text>
+        <line class="ln-warn" x1="20" y1="77" x2="280" y2="77"/>
+        <line class="ln" x1="290" y1="60" x2="388" y2="60" marker-end="url(#a-m)"/>
+        <text x="339" y="52" text-anchor="middle" class="t-s t-mono">flush</text>
+        <text x="339" y="76" text-anchor="middle" class="t-s t-muted">→ ping, curl</text>
+        <text x="400" y="22" class="t-s t-b">비운 뒤</text>
+        <rect class="bx-eth" x="400" y="30" width="260" height="30" rx="4"/><text x="412" y="50" class="t-s t-mono">172.16.19.1  <tspan class="t-ok t-b">REACHABLE</tspan></text>
+        <text x="412" y="82" class="t-s t-muted">서버 163.152.6.10, DNS 서버 → 항목 없음</text>
+        <text x="20" y="112" class="t-s t-muted">172.16.0.7은 서브넷 밖이고, 내가 보낸 트래픽의 다음 홉이 아니어서 돌아오지 않았습니다.</text>
+        <!-- 캡처 -->
+        <text x="20" y="146" class="t-s t-b">캡처 (tcpdump arp, 70초 동안 이 두 프레임뿐)</text>
+        <line class="ln" x1="140" y1="160" x2="140" y2="226"/><line class="ln" x1="620" y1="160" x2="620" y2="226"/>
+        <text x="140" y="240" text-anchor="middle" class="t-s t-b">노트북</text><text x="620" y="240" text-anchor="middle" class="t-s t-b">게이트웨이</text>
+        <line class="ln-eth" x1="140" y1="168" x2="618" y2="182" marker-end="url(#a-e)"/>
+        <text x="380" y="166" text-anchor="middle" class="t-s"><tspan class="t-b">0.000</tspan> 요청 → <tspan class="t-mono">ff:ff:ff:ff:ff:ff</tspan> · 42바이트</text>
+        <line class="ln-eth" x1="620" y1="200" x2="142" y2="214" marker-end="url(#a-e)"/>
+        <text x="380" y="226" text-anchor="middle" class="t-s"><tspan class="t-b">0.088</tspan> 응답 → 노트북 MAC (유니캐스트) · 60바이트</text>
+        <!-- ping -->
+        <text x="20" y="262" class="t-s">ping 1: <tspan class="t-warn t-b">90.6 ms</tspan> (ARP 대기 88 ms 포함) · ping 2–3: 1.9–3.2 ms</text>
+      </svg>
+      <figcaption>근거: <span class="kbd-file">w07-ethernet-arp/out/arp-before.txt</span>, <span class="kbd-file">arp-after.txt</span>, <span class="kbd-file">arp.pcapng</span>. 노트북 MAC은 <code>mask.py</code>로 가렸습니다.</figcaption>
+    </figure>
+    <ul>
+      <li>요청의 "찾는 MAC" 칸은 <code>00:00:00:00:00:00</code>입니다. 그것이 묻는 값이기 때문입니다.</li>
+      <li>응답이 60바이트인 이유: 라우터는 이더넷 최소 길이까지 채움을 붙입니다. 내가 보낸 프레임은 채움을 붙이기 전에 캡처됩니다(42바이트).</li>
+      <li>게이트웨이 MAC <code>00:00:0c:07:ac:fa</code>는 HSRP v1의 가상 MAC 범위입니다(그룹 0xfa = 250). 라우터 두 대가 한 게이트웨이 주소를 나눠 쓰는 구성입니다.</li>
+      <li>70초 동안 다른 장비의 ARP 요청은 하나도 잡히지 않았습니다.</li>
     </ul>
   </div>
 </section>
@@ -306,6 +359,36 @@
     <p class="small muted">에이징: 일정 시간(Task 1은 <code>AGE_SECONDS = 300</code>) 동안 다시 보이지 않은 항목은 지웁니다.</p>
   </div>
 
+  <figure class="dg">
+    <svg viewBox="0 0 760 230" role="img" aria-label="스위치의 두 경우. 목적지를 모르면 들어온 포트를 뺀 모든 포트로 플러딩하고, 목적지를 알면 그 포트 하나로만 보냅니다.">
+      <text x="190" y="20" text-anchor="middle" class="t-b">목적지를 모를 때: 플러딩</text>
+      <text x="570" y="20" text-anchor="middle" class="t-b">목적지를 알 때: 포워딩</text>
+      <g>
+        <rect class="bx-eth" x="130" y="90" width="120" height="44" rx="8"/><text x="190" y="117" text-anchor="middle" class="t-b">스위치</text>
+        <rect class="bx" x="20" y="40" width="70" height="34" rx="6"/><text x="55" y="62" text-anchor="middle" class="t-s t-b">A · 1</text>
+        <rect class="bx" x="20" y="150" width="70" height="34" rx="6"/><text x="55" y="172" text-anchor="middle" class="t-s t-b">B · 2</text>
+        <rect class="bx" x="290" y="40" width="70" height="34" rx="6"/><text x="325" y="62" text-anchor="middle" class="t-s t-b">C · 3</text>
+        <rect class="bx2" x="290" y="150" width="70" height="34" rx="6"/><text x="325" y="172" text-anchor="middle" class="t-s t-muted">포트 4</text>
+        <line class="ln" x1="90" y1="62" x2="140" y2="94" marker-end="url(#a-m)"/>
+        <line class="ln-warn" x1="140" y1="130" x2="92" y2="160" marker-end="url(#a-m)"/>
+        <line class="ln-warn" x1="240" y1="94" x2="288" y2="64" marker-end="url(#a-m)"/>
+        <line class="ln-warn" x1="240" y1="130" x2="288" y2="160" marker-end="url(#a-m)"/>
+        <text x="190" y="210" text-anchor="middle" class="t-s">A → B, B를 모름 → <tspan class="t-warn t-b">2, 3, 4로</tspan> (2만 필요)</text>
+      </g>
+      <g transform="translate(380 0)">
+        <rect class="bx-eth" x="130" y="90" width="120" height="44" rx="8"/><text x="190" y="117" text-anchor="middle" class="t-b">스위치</text>
+        <rect class="bx" x="20" y="40" width="70" height="34" rx="6"/><text x="55" y="62" text-anchor="middle" class="t-s t-b">A · 1</text>
+        <rect class="bx" x="20" y="150" width="70" height="34" rx="6"/><text x="55" y="172" text-anchor="middle" class="t-s t-b">B · 2</text>
+        <rect class="bx" x="290" y="40" width="70" height="34" rx="6"/><text x="325" y="62" text-anchor="middle" class="t-s t-b">C · 3</text>
+        <rect class="bx2" x="290" y="150" width="70" height="34" rx="6"/><text x="325" y="172" text-anchor="middle" class="t-s t-muted">포트 4</text>
+        <line class="ln" x1="92" y1="160" x2="140" y2="130" marker-end="url(#a-m)"/>
+        <line class="ln-eth" x1="140" y1="94" x2="92" y2="66" marker-end="url(#a-e)"/>
+        <text x="190" y="210" text-anchor="middle" class="t-s">B → A, A:1을 배움 → <tspan class="t-eth t-b">1로만</tspan></text>
+      </g>
+    </svg>
+    <figcaption>플러딩된 프레임의 사본 중 필요한 것은 하나뿐입니다. 나머지는 <b>낭비된 전달</b>입니다(5.10).</figcaption>
+  </figure>
+
   <h3>예시: 포트 4개, 호스트 A·B·C</h3>
   <p>A는 포트 1, B는 포트 2, C는 포트 3에 있습니다. 표는 각 프레임을 처리한 뒤의 상태입니다.</p>
   <div class="tbl"><table>
@@ -317,12 +400,27 @@
     <tr><td>5</td><td>A → C (A가 포트 4로 옮김)</td><td>4</td><td>3</td><td>A를 새 포트로 다시 배움</td><td><b>A:4</b>, B:2, C:3</td></tr>
     <tr class="bad"><td>6</td><td>(B가 300초 동안 조용함)</td><td>–</td><td>–</td><td>에이징 → B를 지움</td><td>A:4, C:3</td></tr>
   </table></div>
-  <div class="box example"><span class="tag">실습에서 · Task 1</span>
+  <div class="box example"><span class="tag">이 프로젝트에서 · Task 1</span>
+    <p><a class="kbd-file" href="../w07-ethernet-arp/task1_switch.py">task1_switch.py</a>는 항목마다 <b>(포트, 마지막으로 본 시각)</b>을 저장합니다. 학습은 두 값을 모두 덮어씁니다. 그래서 옮긴 호스트는 다음 프레임에서 바로 새 포트로 믿고(R3), 계속 말하는 호스트는 항목이 계속 새로워집니다.</p>
+<pre><code>src, dst, now = frame
+self._age(now)                                  <span class="c"># 시각이 cutoff보다 오래된 항목을 지움 (R4)</span>
+if src != self.BROADCAST:
+    self.entries[src] = (in_port, <span class="k">now</span>)           <span class="c"># 학습 = 포트와 시각을 덮어씀 (R3)</span>
+everyone_else = [p for p in range(self.ports) if p != in_port]
+if dst == self.BROADCAST or dst not in self.entries:
+    return everyone_else                        <span class="c"># 브로드캐스트 · 모름 → 플러딩</span>
+out = self.entries[dst][0]
+return <span class="k">[] if out == in_port</span> else [out]          <span class="c"># 같은 포트면 필터링</span></code></pre>
     <ul>
-      <li><code>handle(frame, in_port)</code>는 내보낼 포트를 <b>오름차순</b>으로 돌려줍니다(R1).</li>
-      <li>옮긴 호스트는 새 포트로 다시 배워야 합니다(R3). 오래된 항목은 <code>table()</code>에서 사라져야 합니다(R4–R5).</li>
-      <li><code>observation.md</code>: 들어온 포트로 되돌려 보내면 무엇이 깨지는지, 에이징이 시간을 쓰는 대가가 무엇인지 직접 답하십시오.</li>
+      <li>스위치의 시계는 지금까지 본 가장 늦은 프레임 시각입니다. 다른 시계는 없습니다.</li>
+      <li>브로드캐스트 주소는 목적지일 뿐이므로 출발지로 배우지 않습니다.</li>
+      <li><code>--verify</code>의 검사 7개를 모두 통과했습니다.</li>
     </ul>
+    <div class="cards">
+      <div class="card bad"><h4>들어온 포트로 되돌려 보내면</h4><p>그 포트 너머의 장비가 같은 프레임을 두 번 받습니다. 너머가 스위치라면 출발지를 반대쪽 포트로 잘못 배웁니다. 미지 목적지를 서로 되돌려 플러딩하면, TTL이 없는 이더넷에서는 순환이 끝나지 않습니다.</p></div>
+      <div class="card bad"><h4>시간으로 에이징하는 대가</h4><p>받기만 하는 장비는 잊혀서 그 장비로 가는 프레임이 플러딩됩니다. 조용히 옮긴 장비로 가는 프레임은 만료 전까지 옛 포트로 가서 사라집니다.</p></div>
+      <div class="card good"><h4>더 직접적인 근거</h4><p>포트가 down되면 그 포트의 항목을 지웁니다. 스패닝 트리의 토폴로지 변경 알림을 받으면 항목을 빨리 만료시킵니다.</p></div>
+    </div>
   </div>
 </section>
 
@@ -334,7 +432,7 @@
     <tr><td>계층</td><td>링크 계층 (2계층)</td><td>네트워크 계층 (3계층)</td></tr>
     <tr><td>보는 주소</td><td>MAC 주소 (평평함)</td><td>IP 주소 (프리픽스로 묶임)</td></tr>
     <tr><td>테이블을 만드는 방법</td><td>자기 학습 (5.8)</td><td>라우팅 알고리즘 (6주차)</td></tr>
-    <tr><td>모르는 목적지</td><td>플러딩</td><td>버림 (또는 기본 경로)</td></tr>
+    <tr><td>모르는 목적지</td><td>플러딩. "아직 배우지 못함"이라는 뜻이고, 플러딩해도 LAN 안에서 끝납니다.</td><td>버림 (또는 기본 경로). 라우팅 프로토콜이 표를 미리 채우므로 "도달할 수 없음"이라는 뜻입니다. 인터넷 전체로 플러딩할 수도 없습니다.</td></tr>
     <tr><td>설정</td><td>필요 없음 (플러그 앤 플레이)</td><td>주소와 라우팅 설정이 필요함</td></tr>
     <tr><td>토폴로지</td><td>순환이 없어야 함. 스패닝 트리로 순환을 끊음</td><td>순환이 있어도 됨. 최단 경로를 고름</td></tr>
     <tr><td>브로드캐스트</td><td>모든 포트로 퍼짐. 망이 크면 브로드캐스트 폭풍</td><td>넘기지 않음. 브로드캐스트 영역을 나눔</td></tr>
@@ -351,18 +449,125 @@
   <div class="cards">
     <div class="card"><p class="big">64 / 400</p><p>테이블 칸 수 / 호스트 수</p></div>
     <div class="card"><p class="big">48</p><p>포트 수</p></div>
-    <div class="card"><p class="big">약 58,000</p><p>프레임 수. 소수의 호스트가 대부분을 보냅니다.</p></div>
+    <div class="card"><p class="big">48,954</p><p>프레임 수 (bench 출력). 소수의 호스트가 대부분을 보냅니다.</p></div>
   </div>
   <div class="cards">
     <div class="card bad"><h4>NaiveSwitch (가장 먼저 들어온 항목을 뺌)</h4><p class="big" style="color:var(--warn)">323,380</p><p>낭비된 전달. 유용한 전달은 46,347입니다. 유용한 전달 1번마다 낭비가 7번입니다.</p></div>
   </div>
-  <div class="box example"><span class="tag">실습에서 · Task 3</span>
-    <ul>
-      <li>테이블은 어느 프레임 뒤에도 64칸을 넘으면 안 됩니다(R3). 빠뜨린 전달이 기준선보다 많으면 안 됩니다(R4).</li>
-      <li>task3.md가 묻는 것: 기준선은 항목이 <b>들어온 때</b>로 뺄 항목을 정합니다. 그것이 곧 필요한지와 관계있습니까?</li>
-      <li>task3.md가 묻는 두 번째 것: 테이블이 가득 찼을 때 새 출발지를 배우기를 <b>거절</b>해야 할 때가 있습니까?</li>
-      <li>R6: 이 테이블이 작고, 차고, 차면 플러딩한다는 것을 다른 사람도 압니다. 그 사람이 무엇을 보낼지 직접 설명하십시오.</li>
-    </ul>
+  <div class="box concept"><span class="tag">일반 원리 · 무엇을 남길 것인가</span>
+    <p>낭비는 <b>목적지</b> 조회가 실패할 때 생깁니다. 그러므로 항목의 가치는 그 MAC이 앞으로 <b>목적지로 얼마나 자주</b> 나올지입니다. 미래는 모르므로 과거의 증거로 추정합니다.</p>
+    <div class="tbl"><table>
+      <tr><th>내보낼 항목</th><th>쓰는 증거</th><th>약점</th></tr>
+      <tr class="bad"><td>FIFO: 가장 먼저 들어온 것</td><td>들어온 순서</td><td>들어온 때는 필요한지와 관계없습니다. 자주 쓰는 항목도 차례가 되면 나갑니다.</td></tr>
+      <tr><td>LRU: 가장 오래 안 보인 것</td><td>최근성</td><td>한 번만 말한 장비가 들어올 때마다 자주 쓰는 항목을 밀어냅니다.</td></tr>
+      <tr><td>LFU: 가장 적게 보인 것</td><td>빈도</td><td>정확한 횟수를 MAC마다 두면 메모리가 MAC 수만큼 늘어납니다. 위조 MAC에도 늘어납니다.</td></tr>
+      <tr class="hl"><td>근사 LFU (count-min sketch)</td><td>고정 크기 메모리의 근사 빈도</td><td>충돌하면 과대 추정합니다. 깊이와 폭으로 줄입니다.</td></tr>
+    </table></div>
+    <p><b>학습 거절(admission):</b> 표가 가득 찼을 때 새 출발지가 내보낼 항목보다 덜 쓰일 것 같으면 배우지 않습니다. 그 장비로 가는 프레임은 플러딩되지만, 어차피 곧 다시 내보낼 항목이었습니다.</p>
+  </div>
+
+  <h3>count-min sketch</h3>
+  <figure class="dg">
+    <svg viewBox="0 0 760 250" role="img" aria-label="count-min sketch. MAC 하나를 독립된 해시 d개로 각 행의 칸 하나에 대응시킵니다. 볼 때마다 그 칸들을 1씩 올리고, 추정값은 그 칸들의 최솟값입니다.">
+      <rect class="bx-eth" x="20" y="100" width="130" height="40" rx="6"/><text x="85" y="125" text-anchor="middle" class="t-s t-mono t-b">MAC m</text>
+      <g class="t-s t-muted" text-anchor="end"><text x="226" y="44">h₁</text><text x="226" y="94">h₂</text><text x="226" y="144">h₃</text><text x="226" y="194">h₄</text></g>
+      <g class="ln"><path d="M150 112 L232 40"/><path d="M150 116 L232 90"/><path d="M150 124 L232 140"/><path d="M150 128 L232 190"/></g>
+      <g id="cms-cells">
+        <g class="t-s t-mono" text-anchor="middle">
+          <!-- 행 1 -->
+          <rect class="bx2" x="240" y="26" width="40" height="28"/><rect class="bx2" x="280" y="26" width="40" height="28"/><rect class="bx-chk" x="320" y="26" width="40" height="28"/><rect class="bx2" x="360" y="26" width="40" height="28"/><rect class="bx2" x="400" y="26" width="40" height="28"/><rect class="bx2" x="440" y="26" width="40" height="28"/>
+          <text x="340" y="45">41</text>
+          <!-- 행 2 -->
+          <rect class="bx2" x="240" y="76" width="40" height="28"/><rect class="bx2" x="280" y="76" width="40" height="28"/><rect class="bx2" x="320" y="76" width="40" height="28"/><rect class="bx2" x="360" y="76" width="40" height="28"/><rect class="bx-ok" x="400" y="76" width="40" height="28"/><rect class="bx2" x="440" y="76" width="40" height="28"/>
+          <text x="420" y="95" class="t-b">37</text>
+          <!-- 행 3 -->
+          <rect class="bx-chk" x="240" y="126" width="40" height="28"/><rect class="bx2" x="280" y="126" width="40" height="28"/><rect class="bx2" x="320" y="126" width="40" height="28"/><rect class="bx2" x="360" y="126" width="40" height="28"/><rect class="bx2" x="400" y="126" width="40" height="28"/><rect class="bx2" x="440" y="126" width="40" height="28"/>
+          <text x="260" y="145">52</text>
+          <!-- 행 4 -->
+          <rect class="bx2" x="240" y="176" width="40" height="28"/><rect class="bx2" x="280" y="176" width="40" height="28"/><rect class="bx2" x="320" y="176" width="40" height="28"/><rect class="bx2" x="360" y="176" width="40" height="28"/><rect class="bx2" x="400" y="176" width="40" height="28"/><rect class="bx-chk" x="440" y="176" width="40" height="28"/>
+          <text x="460" y="195">39</text>
+        </g>
+      </g>
+      <text x="486" y="45" class="t-s t-muted">… 폭 w칸</text>
+      <text x="360" y="226" text-anchor="middle" class="t-s t-muted">깊이 d행 × 폭 w칸. 크기는 MAC이 몇 개 나오든 같습니다.</text>
+      <rect class="bx-ok" x="560" y="90" width="185" height="60" rx="8"/>
+      <text x="652" y="114" text-anchor="middle" class="t-s t-b">추정 = min(41, 37, 52, 39)</text>
+      <text x="652" y="136" text-anchor="middle" class="t-b t-ok">= 37</text>
+      <text x="652" y="176" text-anchor="middle" class="t-s">볼 때마다: 칸 d개를 +1</text>
+      <text x="652" y="194" text-anchor="middle" class="t-s">다른 MAC과 겹친 칸은 더 큼</text>
+      <text x="652" y="212" text-anchor="middle" class="t-s">→ 최솟값이 가장 덜 틀림</text>
+    </svg>
+    <figcaption>칸의 숫자는 설명을 위한 예입니다. 행마다 해시가 <b>독립</b>이어야 합니다. 같은 충돌을 반복하면 행을 늘려도 소용이 없습니다.</figcaption>
+  </figure>
+  <p>오래된 증거를 줄이려면 일정 횟수마다 모든 칸을 반으로 나눕니다(감쇠). 그러지 않으면 지난주에 바빴던 장비가 계속 자리를 차지하고, 칸도 커지기만 합니다.</p>
+
+  <div class="box example"><span class="tag">예: 이 프로젝트에서 · Task 3</span>
+    <p><a class="kbd-file" href="../w07-ethernet-arp/task3_flooding.py">task3_flooding.py</a>의 <code>YourSwitch</code>: sketch 4 × 256, 횟수가 가장 적은 항목을 내보냄, 새 출발지가 그보다 많지 않으면 학습 거절, 20,000번마다 반으로. 출발지와 목적지를 모두 셉니다. 이 트래픽은 둘을 같은 분포에서 뽑기 때문입니다.</p>
+    <figure class="dg">
+      <svg viewBox="0 0 760 250" role="img" aria-label="같은 트래픽, 용량 64에서 정책별 낭비된 전달. FIFO 323,380, LRU 218,500, 표 안에서만 센 LFU 187,772, 거절 없는 sketch 161,506, sketch 159,712, MAC별 정확한 LFU 156,998, 미래를 아는 고정 상위 64개 약 152,000.">
+        <!-- x = 250 + 천 × 1.35 -->
+        <g class="ln-dash" style="opacity:.6"><line x1="385" y1="10" x2="385" y2="214"/><line x1="520" y1="10" x2="520" y2="214"/><line x1="655" y1="10" x2="655" y2="214"/></g>
+        <line class="ln" x1="250" y1="216" x2="720" y2="216"/>
+        <g class="t-s t-muted" text-anchor="middle"><text x="250" y="232">0</text><text x="385" y="232">100k</text><text x="520" y="232">200k</text><text x="655" y="232">300k</text></g>
+        <g class="t-s" text-anchor="end">
+          <text x="240" y="28" class="t-b">FIFO (기준선)</text><text x="240" y="56">LRU</text><text x="240" y="84">LFU, 표 안에서만 셈</text>
+          <text x="240" y="112">sketch, 거절 없음</text><text x="240" y="140" class="t-b t-eth">sketch + 거절 (제출)</text>
+          <text x="240" y="168">LFU, MAC별 정확 (무한 메모리)</text><text x="240" y="196" class="t-muted">상위 64 고정 (미래를 앎)</text>
+        </g>
+        <rect x="250" y="14" width="436.6" height="20" rx="3" class="fill-warn"/>
+        <rect x="250" y="42" width="295" height="20" rx="3" class="fill-muted"/>
+        <rect x="250" y="70" width="253.5" height="20" rx="3" class="fill-muted"/>
+        <rect x="250" y="98" width="218" height="20" rx="3" class="fill-eth" style="opacity:.55"/>
+        <rect x="250" y="126" width="215.6" height="20" rx="3" class="fill-eth"/>
+        <rect x="250" y="154" width="212" height="20" rx="3" class="fill-muted" style="opacity:.6"/>
+        <rect x="250" y="182" width="205.2" height="20" rx="3" class="bx2" style="stroke-dasharray:4 3"/>
+        <g class="t-s">
+          <text x="692" y="29">323,380</text><text x="551" y="57">218,500 · −32%</text><text x="509" y="85">187,772 · −42%</text>
+          <text x="474" y="113">161,506 · −50.1%</text><text x="472" y="141" class="t-b">159,712 · −50.6%</text>
+          <text x="468" y="169">156,998 · −51.5%</text><text x="461" y="197" class="t-muted">≈152,000 · ≈−53%</text>
+        </g>
+        <text x="250" y="248" class="t-s t-muted">낭비된 전달 (용량 64, 같은 트래픽) · 빠뜨린 전달은 모두 0</text>
+      </svg>
+      <figcaption>근거: <span class="kbd-file">w07-ethernet-arp/out/bench.txt</span>, <span class="kbd-file">details.md</span>. 고정된 메모리의 sketch가 무한 메모리의 정확한 셈과 0.9%p 차이입니다.</figcaption>
+    </figure>
+    <div class="cards">
+      <div class="card"><h4>폭이 깊이보다 중요</h4><p>칸이 행마다 64개면 400대가 너무 많이 겹쳐서 순위를 못 냅니다.</p>
+        <div class="tbl" style="margin:var(--s-2) 0 0"><table>
+          <tr><th>d × w</th><th>낭비 감소</th></tr>
+          <tr><td>1 × 256</td><td>25.8%</td></tr><tr><td>4 × 64</td><td>39.4%</td></tr><tr><td>4 × 128</td><td>46.5%</td></tr>
+          <tr class="hl"><td>4 × 256</td><td>50.8%</td></tr><tr><td>4 × 1024</td><td>51.4%</td></tr>
+        </table></div><p class="small muted">감쇠 없이 잰 값</p></div>
+      <div class="card bad"><h4>처음 한 실수: CRC 해시</h4><p>행마다 시드만 바꾼 <code>crc32</code>는 모든 행이 같은 방식으로 겹쳤습니다. CRC는 아핀이라서, 길이가 같은 입력에서 시드를 바꾸면 상수 하나를 XOR할 뿐입니다. 깊이 2와 4의 결과가 같았습니다. blake2b의 다른 조각을 행마다 써서 고쳤습니다.</p></div>
+      <div class="card"><h4>감쇠와 거절의 값</h4><p>감쇠는 이 고정된 트래픽에서 약 0.5%p 손해입니다(감쇠 없음 50.8%). 거절은 3,599번 일어났고 정상 트래픽에서는 +0.5%p뿐입니다. 거절의 쓸모는 공격 아래에서 나옵니다.</p></div>
+    </div>
+  </div>
+
+  <h3>MAC flooding 공격</h3>
+  <div class="box concept"><span class="tag">일반 원리</span>
+    <ol class="stepper">
+      <li>공격자가 출발지 MAC을 계속 바꾸며 프레임을 보냅니다.</li>
+      <li>스위치가 위조 MAC을 배우는 동안 진짜 장비의 항목이 밀려납니다.</li>
+      <li>진짜 장비로 가는 프레임이 모두 플러딩됩니다. 공격자의 포트로도 갑니다.</li>
+      <li>스위치가 허브처럼 동작합니다. 공격자는 다른 장비의 유니캐스트를 엿봅니다.</li>
+    </ol>
+    <p><b>대책:</b> <b>port security</b>는 포트마다 배울 MAC 수에 상한을 둡니다. 넘으면 학습을 멈추거나, 모르는 출발지를 버리거나, 포트를 닫습니다. 802.1X는 MAC을 배우기 전에 장비를 인증합니다. 빈도 기반 거절은 한 번만 나온 MAC을 받지 않으므로 이 공격을 늦춥니다. 그러나 위조 MAC을 여러 번 반복하는 공격자에게는 집니다.</p>
+  </div>
+  <div class="box example"><span class="tag">예: R6 시험</span>
+    <p>프레임 20,000번부터 정상 프레임 2개마다 새 위조 MAC(<code>02:…</code>, 로컬 관리 주소) 프레임 1개를 포트 0에 끼워 넣었습니다(약 14,500개). 정상 유니캐스트 프레임의 낭비만 셌습니다.</p>
+    <figure class="dg" style="margin-bottom:0">
+      <svg viewBox="0 0 720 150" role="img" aria-label="정상 트래픽의 낭비된 전달. 공격 없음: 기준선 323,380, 제출 159,712. 공격 중: 기준선 508,254, 제출 172,684.">
+        <!-- x = 170 + 천 × 0.95 -->
+        <line class="ln" x1="170" y1="120" x2="700" y2="120"/>
+        <g class="t-s t-muted" text-anchor="middle"><text x="170" y="136">0</text><text x="360" y="136">200k</text><text x="550" y="136">400k</text></g>
+        <text x="160" y="30" text-anchor="end" class="t-s t-b">공격 없음</text>
+        <rect x="170" y="14" width="307.2" height="14" rx="2" class="fill-warn" style="opacity:.55"/><text x="484" y="26" class="t-s">기준선 323,380</text>
+        <rect x="170" y="30" width="151.7" height="14" rx="2" class="fill-eth" style="opacity:.55"/><text x="328" y="42" class="t-s">제출 159,712</text>
+        <text x="160" y="84" text-anchor="end" class="t-s t-b">MAC flooding 중</text>
+        <rect x="170" y="68" width="482.8" height="14" rx="2" class="fill-warn"/><text x="659" y="80" class="t-s t-warn t-b">508,254</text>
+        <rect x="170" y="84" width="164" height="14" rx="2" class="fill-eth"/><text x="341" y="96" class="t-s t-b">172,684</text>
+      </svg>
+    </figure>
+    <p>기준선은 위조 프레임 몇십 개 만에 표가 위조 MAC으로만 찹니다. 제출한 스위치는 위조 MAC을 한 번밖에 보지 못했으므로 학습을 거절합니다.</p>
   </div>
 </section>
 
@@ -382,6 +587,14 @@
       <p class="a">버립니다. 다시 보내 달라고 하지 않습니다. 잃은 데이터는 상위 계층(TCP)이 다시 보냅니다.</p></details>
     <details class="q"><summary>스위치 예시의 5번에서 A의 항목이 1에서 4로 바뀐 이유는?</summary>
       <p class="a">A의 프레임이 포트 4로 들어왔습니다. 스위치는 가장 최근의 증거를 믿습니다. 옛 항목을 그대로 두면 A로 가는 프레임이 포트 1로 갑니다.</p></details>
+    <details class="q"><summary>ARP 테이블을 비운 뒤 인터넷의 서버에 접속했습니다. 테이블에 서버의 항목이 생깁니까?</summary>
+      <p class="a">생기지 않습니다. 서브넷 밖으로 가는 프레임의 목적지 MAC은 게이트웨이입니다. 테이블에는 프레임을 직접 보낸 다음 홉만 생깁니다.</p></details>
+    <details class="q"><summary>ARP 응답은 왜 브로드캐스트할 필요가 없습니까?</summary>
+      <p class="a">요청 안에 요청자의 IP와 MAC이 들어 있습니다. 응답하는 쪽은 그 MAC으로 바로 보낼 수 있습니다.</p></details>
+    <details class="q"><summary>꽉 찬 스위치 표에서 FIFO가 나쁜 이유는? 무엇을 기준으로 내보내야 합니까?</summary>
+      <p class="a">들어온 순서는 앞으로 필요한지와 관계없습니다. 낭비는 목적지 조회가 실패할 때 생기므로, 목적지로 가장 덜 쓰일 항목을 내보내야 합니다. 과거의 빈도가 그 추정입니다.</p></details>
+    <details class="q"><summary>MAC별 정확한 횟수 대신 count-min sketch를 쓰는 이유는?</summary>
+      <p class="a">정확한 횟수는 나타난 MAC 수만큼 메모리가 늘어납니다. 위조 MAC으로 얼마든지 늘릴 수 있습니다. sketch는 크기가 고정이고, 최솟값은 과대 추정만 하므로 순위를 매기기에 충분합니다.</p></details>
     <details class="q"><summary>슬롯 ALOHA의 최대 효율은? CSMA/CD가 더 나은 이유는?</summary>
       <p class="a">1/e ≈ 37%입니다. CSMA/CD는 보내기 전에 듣고, 충돌을 감지하면 바로 멈춥니다. 그래서 충돌로 낭비되는 시간이 짧습니다.</p></details>
   </div>

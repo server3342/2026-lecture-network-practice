@@ -172,7 +172,7 @@
     <li style="--wk:var(--ip)"><b>포워딩 결정.</b> 목적지가 자기 서브넷 밖입니다. 노트북은 패킷을 기본 게이트웨이로 보냅니다.</li>
     <li style="--wk:var(--eth)"><b>ARP.</b> 노트북이 게이트웨이의 MAC 주소를 찾습니다. 프레임의 목적지 MAC은 게이트웨이, IP 목적지는 서버입니다.</li>
     <li style="--wk:var(--tcp)"><b>TCP 핸드셰이크.</b> SYN → SYN-ACK → ACK. ISN을 정하고 MSS와 윈도우 스케일을 교환합니다. <span class="muted">→ curl의 <code>connect_s</code></span></li>
-    <li style="--wk:var(--ip)"><b>NAT.</b> 캠퍼스 경계 라우터가 출발지 <code>172.16.25.130:포트</code>를 <code>163.152.233.xxx:새 포트</code>로 바꾸고 변환 표에 기록합니다.</li>
+    <li style="--wk:var(--ip)"><b>NAT.</b> 캠퍼스 망 안의 NAT가 출발지 <code>172.16.25.130:포트</code>를 공인 <code>주소:새 포트</code>로 바꾸고 변환 표에 기록합니다. NAT가 몇 단이고 어디에 있는지는 노트북에서 확인할 수 없습니다(5주차).</li>
     <li style="--wk:var(--ip)"><b>라우터마다 포워딩.</b> 각 라우터는 목적지 주소에 최장 프리픽스 일치를 적용합니다. IP 헤더의 TTL을 1 줄입니다.</li>
     <li style="--wk:var(--rt)"><b>라우팅이 만든 테이블.</b> 그 포워딩 테이블은 OSPF와 BGP가 미리 계산해 둔 것입니다. 링크마다 MAC 주소는 바뀌고 IP 주소는 그대로입니다.</li>
     <li style="--wk:var(--tcp)"><b>데이터 전송.</b> 슬로 스타트로 cwnd가 RTT마다 두 배가 됩니다. 수신 윈도우는 4.6 MB였지만 실제로 보낸 양은 약 193 KB였습니다.</li>
@@ -224,6 +224,8 @@
     <tr><td>프레임</td><td>frame</td><td>링크 계층의 전송 단위</td><td><a href="w07-ethernet-arp.html#frame">7주 5.7</a></td></tr>
     <tr><td>플러딩 (스위치)</td><td>flooding</td><td>모르는 목적지의 프레임을 들어온 포트 외의 모든 포트로 보내는 일</td><td><a href="w07-ethernet-arp.html#switch">7주 5.8</a></td></tr>
     <tr><td>에이징</td><td>aging</td><td>오래 보이지 않은 스위치 테이블 항목을 지우는 일</td><td><a href="w07-ethernet-arp.html#switch">7주 5.8</a></td></tr>
+    <tr><td>count-min sketch</td><td>count-min sketch</td><td>고정 크기 표로 항목별 횟수를 근사하는 구조. 추정값은 칸들의 최솟값</td><td><a href="w07-ethernet-arp.html#full">7주 5.10</a></td></tr>
+    <tr><td>MAC flooding</td><td>MAC flooding</td><td>위조 출발지 MAC으로 스위치 표를 채워 플러딩을 일으키는 공격</td><td><a href="w07-ethernet-arp.html#full">7주 5.10</a></td></tr>
   </table></div>
 </section>
 

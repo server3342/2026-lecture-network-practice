@@ -499,14 +499,34 @@ for part in parts:                       <span class="c"># "163", "152", "6", "1
     <div class="card bad"><h4>깨뜨리는 것 ②</h4><p>외부에서 먼저 시작하는 연결: 표에 항목이 없어 어느 내부 호스트인지 모릅니다. P2P에는 릴레이나 NAT 통과가 필요합니다.</p></div>
   </div>
 
-  <h3>NAT가 두 겹일 때: CGNAT</h3>
-  <div class="flow">
-    <span class="chip">노트북<small>10.53.36.69</small></span><span class="arr">→</span>
-    <span class="chip hl">NAT ① 휴대폰<small>핫스팟</small></span><span class="arr">→</span>
-    <span class="chip">휴대폰 셀룰러 주소<small>100.64.x 또는 사설? (확인 못 함)</small></span><span class="arr">→</span>
-    <span class="chip hl">NAT ② 통신사?<small>CGNAT</small></span><span class="arr">→</span>
-    <span class="chip">공인 주소<small>118.235.95.xxx (KT)</small></span>
-  </div>
+  <h3>NAT가 두 겹일 수 있을 때: CGNAT</h3>
+  <p>통신사가 공인 주소를 아끼려고 자기 망 안에 NAT를 하나 더 두기도 합니다. 이것이 <b>CGNAT</b>(carrier-grade NAT)입니다. 그러면 휴대폰의 바깥쪽 주소도 사설이나 <code>100.64.0.0/10</code>이 됩니다.</p>
+  <figure class="dg">
+    <svg viewBox="0 0 760 250" role="img" aria-label="두 네트워크에서 확인한 것과 확인하지 못한 것. 두 네트워크 모두 안쪽 주소와 서버가 본 공인 주소가 달라 NAT가 최소 한 겹 있습니다. 변환 장비의 바깥쪽 주소는 읽지 못해서 겹수는 모릅니다.">
+      <text x="20" y="22" class="t-b">캠퍼스 Wi-Fi</text>
+      <rect class="bx" x="20" y="34" width="150" height="50" rx="8"/><text x="95" y="55" text-anchor="middle" class="t-s t-b">노트북</text><text x="95" y="73" text-anchor="middle" class="t-s t-mono">172.16.25.130</text>
+      <rect class="bx-ip" x="215" y="34" width="120" height="50" rx="8"/><text x="275" y="55" text-anchor="middle" class="t-s t-b">NAT ①</text><text x="275" y="73" text-anchor="middle" class="t-s t-muted">위치 모름</text>
+      <rect class="bx" x="380" y="34" width="150" height="50" rx="8" style="stroke-dasharray:5 4"/><text x="455" y="55" text-anchor="middle" class="t-s t-b t-muted">NAT의 바깥쪽 주소</text><text x="455" y="73" text-anchor="middle" class="t-s t-warn t-b">읽지 못함</text>
+      <rect class="bx-ok" x="575" y="34" width="165" height="50" rx="8"/><text x="657" y="55" text-anchor="middle" class="t-s t-b">서버가 본 주소</text><text x="657" y="73" text-anchor="middle" class="t-s t-mono">163.152.233.xxx</text>
+      <line class="ln" x1="170" y1="59" x2="213" y2="59" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="335" y1="59" x2="378" y2="59" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="530" y1="59" x2="573" y2="59" marker-end="url(#a-m)"/>
+      <text x="553" y="102" text-anchor="middle" class="t-s t-muted">NAT ②가 있는가?</text>
+
+      <text x="20" y="142" class="t-b">휴대폰 핫스팟</text>
+      <rect class="bx" x="20" y="154" width="150" height="50" rx="8"/><text x="95" y="175" text-anchor="middle" class="t-s t-b">노트북</text><text x="95" y="193" text-anchor="middle" class="t-s t-mono">10.53.36.69</text>
+      <rect class="bx-ip" x="215" y="154" width="120" height="50" rx="8"/><text x="275" y="175" text-anchor="middle" class="t-s t-b">NAT ① 휴대폰</text><text x="275" y="193" text-anchor="middle" class="t-s t-mono">10.53.36.187</text>
+      <rect class="bx" x="380" y="154" width="150" height="50" rx="8" style="stroke-dasharray:5 4"/><text x="455" y="175" text-anchor="middle" class="t-s t-b t-muted">휴대폰 셀룰러 주소</text><text x="455" y="193" text-anchor="middle" class="t-s t-warn t-b">읽지 못함</text>
+      <rect class="bx-ok" x="575" y="154" width="165" height="50" rx="8"/><text x="657" y="175" text-anchor="middle" class="t-s t-b">서버가 본 주소</text><text x="657" y="193" text-anchor="middle" class="t-s t-mono">118.235.95.xxx (KT)</text>
+      <line class="ln" x1="170" y1="179" x2="213" y2="179" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="335" y1="179" x2="378" y2="179" marker-end="url(#a-m)"/>
+      <line class="ln-dash" x1="530" y1="179" x2="573" y2="179" marker-end="url(#a-m)"/>
+      <text x="553" y="222" text-anchor="middle" class="t-s t-muted">CGNAT가 있는가?</text>
+
+      <text x="380" y="244" text-anchor="middle" class="t-s"><tspan class="t-ok t-b">실선 = 확인함</tspan> · <tspan class="t-muted t-b">점선 = 확인하지 못함</tspan>. 점선 상자의 주소가 사설이나 100.64/10이면 NAT가 두 겹입니다.</text>
+    </svg>
+    <figcaption><b>일반 규칙:</b> "안쪽 주소 ≠ 서버가 본 주소"이면 NAT가 최소 한 겹입니다. 겹수는 각 변환 장비의 바깥쪽 주소를 읽어야 셀 수 있습니다. <b>예:</b> 이 실습의 두 네트워크는 바깥쪽 주소를 읽지 못해서 겹수를 세지 못했습니다.</figcaption>
+  </figure>
 
   <div class="box steps"><span class="tag">절차 · NAT 겹수 세기</span>
     <ol class="stepper">
@@ -518,7 +538,51 @@ for part in parts:                       <span class="c"># "163", "152", "6", "1
     </ol>
   </div>
   <div class="box warn"><span class="tag">traceroute로는 셀 수 없습니다</span>
-    <p>traceroute는 사설 주소가 <b>쓰인 곳</b>을 보여 줍니다. 변환이 <b>일어난 곳</b>을 보여 주지 않습니다. 캠퍼스 경로에도 NAT 없이 사설 홉(<code>192.168.98.132</code>, <code>10.x</code>)이 있었습니다.</p>
+    <p>traceroute는 사설 주소가 <b>쓰인 곳</b>을 보여 줍니다. 변환이 <b>일어난 곳</b>을 보여 주지 않습니다. 캠퍼스 경로에는 공인 홉 <b>뒤에도</b> 사설 홉(<code>10.103.1.142</code>, <code>10.222.x.x</code>)이 있었습니다. 사설 홉의 수로 NAT의 수를 셀 수 없다는 증거입니다.</p>
+    <figure class="dg" style="margin-bottom:0">
+      <svg viewBox="0 0 760 170" role="img" aria-label="두 tracepath의 홉별 주소 종류. 캠퍼스는 사설, 사설, 공인, 공인 뒤에 다시 사설 세 개, 공인. 핫스팟은 사설 두 개, 예약 주소 다섯 개, 사설 두 개, 그 뒤 공인.">
+        <text x="20" y="20" class="t-s t-b">캠퍼스</text>
+        <g class="t-s" text-anchor="middle">
+          <rect class="bx-chk" x="90" y="8" width="44" height="28" rx="4"/><text x="112" y="27">1</text>
+          <rect class="bx-chk" x="138" y="8" width="44" height="28" rx="4"/><text x="160" y="27">2</text>
+          <rect class="bx-ok" x="186" y="8" width="44" height="28" rx="4"/><text x="208" y="27">3</text>
+          <rect class="bx-ok" x="234" y="8" width="44" height="28" rx="4"/><text x="256" y="27">4</text>
+          <rect class="bx-chk" x="282" y="8" width="44" height="28" rx="4"/><text x="304" y="27">5</text>
+          <rect class="bx-chk" x="330" y="8" width="44" height="28" rx="4"/><text x="352" y="27">6</text>
+          <rect class="bx-chk" x="378" y="8" width="44" height="28" rx="4"/><text x="400" y="27">7</text>
+          <rect class="bx-ok" x="426" y="8" width="44" height="28" rx="4"/><text x="448" y="27">8</text>
+        </g>
+        <path class="ln-warn" d="M282 44 H422"/>
+        <text x="352" y="60" text-anchor="middle" class="t-s t-warn t-b">공인 홉 뒤의 사설 홉 (SKB 내부)</text>
+        <text x="208" y="60" text-anchor="middle" class="t-s t-muted">163.152.233.129</text>
+        <text x="448" y="60" text-anchor="middle" class="t-s t-muted">Google</text>
+
+        <text x="20" y="96" class="t-s t-b">핫스팟</text>
+        <g class="t-s" text-anchor="middle">
+          <rect class="bx-chk" x="90" y="84" width="44" height="28" rx="4"/><text x="112" y="103">1</text>
+          <rect class="bx-chk" x="138" y="84" width="44" height="28" rx="4"/><text x="160" y="103">2</text>
+          <rect class="bx2" x="186" y="84" width="44" height="28" rx="4"/><text x="208" y="103">3</text>
+          <rect class="bx2" x="234" y="84" width="44" height="28" rx="4"/><text x="256" y="103">4</text>
+          <rect class="bx2" x="282" y="84" width="44" height="28" rx="4"/><text x="304" y="103">5</text>
+          <rect class="bx2" x="330" y="84" width="44" height="28" rx="4"/><text x="352" y="103">6</text>
+          <rect class="bx2" x="378" y="84" width="44" height="28" rx="4"/><text x="400" y="103">7</text>
+          <rect class="bx-chk" x="426" y="84" width="44" height="28" rx="4"/><text x="448" y="103">8</text>
+          <rect class="bx-chk" x="474" y="84" width="44" height="28" rx="4"/><text x="496" y="103">9</text>
+          <rect class="bx-ok" x="522" y="84" width="44" height="28" rx="4"/><text x="544" y="103">10</text>
+          <rect class="bx-ok" x="570" y="84" width="44" height="28" rx="4"/><text x="592" y="103">11</text>
+          <rect class="bx-ok" x="618" y="84" width="44" height="28" rx="4"/><text x="640" y="103">…</text>
+        </g>
+        <text x="136" y="130" text-anchor="middle" class="t-s t-muted">휴대폰</text>
+        <text x="304" y="130" text-anchor="middle" class="t-s t-muted">255.0.0.x (240/4 예약)</text>
+        <text x="472" y="130" text-anchor="middle" class="t-s t-muted">172.28.1.x</text>
+        <g class="t-s">
+          <rect class="bx-chk" x="90" y="146" width="14" height="14" rx="2"/><text x="110" y="158">사설 (RFC 1918)</text>
+          <rect class="bx2" x="230" y="146" width="14" height="14" rx="2"/><text x="250" y="158">예약 주소</text>
+          <rect class="bx-ok" x="340" y="146" width="14" height="14" rx="2"/><text x="360" y="158">공인</text>
+          <text x="420" y="158" class="t-muted">숫자 = 홉 번호. 근거: <tspan class="t-mono">out/tracepath-*.txt</tspan></text>
+        </g>
+      </svg>
+    </figure>
   </div>
 
   <div class="box example"><span class="tag">이 프로젝트에서 · Task 2 A4–A5, B3</span>
@@ -526,7 +590,7 @@ for part in parts:                       <span class="c"># "163", "152", "6", "1
       <tr><th></th><th>캠퍼스 Wi-Fi</th><th>휴대폰 핫스팟</th></tr>
       <tr><td>내부 주소</td><td><code>172.16.25.130</code></td><td><code>10.53.36.69</code></td></tr>
       <tr><td>외부에서 본 주소</td><td><code>163.152.233.xxx</code> (고려대학교)</td><td><code>118.235.95.xxx</code> (KT)</td></tr>
-      <tr><td>NAT 겹수</td><td>최소 1. 3번째 홉에서 같은 /24의 공인 주소 → 1겹과 일치</td><td>최소 1 (휴대폰). 2겹 여부는 휴대폰의 셀룰러 주소가 필요해 확인 못 함</td></tr>
+      <tr><td>NAT 겹수</td><td>최소 1. 정확한 수는 확인 못 함 (캠퍼스 NAT의 바깥쪽 주소를 읽지 못함)</td><td>최소 1 (휴대폰). 정확한 수는 확인 못 함 (휴대폰의 셀룰러 쪽 주소를 읽지 못함)</td></tr>
     </table></div>
     <ul>
       <li><b>B3:</b> 사설 주소와 공인 주소가 <b>둘 다</b> 바뀌었습니다. 사설 주소는 각 네트워크의 DHCP가, 공인 주소는 각 NAT의 주인이 정하기 때문입니다. 마스크가 둘 다 /24인 것은 우연입니다.</li>
@@ -580,6 +644,8 @@ for part in parts:                       <span class="c"># "163", "152", "6", "1
       <p class="a"><code>0.0.0.0</code> → <code>255.255.255.255</code>. 클라이언트는 자기 주소도 서버 주소도 모르기 때문입니다.</p></details>
     <details class="q"><summary>NAT가 두 겹인지 확인하려면 어느 주소를 읽어야 합니까?</summary>
       <p class="a">공유기·휴대폰의 외부 쪽 인터페이스 주소입니다. 그것이 사설이나 100.64/10이고 공인 주소와 다르면 두 겹입니다.</p></details>
+    <details class="q"><summary>캠퍼스 traceroute의 3번 홉이 내 공인 주소와 같은 /24였습니다. 이것으로 NAT가 한 겹이라고 말할 수 있습니까?</summary>
+      <p class="a">말할 수 없습니다. 그 홉은 공인 주소가 쓰이기 시작한 곳을 보여 줄 뿐입니다. 그 앞의 사설 구간에서 변환이 몇 번 일어났는지는 보이지 않습니다. 같은 경로의 5–7번 홉은 공인 홉 뒤인데도 사설 주소였습니다.</p></details>
   </div>
 </section>
 

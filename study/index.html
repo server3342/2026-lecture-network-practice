@@ -16,11 +16,13 @@
   <nav class="nav">
     <a class="on" href="index.html">개요</a>
     <a href="flow.html">요청 따라가기</a>
+    <a href="walk.html">단계별 흐름</a>
     <a href="w03-dns.html">3주 DNS</a>
     <a href="w04-tcp.html">4주 TCP</a>
     <a href="w05-ip-nat.html">5주 IP·NAT</a>
     <a href="w06-routing.html">6주 라우팅</a>
     <a href="w07-ethernet-arp.html">7주 이더넷·ARP</a>
+    <a href="quiz.html">문제 풀기</a>
   </nav>
   <button class="theme-btn" type="button">테마</button>
 </div></header>
@@ -153,6 +155,16 @@
       <p>오류 검출, 다중 접속, MAC 주소, ARP, 이더넷 프레임, 스위치 자기 학습</p>
       <p class="small muted">실습: 학습 스위치 · ARP 캡처 · 작은 스위치 테이블</p>
     </a>
+    <a class="card link" href="walk.html">
+      <h4>단계별 흐름 (대화형)</h4>
+      <p>어느 네트워크에서나 맞는 일반 흐름과, 그 흐름을 예시 네트워크에서 52단계로 실행하는 그림. 패킷 헤더와 장치의 표가 단계마다 바뀝니다.</p>
+      <p class="small muted">OSPF · DHCP · DNS · ARP · NAT · TCP · 재수렴 · 만료</p>
+    </a>
+    <a class="card link" href="quiz.html">
+      <h4>개념 점검 문제</h4>
+      <p>3–7주차와 종합 문제 48개. 틀린 절을 모아 보여 주고 답안을 복사할 수 있습니다.</p>
+      <p class="small muted">객관식 · 계산 · 서술</p>
+    </a>
   </div>
 </section>
 
@@ -178,7 +190,7 @@
     <li style="--wk:var(--tcp)"><b>데이터 전송.</b> 슬로 스타트로 cwnd가 RTT마다 두 배가 됩니다. 수신 윈도우는 4.6 MB였지만 실제로 보낸 양은 약 193 KB였습니다.</li>
     <li style="--wk:var(--ip)"><b>응답의 귀환.</b> 응답은 NAT 변환 표를 거쳐 다시 <code>172.16.25.130</code>으로 갑니다.</li>
   </ol>
-  <p>각 단계를 패킷 번호와 시각으로 따라가려면 <a href="flow.html">요청 한 번 따라가기</a>를 읽으십시오.</p>
+  <p>각 단계를 패킷 번호와 시각으로 따라가려면 <a href="flow.html">요청 한 번 따라가기</a>를 읽으십시오. 다른 네트워크에도 맞는 일반 흐름은 <a href="walk.html">단계별 흐름</a>에 있습니다.</p>
 </section>
 
 <section class="sec" id="glossary">

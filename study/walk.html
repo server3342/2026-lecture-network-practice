@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단계별 흐름</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<!-- walkfig.js가 그림 함수를, walk.js가 단계를 먼저 만들고, tips.js가 그 글에 설명 창을 붙입니다. 순서를 바꾸지 마십시오. -->
+<script>
+  // 스크립트 오류를 화면에 보입니다. 오류가 있으면 단계 조작이 멈추기 때문입니다.
+  window.addEventListener("error", function (e) {
+    var b = document.getElementById("js-err");
+    if (b) { b.hidden = false; b.querySelector("code").textContent = (e.message || "오류") + " (" + String(e.filename || "").split("/").pop() + ":" + e.lineno + ")"; }
+  });
+</script>
+<script src="walkfig.js?v=3" defer></script>
+<script src="walk.js?v=3" defer></script>
+<script src="tips.js?v=3" defer></script>
+<style>
+  /* 이 페이지에서만 쓰는 스타일. 토큰은 style.css의 것을 씁니다. */
+  .btn, .chip {
+    font: inherit; font-size: var(--t-sub); line-height: var(--l-sub); cursor: pointer;
+    min-height: var(--s-8); padding: 0 var(--s-3); border-radius: var(--r-pill);
+    border: var(--hair) solid var(--line); background: var(--surface); color: var(--fg);
+    display: inline-flex; align-items: center; gap: var(--s-1);
+  }
+  .btn:hover, .chip:hover { background: var(--surface-2); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .chip.on { background: var(--wk, var(--fg)); border-color: var(--wk, var(--fg)); color: var(--on-accent); font-weight: 600; }
+  @media (pointer: coarse) { .btn, .chip { min-height: 2.75rem; } }
+
+  /* 아래에 붙는 조작 막대 */
+  .dock {
+    position: sticky; bottom: var(--s-2); z-index: 5; margin: var(--s-4) 0;
+    display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center;
+    padding: var(--s-2) var(--s-3); border: var(--hair) solid var(--line); border-radius: var(--r-lg);
+    background: color-mix(in oklab, var(--surface) 86%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(1.25rem); backdrop-filter: saturate(180%) blur(1.25rem);
+    box-shadow: var(--shadow-pop);
+  }
+  .dock input[type=range] { flex: 1 1 8rem; min-width: 6rem; accent-color: var(--accent); }
+  .dock .pos { font-size: var(--t-sub); font-variant-numeric: tabular-nums; color: var(--muted); min-width: 4.5rem; text-align: right; }
+  .phases { display: flex; flex-wrap: wrap; gap: var(--s-1); margin: var(--s-3) 0; }
+  .clock { font-size: var(--t-sub); line-height: var(--l-sub); color: var(--muted); margin: var(--s-1) 0 0; }
+  .clock b { color: var(--fg); font-variant-numeric: tabular-nums; }
+
+  /* 토폴로지 그림 */
+  #topo .lk { stroke: var(--line); stroke-width: 2; fill: none; }
+  #topo .lk.bus { stroke-dasharray: 5 4; }
+  #topo .lk.down { stroke: var(--warn); stroke-dasharray: 6 5; }
+  #topo .nd rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; transition: stroke .2s, fill .2s; }
+  #topo .nd.on rect { stroke: var(--wk, var(--accent)); stroke-width: 3; fill: var(--wk-soft, var(--accent-soft)); }
+  #topo .trace { fill: none; stroke: var(--wk, var(--accent)); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; opacity: .28; }
+  #topo .dot { fill: var(--wk, var(--accent)); stroke: var(--surface); stroke-width: 2; }
+  #topo .xmark { stroke: var(--warn); stroke-width: 3.5; stroke-linecap: round; }
+  #topo .cost { font-size: 12px; font-weight: 700; fill: var(--rt); }
+  #topo .port { font-size: 11px; fill: var(--muted); }
+
+  /* 단계 글 */
+  section.stp { margin: 0; }
+  .stp-head { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); align-items: center; font-size: var(--t-foot); line-height: var(--l-foot); }
+  .stp-head .ph { font-weight: 700; color: var(--wk); }
+  .stp-head .who { padding: 0 var(--s-2); border-radius: var(--r-pill); background: var(--wk-soft); color: var(--wk); font-weight: 600; }
+  .stp-head .num { color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+  .stp h3 { margin: var(--s-2) 0 var(--s-3); }
+  .stp-card { background: var(--surface); border: var(--hair) solid var(--line); border-top: var(--s-1) solid var(--wk); border-radius: var(--r-md); padding: var(--s-4) var(--s-5); box-shadow: var(--shadow); }
+  dl.ste { display: grid; grid-template-columns: 4.5rem 1fr; gap: var(--s-2) var(--s-3); margin: 0; }
+  dl.ste dt { font-size: var(--t-foot); line-height: var(--l-body); font-weight: 700; color: var(--muted); }
+  dl.ste dd { margin: 0; min-width: 0; }
+  dl.ste dd > ol, dl.ste dd > ul { margin: 0; }
+  dl.ste dd > p:first-child { margin-top: 0; }
+  @media (max-width: 30em) { dl.ste { grid-template-columns: 1fr; gap: 0; } dl.ste dt { margin-top: var(--s-2); } }
+
+  /* 패킷 보기 */
+  .pk { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .hop { border: var(--hair) solid var(--line); border-radius: var(--r-md); background: var(--surface); overflow: hidden; }
+  .hop > b { display: block; padding: var(--s-1) var(--s-3); background: var(--surface-2); font-size: var(--t-foot); line-height: var(--l-foot); }
+  .ly { border-top: var(--hair) solid var(--line); padding: var(--s-1) var(--s-3) var(--s-2); }
+  .ly > span { display: inline-block; font-size: var(--t-cap); line-height: var(--l-cap); font-weight: 700; color: var(--lc); margin: var(--s-1) 0; }
+  .ly-eth { --lc: var(--eth); } .ly-ip { --lc: var(--ip); } .ly-l4 { --lc: var(--tcp); } .ly-app { --lc: var(--dns); } .ly-rt { --lc: var(--rt); }
+  .fd { display: grid; grid-template-columns: 6.5rem 1fr; gap: var(--s-2); font-size: var(--t-foot); line-height: var(--l-foot); padding: .0625rem var(--s-1); border-radius: var(--r-xs); }
+  .fd > span:first-child { color: var(--muted); }
+  .fd > code { font-size: var(--t-cap); background: none; padding: 0; word-break: break-all; }
+  .fd.chg { background: var(--check-soft); }
+  .fd.chg > span:first-child::after { content: " ●"; color: var(--check); }
+
+  /* 상태 표 */
+  .st-bar { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); align-items: center; margin: var(--s-3) 0; font-size: var(--t-sub); }
+  .st-grid { display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  .st { background: var(--surface); border: var(--hair) solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+  .st.chg { border-color: var(--check); box-shadow: 0 0 0 var(--hair) var(--check); }
+  .st > b { display: flex; justify-content: space-between; gap: var(--s-2); padding: var(--s-1) var(--s-3); background: var(--surface-2); font-size: var(--t-foot); line-height: var(--l-foot); }
+  .st > b em { font-style: normal; color: var(--check); }
+  .st table { font-size: var(--t-foot); line-height: var(--l-foot); }
+  .st th, .st td { padding: var(--s-1) var(--s-2); }
+  .st th { font-weight: 600; color: var(--muted); background: none; }
+  .st .tw { overflow-x: auto; }
+  .st td code { font-size: var(--t-cap); background: none; padding: 0; word-break: normal; overflow-wrap: normal; }
+  .st tr.new td { background: var(--example-soft); }
+  .st tr.chg td { background: var(--check-soft); }
+  .st tr.del td { background: var(--warn-soft); text-decoration: line-through; color: var(--muted); }
+  .st .empty { padding: var(--s-2) var(--s-3); font-size: var(--t-foot); color: var(--muted); }
+  .only-chg .st:not(.chg) { display: none; }
+
+  .key { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); font-size: var(--t-foot); line-height: var(--l-foot); color: var(--muted); }
+  .key i { display: inline-block; width: var(--s-3); height: var(--s-3); border-radius: var(--r-xs); vertical-align: -.0625rem; margin-right: var(--s-1); }
+
+  /* 일반 규칙과 예시 구분 */
+  .gen { background: var(--wk-soft); border-radius: var(--r-sm); padding: var(--s-2) var(--s-3); margin: 0 0 var(--s-3); }
+  .gen b { display: block; font-size: var(--t-foot); line-height: var(--l-foot); color: var(--wk); }
+  .gen p { margin: var(--s-1) 0 0; font-weight: 600; }
+  .ex-h { font-size: var(--t-foot); line-height: var(--l-foot); font-weight: 700; color: var(--muted); margin: 0 0 var(--s-2); padding-top: var(--s-2); border-top: var(--hair) dashed var(--line); }
+  .gsec h3 { margin-top: var(--s-8); }
+  .gsec .ex { font-size: var(--t-foot); color: var(--muted); }
+
+  /* 전체 목록 */
+  .all ol { padding-left: var(--s-8); }
+  .all li { margin: .125rem 0; }
+  .all li.on a { font-weight: 700; }
+  .all h4 { margin: var(--s-4) 0 var(--s-1); color: var(--wk); }
+
+  /* 고정 무대: 그림과 조작 막대는 글을 읽는 동안 화면 위에 남습니다 */
+  .stage {
+    position: sticky; top: var(--top, 3.5rem); z-index: 4;
+    background: color-mix(in oklab, var(--bg) 90%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(1.25rem); backdrop-filter: saturate(180%) blur(1.25rem);
+    border: var(--hair) solid var(--line); border-radius: var(--r-lg); padding: var(--s-2);
+    margin: 0 0 var(--s-4); box-shadow: var(--shadow-pop);
+  }
+  .stage figure.dg { margin: 0; padding: var(--s-1) var(--s-2); }
+  .stage #topo { max-height: 46vh; }
+  .stage .dock { position: static; margin: var(--s-2) 0 0; box-shadow: none; background: none; border: 0; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .stage .clock { text-align: left; margin: 0; }
+  .stage-head { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); align-items: baseline; justify-content: space-between; padding: 0 var(--s-1); }
+  .stage-title { font-size: var(--t-sub); line-height: var(--l-sub); font-weight: 700; color: var(--wk, var(--fg)); }
+  .pin { font-size: var(--t-foot); color: var(--muted); }
+  .stage.unpin { position: static; }
+  /* 좁은 화면: 위 막대는 고정하지 않고, 무대를 작게 만들어 글을 읽을 자리를 남깁니다. */
+  @media (max-width: 40em) {
+    .topbar { position: static; }
+    .stage { padding: var(--s-1); }
+    .stage-head { display: none; }
+    .stage #topo { max-height: 28vh; }
+    .stage .dock { gap: var(--s-1); margin-top: var(--s-1); }
+    .stage .dock .btn { padding: 0 var(--s-2); }
+    .stage .dock input[type=range] { display: none; }
+    .stage .dock .pos { min-width: 0; margin-left: auto; }
+  }
+  @media (max-height: 34em) { .stage #topo { max-height: 38vh; } }
+  #topo .nd.hit rect { animation: hit .7s ease-out; }
+  @keyframes hit { 0% { stroke-width: 7; } 100% { stroke-width: 3; } }
+  #topo .trace-on { fill: none; stroke: var(--wk, var(--accent)); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+  #topo .lab rect { fill: var(--wk, var(--accent)); }
+  #topo .lab text { fill: var(--on-accent); font-size: 12px; font-weight: 700; }
+  #topo .ring { fill: none; stroke: var(--wk, var(--accent)); stroke-width: 2; }
+  #topo .think { fill: var(--wk-soft, var(--accent-soft)); stroke: var(--wk, var(--accent)); stroke-width: 1.5; }
+  @media (prefers-reduced-motion: reduce) { #topo .nd.hit rect { animation: none; } }
+  .js-err { margin: var(--s-3) 0; }
+
+  /* 2절의 그림 */
+  .fig { margin: var(--s-4) 0; background: var(--surface); border: var(--hair) solid var(--line); border-radius: var(--r-md); padding: var(--s-3); }
+  .fig > svg { width: 100%; height: auto; display: block; margin: var(--s-2) 0; }
+  .fig-ctl { display: flex; flex-wrap: wrap; gap: var(--s-1); align-items: center; margin: 0 0 var(--s-1); }
+  .fig-ctl .chip.on { background: var(--c, var(--fg)); border-color: var(--c, var(--fg)); }
+  .fig-lb { font-size: var(--t-foot); color: var(--muted); font-weight: 600; margin-right: var(--s-1); font-variant-numeric: tabular-nums; }
+  .fig-note { margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-sm); background: var(--c-soft, var(--surface-2)); font-size: var(--t-sub); line-height: var(--l-sub); }
+  .fig figcaption, .fig .cap { font-size: var(--t-foot); line-height: var(--l-foot); color: var(--muted); margin: var(--s-2) 0 0; }
+  .fn rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; transition: fill .25s, stroke .25s; }
+  .fn.q rect { fill: var(--surface-2); }
+  .fn.opt rect { stroke-dasharray: 5 4; }
+  .fn.side rect { fill: var(--surface-2); }
+  .fn.on rect { fill: var(--c-soft, var(--accent-soft)); stroke: var(--c, var(--accent)); stroke-width: 2.5; }
+  .fn.warn.on rect { fill: var(--warn-soft); stroke: var(--warn); }
+  .fn.ok.on rect { fill: var(--example-soft); stroke: var(--example); }
+  .fe polyline, .fe line { fill: none; stroke: var(--line); stroke-width: 2; transition: stroke .25s; }
+  .fe polygon { fill: var(--line); transition: fill .25s; }
+  .fe .fe-l { fill: var(--muted); }
+  .fe.on polyline, .fe.on line { stroke: var(--c, var(--accent)); stroke-width: 3; }
+  .fe.on polygon { fill: var(--c, var(--accent)); }
+  .fe.on .fe-l { fill: var(--fg); font-weight: 700; }
+  .fdot { fill: var(--c, var(--accent)); stroke: var(--surface); stroke-width: 2.5; }
+  .lyr rect { fill: var(--surface); stroke: var(--c); stroke-width: 1.5; transition: all .3s; }
+  .lyr.on rect { fill: var(--c-soft); stroke-width: 3; }
+  .lyr.off { opacity: .35; }
+  .pkt-p rect { fill: var(--c-soft); stroke: var(--c); stroke-width: 1.5; }
+  .pkt-p.new rect { stroke-width: 3.5; }
+  .pkt-p.new { animation: slide .5s ease-out; }
+  @keyframes slide { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+  .msg line { stroke: var(--tcp); stroke-width: 2; }
+  .msg polygon { fill: var(--tcp); }
+  .msg.fut { opacity: .18; }
+  .msg.past { opacity: .6; }
+  .msg.on line { stroke-width: 3.5; }
+  .msg.on text { font-weight: 700; }
+  .st-l { fill: var(--tcp); }
+  .zone.z-ss { fill: var(--tcp-soft); } .zone.z-ca { fill: var(--ip-soft); }
+  .grid { stroke: var(--line); stroke-width: .6; opacity: .6; }
+  .ssl { fill: none; stroke: var(--warn); stroke-width: 1.6; stroke-dasharray: 6 5; }
+  .cwl { fill: none; stroke: var(--tcp); stroke-width: 3; stroke-linejoin: round; }
+  .cwp { fill: var(--surface); stroke: var(--tcp); stroke-width: 2; }
+  .cwp.loss { fill: var(--warn); stroke: var(--warn); }
+  .cwp.on { fill: var(--tcp); stroke: var(--fg); stroke-width: 2.5; }
+  .xs line { stroke: var(--warn); stroke-width: 3; stroke-linecap: round; }
+  .now { stroke: var(--fg); stroke-width: 2; stroke-dasharray: 3 3; }
+  .now-band { fill: var(--accent-soft); opacity: .7; }
+  @media (prefers-reduced-motion: reduce) { .pkt-p.new { animation: none; } }
+
+  /* 링크마다 헤더 값 */
+  .hs-wrap { overflow-x: auto; }
+  .hs { display: grid; gap: var(--s-1); min-width: 44rem; }
+  .hs-row { display: grid; grid-template-columns: 9rem repeat(8, 1fr); gap: var(--s-1); align-items: stretch; }
+  .hs-row > b { font-size: var(--t-foot); line-height: var(--l-foot); align-self: center; }
+  .hs-head > span { font-size: var(--t-cap); line-height: var(--l-cap); font-weight: 700; color: var(--c); text-align: center; }
+  .hs-c { font-family: var(--mono); font-size: var(--t-cap); line-height: var(--l-cap); text-align: center; padding: var(--s-1); border-radius: var(--r-xs); border: var(--hair) solid var(--line); border-top: .1875rem solid var(--c); background: var(--surface); }
+  .hs-c i { display: none; }
+  .hs-c.chg { background: var(--check-soft); border-color: var(--check); font-weight: 700; }
+  .hs-c.chg::after { content: " ●"; color: var(--check); }
+  .hs-c.nat { background: var(--ip-soft); border-color: var(--ip); font-weight: 700; }
+  .hs-c.nat::after { content: " ◆"; color: var(--ip); }
+
+  /* 단계 아래의 그림 */
+  .viz { margin: var(--s-4) 0 0; }
+  .viz > h3 { margin: var(--s-4) 0 var(--s-2); }
+  .seq-box { max-height: 26rem; overflow-y: auto; border: var(--hair) solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+  .seq-box svg { width: 100%; height: auto; display: block; }
+  .seq .row { cursor: pointer; }
+  .seq .row rect.band { fill: transparent; }
+  .seq .row:hover rect.band { fill: var(--surface-2); }
+  .seq .row.on rect.band { fill: var(--wk-soft, var(--accent-soft)); }
+  .seq .row line.m { stroke: var(--wk, var(--accent)); stroke-width: 2; }
+  .seq .row polygon { fill: var(--wk, var(--accent)); }
+  .seq .row.fut { opacity: .35; }
+  .seq .row.on line.m { stroke-width: 3.5; }
+  .seq .row.on text { font-weight: 700; }
+  .seq .self { fill: var(--wk-soft, var(--accent-soft)); stroke: var(--wk, var(--accent)); stroke-width: 1.5; }
+  .seq .xmark { stroke: var(--warn); stroke-width: 3; stroke-linecap: round; }
+  #topo .ring { fill: none; }
+  .seq .life { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 4; }
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">3–7주차 개념 정리</a>
+  <nav class="nav">
+    <a href="index.html">개요</a>
+    <a href="flow.html">요청 따라가기</a>
+    <a class="on" href="walk.html">단계별 흐름</a>
+    <a href="w03-dns.html">3주 DNS</a>
+    <a href="w04-tcp.html">4주 TCP</a>
+    <a href="w05-ip-nat.html">5주 IP·NAT</a>
+    <a href="w06-routing.html">6주 라우팅</a>
+    <a href="w07-ethernet-arp.html">7주 이더넷·ARP</a>
+    <a href="quiz.html">문제 풀기</a>
+  </nav>
+  <button class="theme-btn" type="button">테마</button>
+</div></header>
+
+<div class="layout">
+<aside class="toc">
+  <b>이 페이지</b>
+  <ol>
+    <li><a href="#how"><span class="n">1</span>읽는 방법</a></li>
+    <li><a href="#general"><span class="n">2</span>일반 흐름</a></li>
+    <li><a href="#setup"><span class="n">3</span>예시 네트워크</a></li>
+    <li><a href="#play"><span class="n">4</span>예시로 따라가기</a></li>
+  </ol>
+  <b style="margin-top:var(--s-3)">구간으로 이동</b>
+  <ol id="toc-phases"></ol>
+  <ol>
+    <li><a href="#all"><span class="n">5</span>전체 단계 목록</a></li>
+    <li><a href="#quiz"><span class="n">✓</span>스스로 확인하기</a></li>
+  </ol>
+</aside>
+
+<main>
+<div class="hero">
+  <span class="eyebrow">대화형 · 설명용 예시 네트워크</span>
+  <h1>처음부터 끝까지 단계별로<br>노트북이 웹 페이지 하나를 받을 때</h1>
+  <p class="lead">3주차부터 7주차까지의 개념을 한 흐름으로 이어서 보입니다. 먼저 어느 네트워크에서나 맞는 일반 흐름을 씁니다. 그 다음 한 예시 네트워크에서 그 흐름을 한 단계씩 실행합니다.</p>
+  <div class="meta">
+    <span>다루는 것: OSPF · DHCP · DNS · ARP · 스위치 학습 · 최장 프리픽스 일치 · NAT · TCP · 혼잡 제어 · 재수렴 · 캐시 만료</span>
+  </div>
+</div>
+
+<!-- 1 -->
+<section class="sec" id="how">
+  <h2><span class="n">1</span>이 페이지를 읽는 방법</h2>
+  <div class="box concept">
+    <span class="tag">작성 규칙 · ASD-STE100을 한국어에 적용</span>
+    <ul>
+      <li>한 단계에는 한 장치의 동작만 씁니다. 그 장치의 이름을 단계의 맨 위에 씁니다.</li>
+      <li>한 문장에는 한 가지 동작이나 한 가지 사실만 씁니다.</li>
+      <li>모든 단계는 먼저 <b>일반 규칙</b>을 씁니다. 일반 규칙에는 이 예시의 주소와 숫자를 쓰지 않습니다. 그러므로 다른 네트워크에도 그대로 맞습니다.</li>
+      <li>그 아래에 이 예시의 값을 같은 네 칸으로 씁니다: <b>조건</b>, <b>동작</b>, <b>결과</b>, <b>참고</b>.</li>
+      <li>장치가 표를 읽거나 바꾸면 그 일도 한 문장으로 씁니다. 표를 바꾸지 않았으면 "표는 그대로입니다"라고 씁니다.</li>
+      <li>한 용어는 한 가지 뜻으로만 씁니다. DNS 메시지는 "질의"와 "응답", HTTP 메시지는 "요청"과 "응답"입니다.</li>
+      <li>이 예시가 실제와 다르게 단순하게 만든 부분은 <a href="#setup">예시 네트워크</a>의 "가정"에 모두 씁니다.</li>
+    </ul>
+  </div>
+  <div class="box steps">
+    <span class="tag">절차 · 페이지 조작</span>
+    <ol>
+      <li><b>다음</b>을 누르십시오. 키보드에서는 <code>→</code> 키를 누르십시오.</li>
+      <li>그림에서 점의 움직임을 보십시오. 점은 이 단계의 프레임이 지나는 길입니다. 점의 이름표가 그 프레임의 종류입니다. <span style="color:var(--warn)">✕</span>는 프레임이 버려진 곳입니다. 그림과 조작 막대는 글을 읽는 동안 화면 위에 남습니다.</li>
+      <li>단계 아래의 "메시지 순서" 그림을 보십시오. 지금 구간의 메시지가 시간 순서로 있습니다. 줄을 누르면 그 단계로 갑니다.</li>
+      <li>단계의 글을 읽으십시오.</li>
+      <li>"패킷" 칸에서 <span style="background:var(--check-soft);padding:0 var(--s-1)">●</span> 표시가 있는 값을 보십시오. 이 값은 앞 구간과 다른 값입니다.</li>
+      <li>"장치의 표" 칸에서 색이 있는 줄을 보십시오. 이 단계에서 바뀐 줄입니다.</li>
+      <li>앞으로 돌아가려면 <b>이전</b>을 누르십시오. 키보드에서는 <code>←</code> 키를 누르십시오.</li>
+    </ol>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--rt)"></i>6주 라우팅</span>
+    <span><i style="background:var(--ip)"></i>5주 IP·DHCP·NAT</span>
+    <span><i style="background:var(--dns)"></i>3주 DNS</span>
+    <span><i style="background:var(--eth)"></i>7주 이더넷·ARP</span>
+    <span><i style="background:var(--tcp)"></i>4주 TCP</span>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="sec gsec" id="general">
+  <h2><span class="n">2</span>일반 흐름: 어느 네트워크에서나</h2>
+  <p>이 절에는 특정 주소나 장치를 쓰지 않습니다. 집, 학교, 회사, 클라우드의 네트워크에 모두 맞습니다. 각 항목 끝의 "예시"를 누르면 4절의 그 단계로 갑니다.</p>
+
+  <div class="box concept">
+    <span class="tag">핵심 · 모든 장치는 같은 방법으로 일합니다</span>
+    <ol>
+      <li>장치가 프레임이나 패킷을 받습니다.</li>
+      <li>장치가 헤더의 값 하나로 자기 표를 찾습니다.</li>
+      <li>표에 값이 있으면 장치는 그 값대로 보냅니다.</li>
+      <li>표에 값이 없으면 장치는 그 값을 묻는 프로토콜을 씁니다. 또는 모두에게 보냅니다.</li>
+      <li>표의 값은 시간이 지나면 지워집니다.</li>
+    </ol>
+    <div class="tbl"><table>
+      <tr><th>장치</th><th>찾는 헤더 값</th><th>읽는 표</th><th>표에 없을 때</th><th>표를 채우는 것</th><th>지우는 때</th></tr>
+      <tr><td>호스트 (이름)</td><td>이름</td><td>DNS 캐시</td><td>리졸버에 재귀 질의</td><td>DNS 응답</td><td>레코드의 TTL</td></tr>
+      <tr><td>리졸버</td><td>이름</td><td>DNS 캐시</td><td>가장 가까운 NS부터 반복 질의</td><td>DNS 응답</td><td>레코드의 TTL</td></tr>
+      <tr><td>호스트 (다음 홉)</td><td>목적지 IP</td><td>라우팅 표</td><td>(기본 경로가 모두 받음)</td><td>DHCP</td><td>임대 시간</td></tr>
+      <tr><td>호스트·라우터 (MAC)</td><td>다음 홉 IP</td><td>ARP 표</td><td>ARP 요청 브로드캐스트</td><td>ARP 요청과 응답</td><td>운영체제의 시간</td></tr>
+      <tr><td>스위치</td><td>목적지 MAC</td><td>스위치 표</td><td>플러딩</td><td>프레임의 출발지 MAC</td><td>에이징 시간</td></tr>
+      <tr><td>라우터</td><td>목적지 IP</td><td>포워딩 표</td><td>버림 (기본 경로가 없을 때)</td><td>라우팅 프로토콜 (OSPF 등)</td><td>LSA가 바뀔 때</td></tr>
+      <tr><td>NAT</td><td>(주소, 포트)</td><td>NAT 변환 표</td><td>안→밖: 새 항목. 밖→안: 버림</td><td>안에서 나가는 패킷</td><td>구현의 시간</td></tr>
+      <tr><td>목적지 호스트</td><td>타입, 프로토콜, 포트</td><td>소켓</td><td>버림 (TCP는 RST)</td><td>응용이 연 소켓</td><td>소켓을 닫을 때</td></tr>
+    </table></div>
+  </div>
+  <div class="fig" id="fig-loop"></div>
+  <p class="cap small muted">그림 1. 장치를 고르고 경우를 고르십시오. 위 표의 한 줄이 그림의 상자에 들어갑니다. 모든 장치가 같은 모양으로 일합니다.</p>
+
+  <h3>A. 준비: 사용자가 아무것도 하기 전에</h3>
+  <ol class="stepper">
+    <li style="--wk:var(--rt)"><b>라우터가 포워딩 표를 만듭니다.</b> 링크 상태 라우팅이면 순서가 같습니다.
+      <ol><li>Hello로 이웃을 찾습니다.</li><li>자기 링크와 비용을 LSA로 플러딩합니다.</li><li>모든 라우터가 같은 링크 상태 DB를 가집니다.</li><li>각 라우터가 자기를 출발점으로 다익스트라를 실행합니다.</li><li>목적지 프리픽스마다 첫 홉 하나를 표에 넣습니다.</li></ol>
+      <span class="ex"><a href="#s1" data-go="1">예시 1–4</a></span></li>
+    <li style="--wk:var(--ip)"><b>호스트가 주소를 받습니다.</b> DHCP: Discover(브로드캐스트) → Offer → Request(브로드캐스트) → ACK. 호스트는 주소, 마스크, 기본 게이트웨이, DNS 서버를 받습니다. <span class="ex"><a href="#s5" data-go="5">예시 5–8</a></span></li>
+  </ol>
+
+  <h3>B. 보내는 호스트: 데이터그램 하나를 보낼 때마다</h3>
+  <ol class="stepper">
+    <li style="--wk:var(--dns)"><b>이름을 주소로 바꿉니다.</b> 캐시에 답이 있으면 그 답을 씁니다. 없으면 리졸버에 재귀 질의를 보냅니다. 리졸버는 캐시에 있는 가장 가까운 NS 레코드부터 반복 질의를 합니다. 아무것도 없으면 루트 → TLD → 권한 서버 순서입니다. <span class="ex"><a href="#s9" data-go="9">예시 9–21</a></span></li>
+    <li style="--wk:var(--ip)"><b>다음 홉을 정합니다.</b> 라우팅 표에서 최장 프리픽스 일치를 합니다. 목적지가 같은 서브넷이면 다음 홉은 목적지 자신입니다. 아니면 다음 홉은 게이트웨이입니다. <span class="ex"><a href="#s10" data-go="10">예시 10</a>, <a href="#s22" data-go="22">22</a></span></li>
+    <li style="--wk:var(--eth)"><b>다음 홉의 MAC 주소를 찾습니다.</b> ARP 표에 있으면 그 값을 씁니다. 없으면 ARP 요청을 브로드캐스트하고 응답을 기다립니다. 최종 목적지의 MAC 주소는 찾지 않습니다. <span class="ex"><a href="#s11" data-go="11">예시 11–12</a>, <a href="#s23" data-go="23">23–24</a></span></li>
+    <li style="--wk:var(--muted)"><b>헤더를 붙여 보냅니다(캡슐화).</b> 응용 데이터 → TCP/UDP 헤더(포트) → IP 헤더(최종 목적지 주소, TTL) → 이더넷 헤더(다음 홉의 MAC)와 FCS.</li>
+  </ol>
+  <div class="fig" id="fig-host"></div>
+  <p class="cap small muted">그림 2. 세 조건을 바꾸십시오. 칠한 길이 호스트의 판단 순서입니다. 아래 칸이 실제로 나가는 패킷의 순서입니다.</p>
+  <div class="fig" id="fig-encap"></div>
+  <p class="cap small muted">그림 3. 캡슐화와 역캡슐화. "다음"을 누르면 헤더가 한 층씩 붙거나 떨어집니다.</p>
+
+  <h3>C. 중간 장치와 받는 호스트: 프레임 하나를 받을 때마다</h3>
+  <ol class="stepper">
+    <li style="--wk:var(--eth)"><b>스위치</b>: 출발지 MAC과 들어온 포트를 기록합니다. 목적지 MAC이 표에 있으면 그 포트로만 보냅니다. 표에 없거나 브로드캐스트이면 들어온 포트 외의 모든 포트로 보냅니다. 스위치는 헤더를 바꾸지 않습니다. <span class="ex"><a href="#s5" data-go="5">예시 5</a>, <a href="#s6" data-go="6">6</a>, <a href="#s49" data-go="49">49</a></span></li>
+    <li style="--wk:var(--ip)"><b>라우터</b>: FCS 확인 → 이더넷 헤더 제거 → (NAT면 출발지 주소·포트 변경과 기록) → 최장 프리픽스 일치 → TTL 1 감소(0이면 버림) → 체크섬 계산 → 다음 링크의 새 이더넷 헤더 → 전송. <span class="ex"><a href="#s26" data-go="26">예시 26–27</a></span></li>
+    <li style="--wk:var(--tcp)"><b>받는 호스트</b>: 목적지 MAC 확인 → FCS 확인 → 이더넷 타입으로 IP에 넘김 → IP 프로토콜 번호로 TCP/UDP에 넘김 → 목적지 포트(TCP는 네 값)로 소켓에 넘김(역다중화). <span class="ex"><a href="#s13" data-go="13">예시 13</a></span></li>
+  </ol>
+  <div class="fig" id="fig-switch"></div>
+  <p class="cap small muted">그림 4. 스위치 안의 순서. 스위치는 언제나 출발지를 먼저 배웁니다.</p>
+  <div class="fig" id="fig-router"></div>
+  <p class="cap small muted">그림 5. 라우터 안의 순서와 패킷을 버리는 네 곳. 경우를 바꾸면 점이 멈추는 곳이 바뀝니다.</p>
+  <div class="box warn">
+    <span class="tag">링크마다 바뀌는 값과 바뀌지 않는 값</span>
+    <ul>
+      <li>링크마다 바뀝니다: 출발지·목적지 MAC, FCS, TTL, IP 헤더 체크섬.</li>
+      <li>NAT를 지날 때만 바뀝니다: 사설 쪽의 IP 주소와 포트, TCP/UDP 체크섬.</li>
+      <li>처음부터 끝까지 그대로입니다: 그 밖의 IP 주소와 포트, TCP의 seq와 ack, 응용 데이터.</li>
+    </ul>
+  </div>
+  <div class="fig" id="fig-hops"></div>
+  <p class="cap small muted">그림 6. 같은 패킷을 링크마다 본 값. 한 줄이 한 링크입니다. 표시가 있는 칸이 앞 링크와 다른 값입니다.</p>
+
+  <h3>D. TCP 연결의 일생</h3>
+  <ol class="stepper">
+    <li style="--wk:var(--tcp)"><b>연결을 만듭니다.</b> SYN(seq = x) → SYN+ACK(seq = y, ack = x + 1) → ACK(ack = y + 1). 1 RTT가 걸립니다. <span class="ex"><a href="#s25" data-go="25">예시 25–29</a></span></li>
+    <li style="--wk:var(--tcp)"><b>보내는 양을 정합니다.</b> 한 번에 보내는 양은 min(cwnd, rwnd)입니다. rwnd는 받는 쪽의 남은 버퍼입니다(흐름 제어). cwnd는 보내는 쪽이 네트워크를 위해 정한 상한입니다(혼잡 제어). <span class="ex"><a href="#s31" data-go="31">예시 31</a></span></li>
+    <li style="--wk:var(--tcp)"><b>cwnd를 키웁니다.</b> cwnd &lt; ssthresh이면 슬로 스타트입니다: RTT마다 두 배. cwnd ≥ ssthresh이면 혼잡 회피입니다: RTT마다 +1 MSS. <span class="ex"><a href="#s31" data-go="31">예시 31–33</a></span></li>
+    <li style="--wk:var(--tcp)"><b>손실에 대응합니다.</b> 중복 ACK 3개: 빠른 재전송, ssthresh = cwnd / 2, cwnd를 절반 근처로. 타임아웃: 재전송, ssthresh = cwnd / 2, cwnd = 1 MSS, RTO 두 배. <span class="ex"><a href="#s34" data-go="34">예시 34–38</a>, <a href="#s44" data-go="44">44</a></span></li>
+    <li style="--wk:var(--tcp)"><b>연결을 닫습니다.</b> 각 방향을 FIN과 ACK로 따로 닫습니다. 먼저 닫은 쪽은 TIME_WAIT로 기다립니다. <span class="ex"><a href="#s39" data-go="39">예시 39–41</a></span></li>
+  </ol>
+  <div class="fig" id="fig-ladder"></div>
+  <p class="cap small muted">그림 7. 연결의 일생. 화살표가 아래로 기운 것은 전달에 시간이 걸리기 때문입니다. 양옆의 글자는 각 쪽의 TCP 상태입니다.</p>
+  <div class="fig" id="fig-cwnd"></div>
+  <p class="cap small muted">그림 8. cwnd의 모양. 손실 신호의 종류에 따라 줄이는 양이 다릅니다.</p>
+
+  <h3>E. 망이 바뀔 때</h3>
+  <ol class="stepper">
+    <li style="--wk:var(--rt)"><b>감지합니다.</b> 인터페이스가 꺼지면 바로 압니다. 조용한 고장은 Dead 간격이 끝나야 압니다. 감지 전에는 옛 표대로 보내고 패킷이 없어집니다. <span class="ex"><a href="#s42" data-go="42">예시 42–45</a></span></li>
+    <li style="--wk:var(--rt)"><b>알리고 다시 계산합니다.</b> 바뀐 링크를 LSA로 플러딩합니다. 모든 라우터가 다익스트라를 다시 실행하고 표를 바꿉니다. <span class="ex"><a href="#s45" data-go="45">예시 45–46</a></span></li>
+    <li style="--wk:var(--tcp)"><b>끝점이 다시 보냅니다.</b> 끝점은 망의 복구를 모릅니다. 다음 재전송 때 새 경로로 갑니다. 그러므로 사용자가 느끼는 중단은 재수렴보다 길 수 있습니다. <span class="ex"><a href="#s47" data-go="47">예시 47</a></span></li>
+  </ol>
+  <div class="fig" id="fig-fail"></div>
+  <p class="cap small muted">그림 9. 조용한 고장의 시간표. 막대를 움직이십시오. OSPF 기본값(Hello 10초, Dead 40초)과 Linux의 SYN 재전송 시각을 썼습니다. 마지막 Hello가 고장 몇 초 전이었는지에 따라 감지는 고장 뒤 30–40초 사이에 일어납니다. 이 그림은 2초 전으로 둡니다.</p>
+
+  <div class="box steps">
+    <span class="tag">절차 · 처음 보는 네트워크나 캡처를 이해하는 방법</span>
+    <ol>
+      <li>장치 하나를 고르십시오.</li>
+      <li>그 장치가 읽는 표를 위의 표에서 찾으십시오.</li>
+      <li>그 표에 값이 있는지 확인하십시오. 없으면 그 장치가 먼저 보내는 패킷(DNS 질의, ARP 요청, 플러딩)을 찾으십시오.</li>
+      <li>링크 하나를 건널 때마다 바뀐 헤더 값을 위의 경고 상자와 비교하십시오. 다른 값이 바뀌었으면 NAT나 프록시 같은 중간 장치가 있습니다.</li>
+      <li>같은 동작을 다시 했을 때 패킷이 줄었으면 어느 표의 값이 남아 있었는지 찾으십시오. 그 값의 TTL이나 시간을 확인하십시오.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="sec" id="setup">
+  <h2><span class="n">3</span>예시 네트워크</h2>
+  <p>이 페이지의 네트워크는 설명용입니다. 측정한 네트워크가 아닙니다. 실제 측정값으로 한 번 따라가려면 <a href="flow.html">요청 따라가기</a>를 읽으십시오.</p>
+  <div class="tbl"><table>
+    <tr><th>장치</th><th>IP 주소</th><th>MAC 주소</th><th>연결</th></tr>
+    <tr><td>노트북</td><td><code>192.168.1.10/24</code> (DHCP로 받음)</td><td><code>02:00:00:00:00:0a</code></td><td>스위치 포트 1</td></tr>
+    <tr><td>리졸버</td><td><code>192.168.1.53</code></td><td><code>02:00:00:00:00:35</code></td><td>스위치 포트 2</td></tr>
+    <tr><td>R1 (게이트웨이, DHCP 서버, NAT)</td><td>LAN 쪽 <code>192.168.1.1</code>, NAT 공인 주소 <code>203.0.113.5</code></td><td>LAN 쪽 <code>02:00:00:00:00:01</code></td><td>스위치 포트 3, R2, R3</td></tr>
+    <tr><td>R2 (인터넷 출구)</td><td>라우터 ID <code>2.2.2.2</code></td><td>링크마다 다름</td><td>R1, R3, 인터넷</td></tr>
+    <tr><td>R3</td><td>라우터 ID <code>3.3.3.3</code></td><td>링크마다 다름</td><td>R1, R2, 서버의 서브넷</td></tr>
+    <tr><td>서버 (<code>www.example.com</code>)</td><td><code>198.51.100.20</code></td><td><code>02:00:00:00:00:14</code></td><td>R3</td></tr>
+    <tr><td>루트 서버 <code>a.root-servers.net</code></td><td><code>198.41.0.4</code></td><td>—</td><td>인터넷</td></tr>
+    <tr><td>.com TLD 서버 <code>a.gtld-servers.net</code></td><td><code>192.5.6.30</code></td><td>—</td><td>인터넷</td></tr>
+    <tr><td>권한 서버 <code>ns1.example.com</code></td><td><code>192.0.2.53</code></td><td>—</td><td>인터넷</td></tr>
+  </table></div>
+  <p class="small muted">루트 서버와 .com 서버의 주소는 실제 주소입니다. 나머지 주소는 문서용 예시 주소(RFC 5737)와 사설 주소입니다. OSPF 링크 비용: R1–R2 10, R2–R3 10, R1–R3 30.</p>
+
+  <div class="box warn">
+    <span class="tag">가정 · 이 예시가 단순하게 만든 부분</span>
+    <ol>
+      <li>노트북은 유선 이더넷으로 스위치에 연결됩니다. Wi-Fi 프레임은 주소 칸이 3–4개이므로 다릅니다.</li>
+      <li>노트북은 HTTP(포트 80)를 씁니다. HTTPS이면 TCP 연결 뒤에 TLS 단계가 더 있습니다. TLS는 이 강의의 범위 밖입니다.</li>
+      <li>처음에는 모든 표가 비어 있습니다. 예외는 다음과 같습니다.
+        <ul>
+          <li>리졸버의 ARP 표에 R1이 있습니다.</li>
+          <li>각 라우터는 이웃 라우터의 MAC 주소를 압니다. R3은 서버의 MAC 주소를 압니다.</li>
+          <li>리졸버는 루트 서버의 주소를 설정 파일(root hints)로 압니다.</li>
+        </ul></li>
+      <li>OSPF에서 프리픽스의 비용은 그 프리픽스를 알린 라우터까지의 비용으로 둡니다.</li>
+      <li>TCP는 교재의 TCP Reno를 따릅니다.
+        <ul>
+          <li>cwnd의 처음 값은 1 MSS입니다. Linux의 처음 값은 10 MSS입니다.</li>
+          <li>MSS는 1460바이트입니다.</li>
+          <li>노트북은 세그먼트마다 ACK를 보냅니다. 지연 ACK는 쓰지 않습니다.</li>
+          <li>SACK와 윈도우 스케일 옵션은 쓰지 않습니다.</li>
+          <li>ISN은 읽기 쉽게 1000과 5000으로 둡니다. 실제 ISN은 예측하기 어려운 값입니다.</li>
+          <li>노트북의 수신 버퍼는 64,240바이트입니다. <code>curl</code>은 순서대로 도착한 데이터를 바로 읽습니다.</li>
+        </ul></li>
+      <li>그림의 "인터넷"은 R2와 DNS 서버 사이의 라우터들입니다. 이 페이지는 그 라우터들을 그리지 않습니다.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="sec" id="play">
+  <h2><span class="n">4</span>예시로 따라가기</h2>
+  <p>2절의 일반 흐름을 한 네트워크에서 52단계로 실행합니다. 각 단계의 맨 위 칸은 그 단계의 <b>일반 규칙</b>입니다. 그 아래는 이 예시의 값입니다.</p>
+  <noscript><div class="box warn"><span class="tag">JavaScript 필요</span><p>이 페이지는 JavaScript로 단계를 보입니다. JavaScript를 켜십시오.</p></div></noscript>
+  <div class="box warn js-err" id="js-err" hidden><span class="tag">스크립트 오류</span><p>페이지의 스크립트가 멈췄습니다: <code></code>. 브라우저에서 강력 새로 고침(Ctrl+Shift+R)을 하십시오. 그래도 남으면 이 문장을 알려 주십시오.</p></div>
+  <div class="phases" id="phases" role="toolbar" aria-label="구간"></div>
+
+  <div class="stage" id="stage">
+    <div class="stage-head">
+      <span class="stage-title" id="stage-title"></span>
+      <label class="pin"><input type="checkbox" id="pin" checked> 그림을 화면 위에 고정</label>
+    </div>
+    <figure class="dg">
+      <svg id="topo" viewBox="0 0 760 395" role="img" aria-label="예시 네트워크: 노트북과 리졸버가 스위치에 연결되고, 스위치는 R1에, R1은 R2와 R3에, R3은 서버에 연결됩니다. R2 위에는 인터넷을 거쳐 루트, .com, 권한 DNS 서버가 있습니다."></svg>
+      <figcaption id="clock" class="clock"></figcaption>
+    </figure>
+    <div class="dock" role="group" aria-label="단계 조작">
+      <button class="btn" type="button" id="b-first" aria-label="처음 단계">⏮</button>
+      <button class="btn" type="button" id="b-prev">← 이전</button>
+      <button class="btn primary" type="button" id="b-next">다음 →</button>
+      <button class="btn" type="button" id="b-play" aria-pressed="false">▶ 자동</button>
+      <button class="btn" type="button" id="b-again" aria-label="움직임 다시 보기">↻</button>
+      <input type="range" id="b-range" min="0" value="0" aria-label="단계 번호">
+      <span class="pos" id="b-pos"></span>
+    </div>
+  </div>
+
+  <div id="steps" aria-live="polite"></div>
+
+  <div class="viz" id="viz"></div>
+
+  <h3>패킷</h3>
+  <div id="pkt"></div>
+
+  <h3>장치의 표</h3>
+  <div class="st-bar">
+    <label class="small"><input type="checkbox" id="only-chg"> 바뀐 표만 보기</label>
+    <span class="key"><span><i style="background:var(--example-soft);outline:var(--hair) solid var(--example)"></i>새 줄</span><span><i style="background:var(--check-soft);outline:var(--hair) solid var(--check)"></i>바뀐 줄</span><span><i style="background:var(--warn-soft);outline:var(--hair) solid var(--warn)"></i>지운 줄</span></span>
+  </div>
+  <div class="st-grid" id="state"></div>
+</section>
+
+<!-- 5 -->
+<section class="sec all" id="all">
+  <h2><span class="n">5</span>전체 단계 목록</h2>
+  <p>단계의 제목만 모았습니다. 제목을 누르면 그 단계로 갑니다.</p>
+  <div id="all-list"></div>
+</section>
+
+<!-- quiz -->
+<section class="sec" id="quiz">
+  <h2><span class="n">✓</span>스스로 확인하기</h2>
+  <div class="box check">
+    <span class="tag">확인 질문</span>
+    <details class="q"><summary>노트북은 리졸버(<code>192.168.1.53</code>)에 보낼 때와 서버(<code>198.51.100.20</code>)에 보낼 때 서로 다른 주소를 ARP로 찾습니다. 각각 어느 주소입니까?</summary>
+      <div class="a">리졸버는 같은 서브넷에 있습니다. 그러므로 노트북은 <code>192.168.1.53</code>을 찾습니다. 서버는 서브넷 밖에 있습니다. 그러므로 노트북은 게이트웨이 <code>192.168.1.1</code>을 찾습니다. ARP로 찾는 주소는 언제나 다음 홉의 주소입니다.</div></details>
+    <details class="q"><summary>SYN이 R1을 지날 때 바뀌는 값을 모두 쓰십시오.</summary>
+      <div class="a">이더넷: 목적지 MAC과 출발지 MAC, FCS. IP: 출발지 주소(NAT), TTL(64 → 63), 헤더 체크섬. TCP: 출발지 포트(NAT), 체크섬. 목적지 IP 주소와 목적지 포트는 바뀌지 않습니다.</div></details>
+    <details class="q"><summary>단계 34에서 수신 윈도우는 44 MSS이고 cwnd는 8 MSS입니다. 서버는 한 번에 몇 세그먼트를 보낼 수 있습니까?</summary>
+      <div class="a">8개입니다. 보낼 수 있는 양은 min(cwnd, rwnd)입니다. 64,240바이트 ÷ 1460바이트 = 44 MSS이므로 이 단계에서는 cwnd가 양을 제한합니다.</div></details>
+    <details class="q"><summary>R2–R3 링크가 고장 난 뒤 R1의 표가 바뀔 때까지 38초가 걸렸습니다. 다익스트라 계산이 느렸기 때문입니까?</summary>
+      <div class="a">아닙니다. 링크가 조용히 고장 나면 R2와 R3은 Dead 간격(40초)이 끝나야 이웃이 없어진 것을 압니다. LSA 플러딩과 다익스트라는 그 뒤에 짧게 끝납니다. 6주차의 결론과 같습니다: 계산보다 감지가 느립니다.</div></details>
+    <details class="q"><summary>첫 요청의 300초 뒤에 같은 이름을 다시 해석하면 리졸버는 질의를 몇 번 보냅니까? 왜 그렇습니까?</summary>
+      <div class="a">한 번입니다. <code>www.example.com</code>의 A 레코드(TTL 300초)는 지워졌습니다. 그러나 <code>example.com</code>의 NS 레코드와 glue(TTL 172,800초)는 캐시에 남아 있습니다. 그러므로 리졸버는 루트와 .com 서버를 건너뛰고 권한 서버에 바로 질의합니다.</div></details>
+  </div>
+</section>
+
+<div class="pager">
+  <a href="flow.html"><small>이전</small>← 요청 한 번 따라가기</a>
+  <a class="next" href="w03-dns.html"><small>다음</small>3주차 · DNS와 CDN →</a>
+</div>
+</main>
+</div>
+</body>
+</html>

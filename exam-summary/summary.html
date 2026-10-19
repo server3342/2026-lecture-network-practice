@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>네트워크 시험 요약집</title>
+<style>
+:root{
+  --ink:#111; --mute:#555; --rule:#bbb; --soft:#f2f2f2;
+  --D:#1f5fbf; --T:#b34700; --I:#2e7d32; --R:#7b1fa2; --E:#c62828; --C:#00695c; --X:#455a64; --H:#6d4c41; --Q:#000;
+}
+@page{ size:A4 portrait; margin:11mm 10mm 12mm 10mm;
+  @bottom-right{ content:"p. " counter(page); font:8pt sans-serif; color:#555; }
+  @bottom-left{ content:"컴퓨터네트워크 실습 2–7주차 · 시험 요약집 (ASD-STE100 형식)"; font:7.5pt sans-serif; color:#777; }
+}
+*{ box-sizing:border-box; }
+html{ background:#ddd; }
+body{ margin:0 auto; background:#fff; color:var(--ink);
+  font:8.6pt/1.32 "Noto Sans CJK KR","Noto Sans KR","Noto Sans","Segoe UI",Arial,sans-serif;
+  max-width:210mm; padding:10mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+@media print{ html{background:#fff;} body{ padding:0; max-width:none; } }
+@media screen and (max-width:700px){ body{ padding:16px; } .cols{ columns:1 !important; } .grid2{ grid-template-columns:1fr !important; } }
+
+section{ break-before:page; }
+section.first{ break-before:auto; }
+h1{ font-size:15pt; margin:0 0 2mm; }
+h2{ font-size:11.5pt; margin:0 0 2mm; padding:1.2mm 2mm; color:#fff; display:flex; justify-content:space-between; align-items:baseline; }
+h2 .ko{ font-weight:400; font-size:9pt; }
+h3{ font-size:9.4pt; margin:2.4mm 0 1mm; padding-left:1.6mm; border-left:2.2mm solid currentColor; break-after:avoid; }
+h3 .id{ display:inline-block; min-width:9mm; font-family:monospace; }
+p{ margin:0 0 1mm; }
+ul,ol{ margin:0 0 1mm; padding-left:4.2mm; }
+li{ margin:0 0 .3mm; }
+table{ border-collapse:collapse; width:100%; margin:0 0 1.4mm; break-inside:avoid; }
+table.idx{ break-inside:auto; font-size:7.8pt; }
+.idx td{ padding:.25mm 1mm; }
+th,td{ border:0.6pt solid var(--rule); padding:.5mm 1.1mm; text-align:left; vertical-align:top; }
+th{ background:var(--soft); font-weight:700; }
+code,pre,.m{ font-family:"JetBrains Mono","DejaVu Sans Mono",Consolas,"Noto Sans Mono CJK KR",monospace; font-size:7.6pt; }
+pre{ margin:0 0 1.4mm; padding:1.2mm 1.6mm; background:#f6f6f6; border:0.6pt solid #ccc; white-space:pre-wrap; break-inside:avoid; line-height:1.22; }
+.cols{ columns:2; column-gap:5mm; }
+.cols > *{ break-inside:avoid; }
+.grid2{ columns:2; column-gap:5mm; }
+.grid2 > div{ display:contents; }
+.grid2 table,.grid2 ul,.grid2 ol,.grid2 p{ break-inside:avoid; }
+.box{ border:0.8pt solid #888; padding:1mm 1.6mm; margin:0 0 1.4mm; break-inside:avoid; }
+.warn{ border-left:2mm solid #c62828; background:#fff3f3; padding:.8mm 1.6mm; margin:0 0 1.4mm; break-inside:avoid; }
+.k{ font-weight:700; }
+.C .grid2{ columns:1; }
+.C pre{ white-space:pre; font-size:7.4pt; overflow:hidden; }
+.C .grid2 > div:first-child > table{ width:auto; }
+.tag{ display:inline-block; font:700 7.4pt monospace; padding:0 1mm; color:#fff; border-radius:1mm; }
+.D h2,.D h3{ } .D h2{ background:var(--D);} .D h3{ color:var(--D);}
+.T h2{ background:var(--T);} .T h3{ color:var(--T);}
+.I h2{ background:var(--I);} .I h3{ color:var(--I);}
+.R h2{ background:var(--R);} .R h3{ color:var(--R);}
+.E h2{ background:var(--E);} .E h3{ color:var(--E);}
+.C h2{ background:var(--C);} .C h3{ color:var(--C);}
+.X h2{ background:var(--X);} .X h3{ color:var(--X);}
+.H h2{ background:var(--H);} .H h3{ color:var(--H);}
+.Q h2{ background:var(--Q);} .Q h3{ color:#000;}
+h3 > *, h3{ } h3 span.t{ color:var(--ink); }
+.tD{background:var(--D)} .tT{background:var(--T)} .tI{background:var(--I)} .tR{background:var(--R)} .tE{background:var(--E)} .tC{background:var(--C)} .tX{background:var(--X)} .tH{background:var(--H)} .tQ{background:#000}
+.idx td:first-child{ white-space:nowrap; }
+.small{ font-size:7.6pt; color:var(--mute); }
+</style>
+</head>
+<body>
+
+<!-- ============================ 색인 ============================ -->
+<section class="first Q">
+<h1>컴퓨터네트워크 실습 2–7주차 · 오픈북 핵심 요약</h1>
+<p class="small">ASD-STE100 원칙으로 썼다. 한 문장에 한 내용만 쓴다. 문장은 짧게 쓴다. 능동형으로 쓴다. 같은 대상에는 항상 같은 용어를 쓴다. 코드는 이 저장소에서 <code>--verify</code>와 <code>bench.py</code>를 통과한 코드다. "측정"이라고 쓴 수치는 <code>wNN/out/</code>의 결과다.</p>
+
+<h2>0 · 이 책 사용법 <span class="ko">HOW TO USE</span></h2>
+<ol>
+<li>아래 가나다·ABC 색인에서 키워드를 찾는다. 오른쪽 절 코드(예: <b>T4</b>)로 간다.</li>
+<li>색 하나가 한 주차다. 모든 소제목 앞에 절 코드가 있다.</li>
+<li>코드 문제는 먼저 <b>C절</b>을 본다. 모든 주차의 코드 패턴과 함정이 있다.</li>
+<li>"왜" 문제는 각 주차의 <b>왜</b> 항목을 본다. 시험식 답이 정리되어 있다.</li>
+</ol>
+
+<table>
+<tr><th>코드</th><th>주차 · 주제</th><th>코드</th><th>주차 · 주제</th></tr>
+<tr><td><span class="tag tQ">A</span></td><td>숫자·공식 한 장</td><td><span class="tag tR">R</span></td><td>6주차 라우팅: Dijkstra, DV, OSPF, BGP, ICMP</td></tr>
+<tr><td><span class="tag tH">H</span></td><td>2주차 HTTP, 에이전트 실습</td><td><span class="tag tE">E</span></td><td>7주차 이더넷, ARP, 스위치, MAC</td></tr>
+<tr><td><span class="tag tD">D</span></td><td>3주차 DNS, CDN, DASH</td><td><span class="tag tC">C</span></td><td>코드 패턴과 함정 (전 주차)</td></tr>
+<tr><td><span class="tag tT">T</span></td><td>4주차 TCP: rdt, 핸드셰이크, 혼잡 제어</td><td><span class="tag tX">X</span></td><td>명령어: dig, tshark, ip, arp, traceroute</td></tr>
+<tr><td><span class="tag tI">I</span></td><td>5주차 IP, CIDR, LPM, NAT, DHCP</td><td></td><td></td></tr>
+</table>
+
+<h3><span class="id">IDX</span> 키워드 색인 <span class="small">(가나다 → ABC)</span></h3>
+<div class="cols" style="columns:3;column-gap:3mm">
+<table class="idx">
+<tr><td>가장 긴 접두사 (LPM)</td><td>I3, C6, C7</td></tr>
+<tr><td>거리 벡터 (DV, Bellman-Ford)</td><td>R2</td></tr>
+<tr><td>게이트웨이</td><td>I4, E2</td></tr>
+<tr><td>권한 서버 (authoritative)</td><td>D1</td></tr>
+<tr><td>권한 응답 플래그 (AA)</td><td>D3</td></tr>
+<tr><td>누적 ACK</td><td>T1, T3</td></tr>
+<tr><td>다음 홉 / 첫 홉</td><td>R1, C8</td></tr>
+<tr><td>대역폭·지연 곱 (BDP)</td><td>A, T5</td></tr>
+<tr><td>동일 비용 다중 경로 (ECMP)</td><td>R3, R6</td></tr>
+<tr><td>동점 규칙 (tie-break)</td><td>R1, C8</td></tr>
+<tr><td>링크 상태 (link state)</td><td>R1, R3</td></tr>
+<tr><td>만료된 답 (stale)</td><td>D4</td></tr>
+<tr><td>무한 카운트 (count to infinity)</td><td>R2</td></tr>
+<tr><td>반복 질의 / 재귀 질의</td><td>D1, C2</td></tr>
+<tr><td>브로드캐스트 주소</td><td>I2, E1</td></tr>
+<tr><td>비트 마스크·시프트</td><td>I2, C1</td></tr>
+<tr><td>비트 트라이 (trie)</td><td>I6, C7</td></tr>
+<tr><td>사설 주소 (RFC 1918)</td><td>I4</td></tr>
+<tr><td>서브넷 (CIDR)</td><td>I2, C6</td></tr>
+<tr><td>선택적 반복 (SR)</td><td>T1, C4</td></tr>
+<tr><td>수신 윈도우 (rwnd)</td><td>T4</td></tr>
+<tr><td>순서 번호 초기값 (ISN)</td><td>T3</td></tr>
+<tr><td>스위치 학습</td><td>E3, C10</td></tr>
+<tr><td>애니캐스트 (anycast)</td><td>D5, R5</td></tr>
+<tr><td>에이징 (aging)</td><td>E3, C10</td></tr>
+<tr><td>위임 (delegation, referral)</td><td>D1, D3</td></tr>
+<tr><td>이용률 (utilization)</td><td>A, T1</td></tr>
+<tr><td>점진 증가·곱셈 감소 (AIMD)</td><td>T5, T6, C5</td></tr>
+<tr><td>주소 변환 (NAT)</td><td>I4</td></tr>
+<tr><td>중복 패킷</td><td>T1, C4</td></tr>
+<tr><td>증분 SPF</td><td>R7, C9</td></tr>
+<tr><td>최단 경로 (Dijkstra)</td><td>R1, C8</td></tr>
+<tr><td>캐시·TTL</td><td>D4, C3</td></tr>
+<tr><td>타임아웃 계산</td><td>A2, T2</td></tr>
+<tr><td>포트 보안 (port security)</td><td>E5</td></tr>
+<tr><td>플러딩 (스위치)</td><td>E3, E5</td></tr>
+<tr><td>플러딩 (LSA)</td><td>R3</td></tr>
+<tr><td>핸드셰이크 (3-way)</td><td>T3</td></tr>
+<tr><td>혼잡 붕괴</td><td>T6</td></tr>
+<tr><td>혼잡 윈도우 (cwnd)</td><td>T4, T5</td></tr>
+<tr><td>ARP 요청·응답</td><td>E2</td></tr>
+<tr><td>BGP</td><td>R4</td></tr>
+<tr><td>CGNAT 100.64/10</td><td>I4</td></tr>
+<tr><td>CNAME 체인</td><td>D2, D5</td></tr>
+<tr><td>Count-min sketch</td><td>E5, C11</td></tr>
+<tr><td>CRC / 패리티</td><td>E4</td></tr>
+<tr><td>CSMA/CD, 백오프</td><td>E4</td></tr>
+<tr><td>DASH</td><td>D5</td></tr>
+<tr><td>DHCP DORA</td><td>I5</td></tr>
+<tr><td>DIR-24-8</td><td>I6, C7</td></tr>
+<tr><td>Fast retransmit (중복 ACK 3개)</td><td>T5</td></tr>
+<tr><td>Glue 레코드</td><td>D1, D3</td></tr>
+<tr><td>Go-Back-N</td><td>T1</td></tr>
+<tr><td>heapq</td><td>C0, C8</td></tr>
+<tr><td>Hello / Dead 간격</td><td>R3, R6</td></tr>
+<tr><td>HOL 블로킹</td><td>I1, H1</td></tr>
+<tr><td>HTTP 지속 연결·RTT</td><td>H1</td></tr>
+<tr><td>ICMP / traceroute</td><td>R5</td></tr>
+<tr><td>IPv4 / IPv6 헤더</td><td>I1</td></tr>
+<tr><td>MAC 주소, 프레임</td><td>E1</td></tr>
+<tr><td>MAC flooding 공격</td><td>E5</td></tr>
+<tr><td>MinLSArrival</td><td>R6</td></tr>
+<tr><td>MSS / window scale / SACK</td><td>T3</td></tr>
+<tr><td>NS 레코드</td><td>D2</td></tr>
+<tr><td>OSPF</td><td>R3, R6</td></tr>
+<tr><td>Poisoned reverse</td><td>R2</td></tr>
+<tr><td>Slow start / ssthresh</td><td>T5</td></tr>
+<tr><td>Stop-and-wait</td><td>T1</td></tr>
+<tr><td>STP / VLAN</td><td>E4</td></tr>
+<tr><td>TTL (DNS와 IP는 다름)</td><td>D4, I1</td></tr>
+<tr><td>UDP 53 / TCP 53</td><td>D3</td></tr>
+<tr><td>/31, /32 (RFC 3021)</td><td>I2</td></tr>
+<tr><td>0.0.0.0/0 기본 경로</td><td>I3</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ============================ A ============================ -->
+<section class="Q">
+<h2>A · 숫자와 공식 <span class="ko">한 장 요약</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">A1</span> 지연과 처리량</h3>
+<table>
+<tr><th>항목</th><th>공식</th></tr>
+<tr><td>전송 지연</td><td>d<sub>trans</sub> = L / R</td></tr>
+<tr><td>전파 지연</td><td>d<sub>prop</sub> = 거리 / 속도 (≈2×10<sup>8</sup> m/s)</td></tr>
+<tr><td>노드 지연</td><td>d<sub>proc</sub> + d<sub>queue</sub> + d<sub>trans</sub> + d<sub>prop</sub></td></tr>
+<tr><td>트래픽 강도</td><td>La / R. 1보다 작게 유지한다.</td></tr>
+<tr><td>Stop-and-wait 이용률</td><td>U = (L/R) / (RTT + L/R)</td></tr>
+<tr><td>파이프라인 (N개)</td><td>U = N·(L/R) / (RTT + L/R)</td></tr>
+<tr><td>BDP (파이프 크기)</td><td>R × RTT</td></tr>
+<tr><td>TCP 처리량</td><td>≈ cwnd / RTT. AIMD 평균 ≈ 0.75·W / RTT</td></tr>
+<tr><td>송신 한도</td><td>LastByteSent − LastByteAcked ≤ min(cwnd, rwnd)</td></tr>
+<tr><td>스케일 적용 윈도우</td><td>rwnd = Window 필드 × 2<sup>shift</sup></td></tr>
+</table>
+<h3><span class="id">A2</span> TCP 타이머 (RFC 6298)</h3>
+<pre>EstimatedRTT = 0.875·EstimatedRTT + 0.125·SampleRTT
+DevRTT       = 0.75·DevRTT + 0.25·|SampleRTT − EstimatedRTT|
+TimeoutInterval = EstimatedRTT + 4·DevRTT   (초기값 1초, 타임아웃마다 2배)</pre>
+<h3><span class="id">A3</span> 서브넷 계산</h3>
+<table>
+<tr><th>항목</th><th>공식</th></tr>
+<tr><td>마스크</td><td>(0xFFFFFFFF &lt;&lt; (32−p)) &amp; 0xFFFFFFFF</td></tr>
+<tr><td>네트워크 주소</td><td>addr &amp; mask</td></tr>
+<tr><td>브로드캐스트</td><td>net | (~mask &amp; 0xFFFFFFFF)</td></tr>
+<tr><td>주소 개수</td><td>2<sup>32−p</sup></td></tr>
+<tr><td>호스트 개수</td><td>2<sup>32−p</sup> − 2 (p ≤ 30)</td></tr>
+<tr><td>/31, /32</td><td>호스트 2개, 1개. 브로드캐스트 없음.</td></tr>
+</table>
+</div>
+<div>
+<h3><span class="id">A4</span> 접두사 표</h3>
+<table>
+<tr><th>/p</th><th>마스크</th><th>주소 수</th><th>호스트</th></tr>
+<tr><td>/8</td><td>255.0.0.0</td><td>16,777,216</td><td>16,777,214</td></tr>
+<tr><td>/12</td><td>255.240.0.0</td><td>1,048,576</td><td>…</td></tr>
+<tr><td>/16</td><td>255.255.0.0</td><td>65,536</td><td>65,534</td></tr>
+<tr><td>/20</td><td>255.255.240.0</td><td>4,096</td><td>4,094</td></tr>
+<tr><td>/22</td><td>255.255.252.0</td><td>1,024</td><td>1,022</td></tr>
+<tr><td>/24</td><td>255.255.255.0</td><td>256</td><td>254</td></tr>
+<tr><td>/25</td><td>.128</td><td>128</td><td>126</td></tr>
+<tr><td>/26</td><td>.192</td><td>64</td><td>62</td></tr>
+<tr><td>/27</td><td>.224</td><td>32</td><td>30</td></tr>
+<tr><td>/28</td><td>.240</td><td>16</td><td>14</td></tr>
+<tr><td>/29</td><td>.248</td><td>8</td><td>6</td></tr>
+<tr><td>/30</td><td>.252</td><td>4</td><td>2</td></tr>
+</table>
+<h3><span class="id">A5</span> 포트·번호</h3>
+<table>
+<tr><td>DNS</td><td>UDP/TCP 53</td><td>DHCP</td><td>UDP 67 서버, 68 클라이언트</td></tr>
+<tr><td>HTTP/HTTPS</td><td>80 / 443</td><td>QUIC</td><td>UDP 443</td></tr>
+<tr><td>IP 프로토콜</td><td>1 ICMP, 6 TCP, 17 UDP, 89 OSPF</td><td>BGP</td><td>TCP 179</td></tr>
+<tr><td>EtherType</td><td>0x0800 IPv4, 0x0806 ARP, 0x86DD IPv6, 0x8100 VLAN</td><td>ARP opcode</td><td>1 요청, 2 응답</td></tr>
+<tr><td>헤더 크기</td><td>IPv4 20 B, IPv6 40 B, TCP 20 B, UDP 8 B, DNS 12 B</td><td>이더넷</td><td>페이로드 46–1500 B, CRC 4 B</td></tr>
+<tr><td>ICMP</td><td>0/8 echo, 3 도달 불가, 11 TTL 초과</td><td>OSPF 타이머</td><td>Hello 10초, Dead 40초</td></tr>
+<tr><td>스위치 에이징</td><td>300초</td><td>루트 서버</td><td>이름 13개 (a–m)</td></tr>
+</table>
+<h3><span class="id">A6</span> 실습 bench 결과 (측정)</h3>
+<table>
+<tr><th>주</th><th>baseline</th><th>내 결과</th></tr>
+<tr><td>3</td><td>upstream 325, stale 266</td><td>275, stale 0 (= 하한)</td></tr>
+<tr><td>4</td><td>goodput 986.8, 손실 37.4%, 큐 8.8</td><td>946.2 (96%), 2.0%, 큐 4.1</td></tr>
+<tr><td>5</td><td>초당 1,559회 조회</td><td>초당 410만 회, 2640배</td></tr>
+<tr><td>6</td><td>SPF 1001회</td><td>177회 (82% 절감)</td></tr>
+<tr><td>7</td><td>낭비 전달 323,380</td><td>159,712 (−51%)</td></tr>
+</table>
+</div>
+</div>
+</section>
+
+<!-- ============================ H ============================ -->
+<section class="H">
+<h2>H · 2주차 · HTTP와 에이전트 실습 <span class="ko">§2.1–2.2</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">H1</span> HTTP 핵심</h3>
+<ul>
+<li>HTTP는 클라이언트–서버 프로토콜이다. TCP 80을 쓴다(HTTPS는 443).</li>
+<li>HTTP는 <b>무상태(stateless)</b>다. 서버는 클라이언트 상태를 보관하지 않는다. 쿠키가 상태를 더한다.</li>
+<li><b>비지속 연결</b>: 객체마다 TCP 연결을 하나 연다. 객체 하나에 2·RTT + 전송 시간이 든다.</li>
+<li><b>지속 연결</b>(HTTP/1.1 기본): 연결 하나로 여러 객체를 보낸다. 첫 객체는 2·RTT, 다음 객체는 약 1·RTT다.</li>
+<li>HTTP/1.1은 객체를 차례대로 보낸다. 큰 객체가 작은 객체를 막는다(<b>HOL 블로킹</b>).</li>
+<li>HTTP/2는 객체를 <b>프레임</b>으로 나누고 한 TCP 연결에 섞어 보낸다. 그래도 TCP 손실은 모든 스트림을 막는다.</li>
+<li>HTTP/3는 UDP 위의 <b>QUIC</b>을 쓴다. 스트림마다 신뢰성을 따로 처리한다. 한 스트림의 손실이 다른 스트림을 막지 않는다. 전송·TLS 핸드셰이크를 합친다(1 RTT, 재접속 0-RTT).</li>
+<li>웹 캐시(프록시)는 응답 시간과 접속 링크 부하를 줄인다. 조건부 GET은 <code>If-Modified-Since</code>를 보낸다. 바뀌지 않았으면 <code>304 Not Modified</code>가 온다.</li>
+</ul>
+</div>
+<div>
+<h3><span class="id">H2</span> 상태 코드와 메서드</h3>
+<table>
+<tr><td>200 OK</td><td>301 Moved Permanently</td></tr>
+<tr><td>304 Not Modified</td><td>400 Bad Request</td></tr>
+<tr><td>404 Not Found</td><td>505 HTTP Version Not Supported</td></tr>
+</table>
+<p>메서드: GET, POST, HEAD, PUT, DELETE. 요청 줄은 <code>GET /path HTTP/1.1</code>이고, 다음에 <code>Host:</code> 헤더가 온다. 빈 줄이 헤더의 끝이다.</p>
+<h3><span class="id">H3</span> 에이전트 실습 요점</h3>
+<ul>
+<li>Task 1: 에이전트가 자료(HTTP/QUIC의 RFC, 논문)를 모은다.</li>
+<li>Task 2: 주장을 하나씩 직접 확인한다. 틀린 주장의 수를 센다.</li>
+<li>Task 3: 작업 설정(AGENTS.md)을 개선한다. 다시 센다.</li>
+<li>요점: "완성되어 보인다"와 "맞다"는 다르다. 모든 주장을 원문과 대조한다.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ D ============================ -->
+<section class="D">
+<h2>D · 3주차 · DNS, CDN <span class="ko">§2.4.2–2.4.3, §2.5</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">D1</span> 계층과 이름 풀이</h3>
+<ul>
+<li>DNS는 분산된 계층형 데이터베이스다. 각 단계는 아래 존(zone)을 <b>위임</b>한다.</li>
+<li>단계: <b>루트</b> → <b>TLD</b>(.com, .kr) → <b>권한 서버</b>(korea.ac.kr).</li>
+<li>루트는 호스트 주소를 모른다. 루트는 TLD 서버만 안다. 그래서 <b>위임(referral)</b>을 돌려준다.</li>
+<li>호스트는 로컬 리졸버에 <b>재귀 질의 1번</b>을 보낸다(RD=1).</li>
+<li>리졸버는 루트, TLD, 권한 서버에 <b>반복 질의</b>를 보낸다(RD=0, <code>+norecurse</code>).</li>
+<li>측정: <code>www.korea.ac.kr</code>은 서버 3곳(루트 → .kr → 학교)에 물었다.</li>
+<li><b>Glue</b> = NS 이름의 A 레코드다. Additional 섹션에 온다. NS 이름이 위임된 존 안에 있으면 부모가 glue를 준다.</li>
+<li><b>Glue 없음</b>: NS 이름이 다른 도메인에 있다. 리졸버는 NS 이름을 루트부터 먼저 풀어야 한다. 즉 두 번째 탐색이다. 측정: <code>www.nytimes.com</code>에서 질의 +3건(총 13건).</li>
+<li>실습 요구 R1–R6: (주소, 경로)를 돌려준다. 루트에서 시작한다. 재귀 질의를 쓰지 않는다. glue 없음 처리(R3). 응답 없으면 다음 서버(R4). CNAME이면 처음부터 다시(R5). 깊이 제한(R6).</li>
+</ul>
+<h3><span class="id">D2</span> 리소스 레코드 (name, value, type, TTL)</h3>
+<table>
+<tr><th>Type</th><th>Name → Value</th></tr>
+<tr><td>A / AAAA</td><td>호스트 이름 → IPv4 / IPv6</td></tr>
+<tr><td>NS</td><td>도메인 → 권한 서버의 호스트 이름</td></tr>
+<tr><td>CNAME</td><td>별칭 → 정식 이름(canonical)</td></tr>
+<tr><td>MX</td><td>도메인 → 메일 서버 이름</td></tr>
+<tr><td>SOA, PTR, TXT</td><td>존 정보; IP → 이름; 텍스트</td></tr>
+</table>
+</div>
+<div>
+<h3><span class="id">D3</span> 메시지 형식 (질의와 응답은 같은 형식)</h3>
+<table>
+<tr><th>필드</th><th>뜻</th></tr>
+<tr><td>ID (16비트)</td><td>응답을 질의와 짝짓는다.</td></tr>
+<tr><td>QR</td><td>0 질의, 1 응답</td></tr>
+<tr><td>AA</td><td>1 = 권한 서버가 직접 답했다.</td></tr>
+<tr><td>RD / RA</td><td>재귀 요청 / 재귀 가능</td></tr>
+<tr><td>TC</td><td>잘림 → TCP 53으로 다시 묻는다.</td></tr>
+<tr><td>RCODE</td><td>0 NOERROR, 3 NXDOMAIN</td></tr>
+<tr><td>개수</td><td>QD, AN, NS(authority), AR(additional)</td></tr>
+</table>
+<table>
+<tr><th></th><th>위임 응답</th><th>답변 응답</th></tr>
+<tr><td>Answer</td><td>0개</td><td>A 레코드</td></tr>
+<tr><td>Authority</td><td>NS 레코드</td><td>(NS가 올 수 있음)</td></tr>
+<tr><td>Additional</td><td>glue A</td><td>—</td></tr>
+<tr><td>AA</td><td>0</td><td>1</td></tr>
+</table>
+<p>큰 응답은 NS와 glue가 많다(IPv6 glue 포함, EDNS0로 512 B 초과).</p>
+
+<h3><span class="id">D4</span> 캐시와 TTL (Task 3)</h3>
+<ul>
+<li>TTL은 권한 서버가 정한 "이 시간까지만 믿어도 된다"는 값이다.</li>
+<li>올바른 캐시는 레코드를 <b>그 레코드의 TTL 동안만</b> 보관한다. <code>만료 시각 = now + ttl</code>을 저장한다.</li>
+<li>baseline 문제 1(정확성): 수명을 60초로 고정한다. 짧은 TTL 레코드를 만료 뒤에도 준다 → <b>stale 266건</b>.</li>
+<li>baseline 문제 2(성능): 긴 TTL 레코드도 60초 뒤 버린다 → 불필요한 상류 질의. 리스트 선형 탐색도 느리다.</li>
+<li>원인은 같다. baseline이 TTL을 버린다.</li>
+<li><b>하한</b>: 만료 뒤 첫 질의는 반드시 상류로 간다. 어떤 올바른 캐시도 이것을 피할 수 없다. 하한 = 275 = 내 결과.</li>
+<li>최악의 레코드: <code>www.microsoft.com</code>. TTL 20초이고 질의가 가장 많다(322건 중 189건 stale).</li>
+</ul>
+<h3><span class="id">D5</span> CDN, 유도(steering), DASH (Task 2)</h3>
+<ul>
+<li>사이트는 <b>CNAME 체인</b>으로 CDN을 가리킨다(예: → <code>akamaiedge.net</code>).</li>
+<li>어떤 CDN은 <b>애니캐스트</b>를 쓴다. IP 하나, 위치 여러 곳, CNAME 없음.</li>
+<li>Netflix는 netflix.com 안에서 끝난다. 자체 CDN을 운영한다.</li>
+<li>"마지막 두 레이블 비교" 규칙은 <code>www.wikipedia.org</code> → <code>wikimedia.org</code>에서 틀린다. 존은 다르지만 소유자는 같다. CNAME은 이름을 보여 줄 뿐 소유자를 보여 주지 않는다.</li>
+<li>측정: 12곳 중 10곳이 CNAME으로 CDN에 연결. 10곳 중 8곳은 리졸버를 바꾸면 답이 바뀜. 3곳(Akamai)은 네트워크를 바꾸면 바뀜.</li>
+<li>DASH: 서버는 영상을 여러 비트레이트의 청크로 나눈다. 매니페스트가 URL을 나열한다. 클라이언트는 측정한 대역폭으로 청크마다 비트레이트를 고른다.</li>
+</ul>
+</div>
+</div>
+<h3><span class="id">D6</span> 왜 — 시험식 답</h3>
+<table>
+<tr><th>질문</th><th>답</th></tr>
+<tr><td>루트는 왜 주소를 주지 않는가?</td><td>루트는 TLD 위임만 안다. 각 존의 데이터는 그 존의 소유자가 보관한다. 이렇게 부하와 관리를 나눈다.</td></tr>
+<tr><td>DNS는 왜 UDP인가?</td><td>짧은 질문 하나, 짧은 답 하나다. 핸드셰이크 비용이 없다. TCP는 큰 응답(TC=1)과 존 전송에 쓴다.</td></tr>
+<tr><td>왜 캐시하는가?</td><td>루트·TLD 질의를 없애고 지연을 줄인다. TTL은 답이 얼마나 오래되어도 되는지 제한한다.</td></tr>
+<tr><td>리졸버마다 답이 왜 다른가?</td><td>CDN은 클라이언트 IP가 아니라 리졸버 IP를 본다. 리졸버에 가까운 복제 서버를 고른다.</td></tr>
+</table>
+</section>
+
+<!-- ============================ T ============================ -->
+<section class="T">
+<h2>T · 4주차 · TCP <span class="ko">§3.4–3.5, §3.7</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">T1</span> 신뢰적 데이터 전송 (rdt)</h3>
+<table>
+<tr><th></th><th>Go-Back-N</th><th>Selective Repeat</th></tr>
+<tr><td>ACK</td><td>누적 ACK</td><td>패킷마다 ACK</td></tr>
+<tr><td>타이머</td><td>1개 (가장 오래된 것)</td><td>패킷마다 1개</td></tr>
+<tr><td>타임아웃 시</td><td>base부터 전부 재전송</td><td>그 패킷만 재전송</td></tr>
+<tr><td>수신기</td><td>순서가 틀리면 버림</td><td>순서가 틀려도 버퍼에 보관</td></tr>
+<tr><td>윈도우</td><td>≤ 2<sup>k</sup> − 1</td><td>≤ 2<sup>k−1</sup> (순번 공간의 절반)</td></tr>
+</table>
+<ul>
+<li>Stop-and-wait: 한 번에 패킷 하나만 보낸다. 쉽다. 느리다. RTT와 타임아웃마다 채널이 논다.</li>
+<li>순서 번호로 중복과 순서를 알아낸다. ACK 번호로 어떤 데이터가 도착했는지 안다.</li>
+<li><b>중복 데이터</b>: 다시 ACK한다(앞의 ACK가 손실되었을 수 있다). 다시 붙이지 않는다.</li>
+<li><b>중복 ACK</b>: <code>acked[seq]=True</code>를 다시 해도 문제없다.</li>
+<li>실습 채널: 손실 10%, 중복 3%, 순서 뒤바뀜. 선택: SR, 윈도우 8, 타임아웃 40스텝.</li>
+<li>측정: 데이터 250패킷에 326번 전송 = 1.30배(손실 42, 중복 13).</li>
+<li>"받은 대로 붙이는" 수신기는 <b>손실</b>에서 먼저 깨졌다(4번째 패킷). 중복은 9번째.</li>
+</ul>
+<h3><span class="id">T2</span> 타임아웃</h3>
+<p>공식은 A2를 본다. 재전송한 세그먼트로는 SampleRTT를 재지 않는다(Karn). 타임아웃이 나면 간격을 2배로 한다.</p>
+<h3><span class="id">T3</span> 세그먼트, 핸드셰이크, 종료</h3>
+<ul>
+<li>Seq = 데이터 첫 바이트의 번호. ACK = 다음에 받을 바이트 번호(누적).</li>
+<li>SYN과 FIN은 각각 순서 번호 1개를 쓴다.</li>
+</ul>
+<pre>클라이언트                       서버
+SYN      seq=x            →
+         ←  SYN+ACK seq=y, ack=x+1
+ACK      seq=x+1, ack=y+1 →     (데이터를 실어도 됨)
+종료: FIN → ACK, FIN ← ACK; 클라이언트는 TIME_WAIT(2·MSL) 대기</pre>
+<ul>
+<li><b>ISN은 무작위</b>이고 0이 아니다. 위조 세그먼트를 막는다. 같은 포트 쌍을 쓴 이전 연결의 옛 세그먼트가 섞이는 것을 막는다. 측정 ISN: 1111356914, 3798358670.</li>
+<li>SYN 옵션: <b>MSS</b>(예: 1460), <b>window scale</b>(shift), <b>SACK permitted</b>, timestamps. MSS·WS는 SYN/SYN-ACK에만 온다.</li>
+<li>플래그: SYN, ACK, FIN, RST, PSH, URG (+ ECE, CWR).</li>
+<li>핸드셰이크 시간 ≈ 1 RTT다. 모든 연결에 더해진다.</li>
+</ul>
+</div>
+<div>
+<h3><span class="id">T4</span> 흐름 제어 vs 혼잡 제어</h3>
+<ul>
+<li>흐름 제어는 <b>수신기</b> 버퍼를 보호한다: <b>rwnd</b>(헤더에 있음).</li>
+<li>혼잡 제어는 <b>네트워크</b>를 보호한다: <b>cwnd</b>(송신자만 앎, 헤더에 없음).</li>
+<li>측정: rwnd ≈ 4.6 MB(scale ×1024). 전송 중 최대 ≈ 193 KB. 그래서 제한 요인은 rwnd가 아니라 slow start 중인 cwnd였다. BDP ≈ 168 KB.</li>
+</ul>
+<h3><span class="id">T5</span> TCP 혼잡 제어 (Reno)</h3>
+<table>
+<tr><th>사건</th><th>동작</th></tr>
+<tr><td>시작</td><td>cwnd = 1 MSS, <b>slow start</b></td></tr>
+<tr><td>slow start 중 ACK</td><td>cwnd += 1 MSS (RTT마다 2배)</td></tr>
+<tr><td>cwnd ≥ ssthresh</td><td><b>혼잡 회피(CA)</b>로 간다</td></tr>
+<tr><td>CA 중 ACK</td><td>cwnd += MSS·MSS/cwnd (RTT마다 +1 MSS)</td></tr>
+<tr><td>중복 ACK 3개</td><td>fast retransmit. ssthresh = cwnd/2. cwnd = ssthresh + 3 (fast recovery)</td></tr>
+<tr><td>타임아웃</td><td>ssthresh = cwnd/2. cwnd = 1 MSS. slow start.</td></tr>
+</table>
+<ul>
+<li>Tahoe: 어떤 손실이든 cwnd = 1. Reno: 중복 ACK 3개면 절반.</li>
+<li>AIMD는 톱니 모양을 만든다. AIMD 흐름 둘은 공평한 몫으로 수렴한다.</li>
+<li>CUBIC(리눅스 기본): 마지막 손실 이후 시간의 3차 함수로 윈도우를 키운다.</li>
+<li>지연 기반(Vegas, BBR): RTT 증가를 큐의 신호로 쓴다.</li>
+<li>ECN: 라우터가 IP 헤더에 표시한다. 수신기가 ECE로 되돌려 준다.</li>
+<li>처리량 ∝ 1/RTT. 측정: 캠퍼스 178.8 Mbps(RTT 7.5 ms), 핫스팟 57.8 Mbps(38.1 ms). 캠퍼스에 netem +31 ms: 210 → 85 Mbps. RTT만으로도 처리량이 준다.</li>
+</ul>
+<h3><span class="id">T6</span> 실습 Task 3 · 혼잡 bench</h3>
+<ul>
+<li>링크: 슬롯당 1패킷, RTT 20슬롯 → 파이프 = 20. 큐 10, tail drop → 30 넘으면 손실.</li>
+<li>baseline FixedWindow 64: goodput은 가장 높다. 그러나 손실 37%, 큐 8.8/10.</li>
+<li><b>baseline이 최악인 이유</b>: goodput은 다른 흐름이 치르는 비용을 보여 주지 않는다. 큐를 채워 모두를 지연시키고, 재전송에 용량을 버린다. 모두 이렇게 보내면 <b>혼잡 붕괴</b>(1986년)가 된다.</li>
+<li>내 방식: slow start 뒤 AIMD ×0.5, RTT마다 +0.25. 손실 묶음 하나 = 감소 한 번(조용한 구간). 윈도우 15–30, 평균 24. 파이프 20보다 조금 크다.</li>
+<li>감소 ×0.7: goodput 98.7%지만 손실 4.0%, 큐 5.6 → R4 불합격. 마지막 몇 %는 큐, 즉 다른 흐름의 지연으로 얻은 것이다.</li>
+<li>조건: 손실 ≤ 5%, 평균 큐 ≤ 5.0. good ≥ 85%, strong ≥ 93%. 교과서 AIMD ≈ 82%.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ I ============================ -->
+<section class="I">
+<h2>I · 5주차 · IP, CIDR, NAT, DHCP <span class="ko">§4.3</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">I1</span> IP 헤더</h3>
+<ul>
+<li>IPv4: 옵션 없이 20 B. 필드: version, header length, TOS(DSCP/ECN), total length, ID, flags(DF, MF), fragment offset(8바이트 단위), <b>TTL</b>, protocol, header checksum, src, dst.</li>
+<li>라우터마다 TTL을 1 줄인다. 0이 되면 패킷을 버리고 ICMP 11을 보낸다.</li>
+<li>IPv6: 40 B 고정. 128비트 주소. flow label, hop limit, next header. 헤더 체크섬 없음. 라우터는 단편화하지 않는다(출발지가 PMTU 탐색으로 한다). 터널링으로 IPv6를 IPv4에 싣는다.</li>
+<li>라우터: 입력 포트(조회) → 스위칭 패브릭(메모리, 버스, 크로스바) → 출력 큐. 입력 큐에서 <b>HOL 블로킹</b>. 스케줄링: FIFO, 우선순위, 라운드 로빈, WFQ.</li>
+</ul>
+<h3><span class="id">I2</span> CIDR과 범위</h3>
+<ul>
+<li><code>a.b.c.d/p</code>: 앞 p비트가 네트워크, 나머지가 호스트다.</li>
+<li>네트워크 주소: 호스트 비트 모두 0. 브로드캐스트: 호스트 비트 모두 1. 사용 가능 = 그 사이.</li>
+<li>p가 0–32 밖이면 거부한다(R1). 호스트 비트가 켜져 있으면 거부한다: <code>163.152.6.5/24</code>는 네트워크가 아니라 호스트다(R2).</li>
+<li><b>/31</b>(RFC 3021, 점대점): 두 주소 모두 호스트 → <code>(net, net+1, None)</code>.</li>
+<li><b>/32</b>: 호스트 하나 → <code>(addr, addr, None)</code>.</li>
+</ul>
+<table>
+<tr><th>예제</th><th>첫 주소</th><th>끝 주소</th><th>브로드캐스트</th></tr>
+<tr><td>192.168.0.0/24</td><td>.0.1</td><td>.0.254</td><td>.0.255</td></tr>
+<tr><td>10.0.0.0/8</td><td>10.0.0.1</td><td>10.255.255.254</td><td>10.255.255.255</td></tr>
+<tr><td>172.16.32.0/20</td><td>172.16.32.1</td><td>172.16.47.254</td><td>172.16.47.255</td></tr>
+<tr><td>203.0.113.64/26</td><td>.65</td><td>.126</td><td>.127</td></tr>
+</table>
+<p><b>손 계산법</b>: 경계 옥텟을 찾는다(p=20 → 3번째 옥텟). 블록 크기 = 256 − 마스크 옥텟(240 → 16). 네트워크 = 값 이하인 블록의 최대 배수(32). 브로드캐스트 = 네트워크 + 블록 − 1(47).</p>
+<h3><span class="id">I3</span> 가장 긴 접두사 일치 (LPM)</h3>
+<ul>
+<li>접두사는 겹칠 수 있다. 라우터는 일치하는 것 중 <b>가장 긴</b>(가장 구체적인) 접두사를 고른다.</li>
+<li><code>0.0.0.0/0</code>은 모두와 일치한다. 다른 일치가 있으면 진다.</li>
+<li>예: <code>10.20.30.70</code>은 /0, /8, /16, /24, /26과 일치 → <code>/26 lab-rack-2</code>.</li>
+<li>같은 네트워크·같은 길이에 다음 홉이 다르면 모호하다. 내 add()는 ValueError를 낸다.</li>
+</ul>
+</div>
+<div>
+<h3><span class="id">I4</span> NAT와 특수 주소</h3>
+<table>
+<tr><td>사설 (RFC 1918)</td><td>10/8, 172.16/12, 192.168/16</td></tr>
+<tr><td>CGNAT (RFC 6598)</td><td>100.64.0.0/10</td></tr>
+<tr><td>링크 로컬</td><td>169.254/16</td></tr>
+<tr><td>루프백</td><td>127/8</td></tr>
+<tr><td>문서·시험용</td><td>192.0.2/24, 198.51.100/24, 203.0.113/24</td></tr>
+</table>
+<ul>
+<li>NAT는 (사설 IP, 포트)를 (공인 IP, 새 포트)로 바꾼다. <b>변환 표</b>를 보관한다. 응답은 이 표로 호스트를 찾는다.</li>
+<li>바깥 호스트는 안으로 연결을 시작할 수 없다(포트 포워딩 없이는). NAT는 종단 간 주소 체계를 깬다.</li>
+<li><b>NAT 단수 세기</b>: 인터페이스는 사설이고 바깥에서 본 공인 주소가 다르면 → NAT 최소 1개. 첫 NAT의 바깥 주소가 100.64/10이나 사설이면 → 2단(CGNAT). traceroute는 사설 홉을 보여 줄 뿐, 변환 위치는 보여 주지 않는다.</li>
+<li>측정: 두 네트워크 모두 NAT ≥ 1. 정확한 개수는 증명하지 못했다. 네트워크를 바꾸면 사설·공인 주소 모두 바뀌었다.</li>
+<li>게이트웨이는 반드시 내 서브넷 안에 있다. 호스트는 서브넷 밖으로 가는 프레임을 게이트웨이 MAC으로 보낸다.</li>
+</ul>
+<h3><span class="id">I5</span> DHCP (DORA, UDP 67/68)</h3>
+<table>
+<tr><th>메시지</th><th>출발지 → 목적지</th><th>내용</th></tr>
+<tr><td>Discover</td><td>0.0.0.0:68 → 255.255.255.255:67</td><td>chaddr, transaction ID</td></tr>
+<tr><td>Offer</td><td>서버 → 브로드캐스트/클라이언트</td><td>yiaddr, 임대 시간, 마스크, 라우터, DNS</td></tr>
+<tr><td>Request</td><td>0.0.0.0 → 255.255.255.255</td><td>고른 서버, 요청 IP</td></tr>
+<tr><td>Ack</td><td>서버 → 클라이언트 (유니캐스트 가능)</td><td>임대 확정</td></tr>
+</table>
+<ul>
+<li>Discover 출발지는 <b>0.0.0.0</b>이다. 클라이언트는 아직 주소가 없다. 목적지는 <b>255.255.255.255</b>다. 클라이언트는 서버를 모른다.</li>
+<li>Ack는 유니캐스트일 수 있다. 서버가 이제 chaddr(MAC)와 yiaddr를 안다.</li>
+<li>T1 = 임대의 50%에 갱신한다(서버에 유니캐스트). T2 = 87.5%에 재바인딩한다(브로드캐스트).</li>
+<li>DORA 전체를 보려면 새로 접속해야 한다. 이전 임대를 먼저 지운다. 아니면 Request/Ack만 보인다.</li>
+</ul>
+<h3><span class="id">I6</span> 실습 Task 3 · 빠른 LPM</h3>
+<ul>
+<li>baseline: 선형 탐색. 작업량 ∝ 라우트 수(5,000).</li>
+<li>방법 1, 길이별 묶기: 사전 조회 최대 33번. 긴 길이부터 묻고 첫 일치에서 멈춘다.</li>
+<li>방법 2, 비트 트라이: 최대 32단계. 작업량 ∝ 주소 폭. 메모리 ∝ 라우트 수.</li>
+<li>내 방식: <b>DIR-24-8</b>. /24마다 배열 칸 1개(2<sup>24</sup>칸, 64 MB). 조회 = 배열 읽기 1번. 시간이 일정하다. 2640배 빠르다.</li>
+<li>하드웨어가 트라이를 쓰는 이유: 상한이 32단계로 고정된다. 메모리가 라우트 수에 비례한다. 단계마다 파이프라인으로 나눌 수 있다. 파이썬에서는 32번 도는 반복보다 사전·배열 한 번이 빠르다.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ R ============================ -->
+<section class="R">
+<h2>R · 6주차 · 라우팅 <span class="ko">§5.2–5.4, §5.6</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">R1</span> 링크 상태 (Dijkstra)</h3>
+<ul>
+<li>라우터마다 자기 링크 비용(LSA)을 플러딩한다. 모든 라우터가 같은 지도를 갖는다.</li>
+<li>각 라우터가 혼자 Dijkstra를 돌린다. 결과는 경로가 아니라 <b>목적지마다 다음 홉 하나</b>다.</li>
+<li>복잡도: 단순 구현 O(n²), 힙 사용 O((n+e) log n).</li>
+<li>다음 홉은 반드시 <b>직접 이웃</b>이다. 출발지 자신은 표에 없다.</li>
+<li>인접 관계를 경로로 쓰지 않는다: u–w 직접 = 5, u–x–y–w = 3 → w의 다음 홉은 <b>x</b>.</li>
+<li>내 동점 규칙: 첫 홉 이름이 가장 작은 쪽. 실제 OSPF: 같은 비용의 다음 홉을 모두 설치(<b>ECMP</b>)하고 흐름마다 해시로 나눈다.</li>
+<li>비용 = 트래픽 부하이면 경로가 진동할 수 있다.</li>
+</ul>
+<table>
+<tr><th>교과서 그래프 (§5.2.1)</th><th>v</th><th>w</th><th>x</th><th>y</th><th>z</th></tr>
+<tr><td>u에서 비용</td><td>2</td><td>3</td><td>1</td><td>2</td><td>4</td></tr>
+<tr><td>u의 다음 홉</td><td>v</td><td>x</td><td>x</td><td>x</td><td>x</td></tr>
+<tr><td>u–x 끊긴 뒤</td><td>v</td><td>v (동점 5)</td><td>v</td><td>v</td><td>v</td></tr>
+</table>
+<p class="m">링크: u-v2 u-w5 u-x1 v-w3 v-x2 w-x3 w-y1 w-z5 x-y1 y-z2</p>
+<p><b>Dijkstra 손 계산</b>: 표의 행 = 단계. N' = 확정된 노드 집합. 단계마다 D(·)가 가장 작은 노드를 N'에 넣는다. D(v) = min(D(v), D(w) + c(w,v))로 갱신한다. p(v) = 직전 노드를 적는다.</p>
+<h3><span class="id">R2</span> 거리 벡터 (Bellman-Ford)</h3>
+<pre>D_x(y) = min (이웃 v에 대해) { c(x,v) + D_v(y) }</pre>
+<ul>
+<li>노드는 자기 벡터를 이웃에게만 보낸다. 비동기, 반복, 분산.</li>
+<li>좋은 소식은 빨리 퍼진다. 나쁜 소식은 느리게 퍼진다: <b>무한 카운트</b>.</li>
+<li><b>Poisoned reverse</b>: z가 y를 거쳐 x로 가면, z는 y에게 "D<sub>z</sub>(x) = ∞"라고 알린다. 노드 3개 이상의 루프는 막지 못한다.</li>
+<li>LS vs DV: LS는 O(nE) 메시지, 전체 지도를 알고 각자 계산한다(견고). DV는 이웃에게만 보내고 수렴이 느리며 오류가 퍼진다.</li>
+</ul>
+<h3><span class="id">R3</span> OSPF</h3>
+<ul>
+<li>AS 내부 링크 상태 프로토콜. IP 위에서 바로 동작한다(프로토콜 89).</li>
+<li>Hello로 이웃을 찾는다(10초). Dead 간격(40초) 동안 hello가 없으면 이웃 down.</li>
+<li>LSA를 영역 전체에 플러딩한다. 라우터마다 SPF를 계산한다. 인증을 지원한다.</li>
+<li>계층: <b>영역(area)</b>. Area 0 = 백본. 영역 경계 라우터가 요약한다.</li>
+<li>관리자가 링크 비용을 정한다. ECMP를 허용한다.</li>
+</ul>
+</div>
+<div>
+<h3><span class="id">R4</span> BGP (AS 간)</h3>
+<ul>
+<li>AS 사이는 eBGP, AS 안은 iBGP. TCP 179를 쓴다. 경로 벡터 방식.</li>
+<li>경로 = 접두사 + 속성. <b>AS-PATH</b>(루프 감지), <b>NEXT-HOP</b>.</li>
+<li>선택 순서: local preference(정책) → 가장 짧은 AS-PATH → 가장 가까운 NEXT-HOP(<b>hot potato</b>) → 기타.</li>
+<li>정책: AS는 고객이 아닌 쪽의 통과 트래픽을 실어 주지 않는다.</li>
+<li>AS 내부는 성능을 중시한다. AS 간은 정책을 중시한다. 계층 구조로 규모를 감당한다.</li>
+<li>SDN: 중앙 컨트롤러가 흐름 표(일치 + 동작, OpenFlow)를 계산한다.</li>
+</ul>
+<h3><span class="id">R5</span> ICMP와 traceroute</h3>
+<ul>
+<li>traceroute는 TTL = 1, 2, 3 …인 탐침을 보낸다. TTL이 0이 된 라우터가 ICMP 11(TTL 초과)을 보낸다.</li>
+<li>목적지 호스트는 ICMP 3/3 포트 도달 불가(UDP)나 echo reply를 보낸다. 그러면 traceroute가 멈춘다.</li>
+<li><code>* * *</code> 이유 1: 라우터가 전달은 하지만 ICMP를 보내지 않는다. 뒤 홉은 다시 답한다.</li>
+<li><code>* * *</code> 이유 2: 목적지 근처 방화벽이 탐침을 버린다. 뒤 홉도 답하지 않는다.</li>
+<li>한 홉에서 +100 ms 정도 뛰면 해저 케이블이다. 측정: hop 7→8에서 +114 ms(MIT 경로).</li>
+<li>애니캐스트 <code>1.1.1.1</code>: 13홉, 12 ms → 복제 서버가 국내(ICN)에 있다.</li>
+</ul>
+<h3><span class="id">R6</span> OSPF 시간 측정 (FRR 라우터 3대)</h3>
+<table>
+<tr><th>사건</th><th>시간</th><th>이유</th></tr>
+<tr><td>링크 끊기 (반송파 끊김)</td><td>&lt; 0.4초</td><td>인터페이스가 바로 down → 새 LSA. Hello/Dead와 무관.</td></tr>
+<tr><td>조용한 고장 (100% 손실)</td><td>38초</td><td>Dead 40초만 감지한다.</td></tr>
+<tr><td>복구</td><td>6.2–18초</td><td>Hello, DB 교환 후 Full(+약 9초). 그 뒤 MinLSArrival(1초)로 버려진 LSA를 5초 뒤 재전송.</td></tr>
+<tr><td>비용 변경 10→100</td><td>0.3초</td><td>바꾼 라우터는 바로 안다. 살아 있는 인접 관계로 LSA가 퍼진다.</td></tr>
+</table>
+<p><b>요점</b>: 계산보다 감지가 느리다. 끊김과 복구는 대칭이 아니다. 끊김은 사건 하나로 알 수 있다. 복구는 핸드셰이크와 DB 동기화가 필요하다.</p>
+<h3><span class="id">R7</span> 실습 Task 3 · 증분 SPF</h3>
+<ul>
+<li>사건 사이에 <code>dist</code>(출발지부터 비용)를 보관한다. 표 = dist와 그래프의 함수다.</li>
+<li>최단 경로에 없는 링크의 down/비용 증가 → 무시한다.</li>
+<li>down/비용 증가지만 노드에 다른 최단 진입로가 있다 → SPF 없이 다음 홉만 다시 계산한다.</li>
+<li>up/비용 감소인데 더 짧아지지 않는다(d<sub>a</sub>+c ≥ d<sub>b</sub>) → 무시한다. 짧아지면 그 노드부터만 완화한다.</li>
+<li>전체 SPF가 필요한 경우는 하나: 노드가 <b>유일한 최단 진입로를 잃을 때</b>.</li>
+<li>결과 177회 대 1001회(82%). 파이썬에서는 실행 시간이 줄지 않는다. 라우터에서 부족한 것은 메모리가 아니라 control plane CPU다. CPU가 바쁘면 hello를 놓친다 → 플랩이 늘어난다.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ E ============================ -->
+<section class="E">
+<h2>E · 7주차 · 이더넷, ARP, 스위치 <span class="ko">§6.3–6.4</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">E1</span> MAC과 프레임</h3>
+<ul>
+<li>MAC = 48비트. 계층이 없다(flat). NIC에 정해져 있다. 브로드캐스트 = <code>ff:ff:ff:ff:ff:ff</code>.</li>
+<li>IP = 어디에 있는가(계층형, 네트워크마다 바뀜). MAC = 누구인가(고정, 같은 링크 안에서만 씀).</li>
+</ul>
+<pre>| Preamble 8 | 목적지 MAC 6 | 출발지 MAC 6 | Type 2 | Data 46–1500 | CRC 4 |</pre>
+<ul>
+<li>이더넷은 비연결형이고 비신뢰적이다. CRC가 틀린 프레임은 수신기가 버린다. ACK가 없다.</li>
+<li>이더넷에는 TTL이 없다. 루프가 있으면 프레임이 끝없이 돈다 → STP를 쓴다.</li>
+</ul>
+<h3><span class="id">E2</span> ARP (같은 서브넷에서 IP → MAC)</h3>
+<table>
+<tr><th></th><th>요청 (request)</th><th>응답 (reply)</th></tr>
+<tr><td>목적지 MAC</td><td>ff:ff:ff:ff:ff:ff (브로드캐스트)</td><td>요청자 MAC (유니캐스트)</td></tr>
+<tr><td>받는 쪽</td><td>서브넷의 모든 호스트</td><td>요청자 하나</td></tr>
+<tr><td>내용</td><td>"172.16.19.1 누구? …에게 알려 줘"</td><td>"172.16.19.1은 …에 있다"</td></tr>
+</table>
+<ul>
+<li>요청에 요청자 MAC이 들어 있다. 그래서 응답은 브로드캐스트할 필요가 없다.</li>
+<li>ARP 표 = <b>소프트 상태</b>. 항목마다 만료 시간이 있다. 트래픽이 필요할 때 다시 생긴다.</li>
+<li>목적지가 서브넷 밖이면 호스트는 서버가 아니라 <b>게이트웨이</b>를 ARP로 찾는다. 프레임 목적지 MAC = 게이트웨이, IP 목적지 = 서버.</li>
+<li>그래서 먼 웹 서버는 ARP 표에 절대 없다. 표는 작게 유지된다.</li>
+<li>측정: 비운 뒤 처음 돌아온 항목 = 게이트웨이 172.16.19.1(이전 2개, 이후 1개).</li>
+<li>규모: 브로드캐스트 부하 ∝ 호스트 수. 호스트당 분당 1요청이면 /24 → 호스트마다 분당 254개, /16 → 초당 약 1,000개.</li>
+<li>다른 서브넷으로 보내기: IP는 A→B 그대로. 프레임 1: 출발지 MAC A, 목적지 MAC 라우터. 라우터가 프레임 2를 만든다: 출발지 MAC 라우터 출력 포트, 목적지 MAC B.</li>
+</ul>
+<h3><span class="id">E4</span> 링크 계층 기타</h3>
+<ul>
+<li>패리티: 1비트로 홀수 개 오류를 감지한다. 2차원 패리티는 1비트 오류를 고친다.</li>
+<li>인터넷 체크섬: 16비트 1의 보수 합.</li>
+<li>CRC: 생성자 G(r+1비트)를 고른다. D·2<sup>r</sup> XOR R을 보낸다. R = (D·2<sup>r</sup> / G)의 나머지(mod 2). r+1비트 미만의 연속 오류를 감지한다.</li>
+<li>다중 접속: 채널 분할(TDMA, FDMA), 랜덤(ALOHA, CSMA/CD), 차례(폴링, 토큰).</li>
+<li>Slotted ALOHA 최대 효율 1/e ≈ 0.37. Pure ALOHA 1/(2e) ≈ 0.18.</li>
+<li>CSMA/CD 백오프: m번째 충돌 뒤 K를 {0,…,2<sup>min(m,10)</sup>−1}에서 고른다. K·512비트 시간 기다린다.</li>
+<li>VLAN 802.1Q: 4바이트 태그, 12비트 VLAN ID. 트렁크 포트는 여러 VLAN을 싣는다.</li>
+<li>STP: 스위치들이 신장 트리를 만들고 루프가 되는 포트를 막는다.</li>
+</ul>
+</div>
+<div>
+<h3><span class="id">E3</span> 학습 스위치 (Task 1)</h3>
+<ol>
+<li><b>학습</b>: 출발지 MAC → 들어온 포트, 현재 시각.</li>
+<li>들어온 포트로는 <b>절대</b> 내보내지 않는다.</li>
+<li>목적지가 브로드캐스트 → 나머지 모든 포트.</li>
+<li>아는 목적지 → 그 포트 하나(그 포트가 들어온 포트면 아무 데도 안 보냄, <b>필터링</b>).</li>
+<li>모르는 목적지 → 나머지 모든 포트(<b>플러딩</b>).</li>
+</ol>
+<ul>
+<li>장비가 옮기면 (포트, 마지막 관측 시각)을 덮어쓴다 → 바로 새 포트를 믿는다(R3).</li>
+<li>에이징: 300초보다 오래된 항목을 지운다(R4). 같은 시각 정보를 반대로 읽는 것이다.</li>
+<li>브로드캐스트 주소는 출발지로 학습하지 않는다.</li>
+<li><b>왜 들어온 포트로 내보내지 않는가?</b> 그 너머의 목적지는 이미 프레임을 받았다. 그 너머 스위치는 출발지를 틀린 포트로 배운다. 두 스위치가 모르는 프레임을 서로 되돌리면 끝없이 돈다(TTL 없음).</li>
+<li><b>왜 스위치는 플러딩하고 라우터는 버리는가?</b> MAC은 계층이 없다. "모른다" = "아직 못 배웠다"다. 플러딩해도 LAN 안에서 끝난다. 라우터 표는 라우팅 프로토콜이 채운다. 경로 없음 = 도달 불가다. 인터넷 전체로 플러딩할 수도 없다.</li>
+<li><b>시간 기반 에이징의 비용</b>: 받기만 하는 장비는 잊힌다 → 그 장비로 가는 프레임이 플러딩된다. 조용히 옮긴 장비 → 만료 전까지 옛 포트로 가서 사라진다. 더 직접적인 방법: 포트 down 시 그 포트 항목 삭제, STP 토폴로지 변경 알림.</li>
+<li>스위치 vs 라우터: 스위치 = 2계층, 설정 없이 동작, 필터링, 트리 토폴로지 필요. 라우터 = 3계층, 설정 필요, 어떤 토폴로지도 가능, 브로드캐스트를 격리.</li>
+</ul>
+<h3><span class="id">E5</span> 꽉 찬 표 (Task 3)</h3>
+<ul>
+<li>포트 48, 장비 400, 용량 64. 트래픽이 치우쳐 있다(소수 장비가 대부분을 보냄).</li>
+<li>baseline: <b>가장 먼저 들어온 항목</b>을 내보낸다(FIFO). 들어온 시각은 앞으로 필요할지와 상관없다.</li>
+<li>내 방식: MAC마다 출발지·유니캐스트 목적지 등장 횟수를 <b>count-min sketch</b>(4×256)로 센다. 추정치가 가장 작은 항목을 내보낸다. 20,000번마다 모든 카운터를 반으로 줄인다.</li>
+<li><b>학습 거절</b>: 새 출발지는 횟수가 내보낼 항목보다 클 때만 들어온다. 거절 3,599번.</li>
+<li>결과: 낭비 전달 323,380 → 159,712(−51%). LRU만 쓰면 −32%. 누락 0.</li>
+<li>sketch를 쓰는 이유: 메모리가 고정된다. MAC마다 카운터를 두면 가짜 MAC마다 커진다.</li>
+<li><b>MAC flooding 공격</b>: 가짜 출발지 MAC을 계속 바꿔 프레임을 보낸다. 진짜 항목이 표에서 밀려난다. 진짜 호스트로 가는 프레임이 공격자 포트로도 플러딩된다 → 공격자가 엿본다. 대책: <b>포트 보안</b>(포트당 MAC 수 제한).</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ C ============================ -->
+<section class="C">
+<h2>C · 코드 패턴과 함정 <span class="ko">코드 문제 대비</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">C0</span> 파이썬 함정 (먼저 읽기)</h3>
+<table>
+<tr><th>함정</th><th>올바른 형태</th></tr>
+<tr><td>파이썬의 <code>~x</code>는 음수다</td><td><code>~x &amp; 0xFFFFFFFF</code></td></tr>
+<tr><td>p = 0일 때 마스크</td><td><code>(0xFFFFFFFF&lt;&lt;32)&amp;0xFFFFFFFF</code> = 0 ✓ (C에서는 32비트 시프트가 정의되지 않음)</td></tr>
+<tr><td>반복 중에 리스트를 바꿈</td><td>복사본으로 돈다: <code>for m in list(d):</code></td></tr>
+<tr><td>키를 선형 탐색</td><td>사전(dict)을 쓴다: O(1)</td></tr>
+<tr><td>처음 값 유지</td><td><code>d.setdefault(k, v)</code></td></tr>
+<tr><td>FIFO 내보내기 / LRU</td><td><code>od.popitem(last=False)</code>; <code>od.move_to_end(k)</code></td></tr>
+<tr><td>heapq 동점</td><td>튜플 <code>(cost, name, node)</code>을 넣는다. 튜플은 왼쪽부터 비교한다.</td></tr>
+<tr><td>힙의 낡은 항목</td><td><code>if node in done: continue</code></td></tr>
+<tr><td>나눗셈 / 시프트</td><td><code>x &gt;&gt; 8</code> = x // 256</td></tr>
+<tr><td>정수에서 바이트 꺼내기</td><td><code>(v &gt;&gt; 24) &amp; 0xFF</code></td></tr>
+<tr><td>문자열 → 정수</td><td><code>int(s, 16)</code>; 옥텟은 <code>s.isdigit()</code> 확인</td></tr>
+</table>
+
+<h3><span class="id">C1</span> IPv4 문자열 ↔ 정수 (ipaddress 금지)</h3>
+<pre>def to_int(a):
+    p = a.split(".")
+    if len(p) != 4: raise ValueError(a)
+    v = 0
+    for x in p:
+        if not x.isdigit() or int(x) &gt; 255: raise ValueError(a)
+        v = (v &lt;&lt; 8) | int(x)
+    return v
+
+def to_str(v):
+    return ".".join(str((v &gt;&gt; s) &amp; 0xFF) for s in (24, 16, 8, 0))
+
+def mask(p):
+    return (0xFFFFFFFF &lt;&lt; (32 - p)) &amp; 0xFFFFFFFF</pre>
+
+<h3><span class="id">C6</span> parse_cidr, network_range, LPM 표</h3>
+<pre>def parse_cidr(c):
+    addr, pl = c.split("/")
+    p = int(pl)
+    if not 0 &lt;= p &lt;= 32: raise ValueError("prefix")      # R1
+    net = to_int(addr)
+    if net &amp; ~mask(p) &amp; 0xFFFFFFFF: raise ValueError("host bits")  # R2
+    return net, p
+
+def network_range(c):
+    net, p = parse_cidr(c)
+    last = net | (~mask(p) &amp; 0xFFFFFFFF)
+    if p == 32: return to_str(net), to_str(net), None
+    if p == 31: return to_str(net), to_str(last), None
+    return to_str(net+1), to_str(last-1), to_str(last)
+
+class ForwardingTable:
+    def __init__(self): self.by_len = {}       # p -&gt; {net: hop}
+    def add(self, c, hop):
+        net, p = parse_cidr(c)
+        b = self.by_len.setdefault(p, {})
+        if net in b and b[net] != hop: raise ValueError("모호함")
+        b[net] = hop
+    def lookup(self, a):
+        x = to_int(a)
+        for p in sorted(self.by_len, reverse=True):   # 긴 길이부터
+            h = self.by_len[p].get(x &amp; mask(p))
+            if h is not None: return h               # 첫 일치에서 멈춤
+        return None</pre>
+</div>
+<div>
+<h3><span class="id">C7</span> 빠른 LPM: 비트 트라이와 DIR-24-8</h3>
+<pre>class Trie:                         # 작업량 &lt;= 32단계
+    def __init__(self): self.root = [None, None, None]  # [0-자식, 1-자식, hop]
+    def add(self, net, p, hop):
+        n = self.root
+        for i in range(p):
+            b = (net &gt;&gt; (31 - i)) &amp; 1
+            if n[b] is None: n[b] = [None, None, None]
+            n = n[b]
+        n[2] = hop
+    def lookup(self, a):
+        n, best = self.root, self.root[2]
+        for i in range(32):
+            n = n[(a &gt;&gt; (31 - i)) &amp; 1]
+            if n is None: break
+            if n[2] is not None: best = n[2]   # 지금까지 가장 긴 일치 기억
+        return best
+
+# DIR-24-8: first = 2**24칸 배열 (/24마다 hop 인덱스 1개)
+# add(p&lt;=24): [net&gt;&gt;8, (net&gt;&gt;8) + 2**(24-p)) 칸을 채운다.
+#   그다음 그 범위 안의 더 긴 접두사를 짧은 것부터 다시 채운다.
+# lookup(a): return hops[first[a &gt;&gt; 8]]   (p&gt;24는 작은 dict를 먼저 확인)</pre>
+
+<h3><span class="id">C2</span> 반복 리졸버 루프 (3주차 T1)</h3>
+<pre>def walk(name):
+    servers = ROOTS
+    for _ in range(MAX_DEPTH):                 # R6 깊이 제한
+        reply = first_reply(servers, name)     # R4: 응답 없으면 다음 서버
+        ans = reply.answer
+        if name의 A 레코드가 ans에 있음: return ("A", ip)
+        if ans에 CNAME 있음: return ("CNAME", target)   # R5: 루트부터 다시
+        ns = reply.authority의 NS 이름들
+        glue = [reply.additional에서 ns의 A]
+        servers = glue if glue else [resolve(ns[0])]  # R3: glue 없음 = 새 탐색
+    raise RuntimeError("depth")
+
+def resolve(name):
+    for _ in range(MAX_CNAME):
+        kind, v = walk(name)
+        if kind == "A": return v
+        name = v
+    raise RuntimeError("CNAME loop")</pre>
+<p>전송: <code>dig @SERVER NAME A +norecurse +time=3 +tries=1</code>. <code>status:</code>와 각 섹션을 읽는다.</p>
+
+<h3><span class="id">C3</span> 올바른 TTL 캐시 (3주차 T3)</h3>
+<pre>class YourCache:
+    def __init__(self, upstream):
+        self.upstream = upstream; self.entries = {}    # name -&gt; (addr, expires)
+    def lookup(self, name, now):
+        e = self.entries.get(name)
+        if e is not None and now &lt; e[1]: return e[0]  # TTL 안
+        addr, ttl = self.upstream(name)               # 없거나 만료
+        self.entries[name] = (addr, now + ttl)
+        return addr</pre>
+<div class="warn">baseline 버그: 60초 고정(TTL 무시) → stale + 불필요한 재요청. 리스트 선형 탐색. 반복 중 <code>list.remove</code>.</div>
+</div>
+</div>
+</section>
+
+<section class="C">
+<h2>C · 코드 패턴 (계속) <span class="ko">코드 계속</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">C4</span> Selective repeat (4주차 T1)</h3>
+<pre># Sender.step()
+pkt = acks.receive()
+if pkt and pkt[0] == "A" and 0 &lt;= pkt[1] &lt; N:
+    acked[pkt[1]] = True                 # 중복 ACK: 문제없음
+while base &lt; N and acked[base]: base += 1   # 윈도우 밀기
+if base == N: return False               # 끝
+for seq in range(base, min(base + WINDOW, N)):
+    if acked[seq]: continue
+    if sent_at[seq] is None or now - sent_at[seq] &gt;= TIMEOUT:
+        sent_at[seq] = now
+        out.send(("D", seq, chunks[seq])); break   # 스텝당 1번 전송
+return True
+
+# Receiver.step()
+pkt = inp.receive()
+if pkt is None or pkt[0] != "D": return
+_, seq, data = pkt
+acks.send(("A", seq))                    # 모든 도착에 ACK, 중복도
+if seq &gt;= next: buf.setdefault(seq, data) # 중복은 아무것도 바꾸지 않음
+while next in buf:
+    out += buf.pop(next); next += 1      # 순서대로 전달</pre>
+<p><b>GBN 변형</b>: 수신기는 <code>next</code>만 보관한다. seq == next만 받고 나머지는 버린다. 항상 ACK(next−1)을 보낸다. 송신기: 타이머 1개. 타임아웃이면 base..base+N−1을 다시 보낸다.</p>
+<p><b>Stop-and-wait (rdt3.0)</b>: 1비트 순번(0/1). 보내고 타이머를 켠다. 같은 비트의 ACK를 기다린다. 아니면 다시 보낸다.</p>
+
+<h3><span class="id">C5</span> 혼잡 제어: slow start + AIMD (4주차 T3)</h3>
+<pre>class YourControl:
+    def __init__(self):
+        self.window = 1.0; self.slow_start = True; self.quiet = 0
+    def on_ack(self):
+        if self.quiet &gt; 0: self.quiet -= 1
+        if self.slow_start: self.window += 1             # RTT마다 2배
+        else: self.window += 0.25 / self.window          # RTT마다 +0.25
+    def on_loss(self):
+        if self.quiet &gt; 0: return          # 손실 묶음 1개 = 사건 1개 = 감소 1번
+        self.slow_start = False
+        self.window = max(2.0, self.window * 0.5)
+        self.quiet = int(self.window) * 3</pre>
+<p>ssthresh를 쓰는 Reno: <code>if cwnd &lt; ssthresh: cwnd += 1 else: cwnd += 1/cwnd</code>. 중복 ACK 3개: <code>ssthresh = cwnd/2; cwnd = ssthresh + 3</code>. 타임아웃: <code>ssthresh = cwnd/2; cwnd = 1</code>.</p>
+</div>
+<div>
+<h3><span class="id">C8</span> Dijkstra + 첫 홉 (6주차 T1)</h3>
+<pre>import heapq
+def dijkstra(g, s):
+    dist = {s: 0}; pq = [(0, s)]; done = set()
+    while pq:
+        c, n = heapq.heappop(pq)
+        if n in done: continue
+        done.add(n)
+        for v, w in g[n].items():
+            if v not in done and c + w &lt; dist.get(v, float("inf")):
+                dist[v] = c + w; heapq.heappush(pq, (c + w, v))
+    del dist[s]; return dist                  # 도달 불가 노드는 없음
+
+def forwarding_table(g, s):
+    best = {s: (0, "")}; pq = [(0, "", s)]; done = set(); t = {}
+    while pq:
+        c, hop, n = heapq.heappop(pq)
+        if n in done: continue
+        done.add(n)
+        if n != s: t[n] = hop
+        for v, w in g[n].items():
+            if v in done: continue
+            cand = (c + w, v if n == s else hop)   # 첫 홉을 물려받음
+            if cand &lt; best.get(v, (float("inf"), "")):  # 동점: 작은 홉 이름
+                best[v] = cand; heapq.heappush(pq, (cand[0], cand[1], v))
+    return t
+
+def link_down(g, a, b):
+    g = {n: dict(e) for n, e in g.items()}   # 복사, 원본 변경 금지
+    g[a].pop(b, None); g[b].pop(a, None); return g</pre>
+<p><b>Bellman-Ford / DV</b>: |V|−1번 반복한다. 모든 간선 (u,v,w)에 대해 <code>if d[u]+w &lt; d[v]: d[v]=d[u]+w</code>.</p>
+
+<h3><span class="id">C9</span> 증분 SPF 판정 (6주차 T3)</h3>
+<pre>tight(x→y): dist[x] + cost(x,y) == dist[y]
+비용 감소/up:  da + c &lt; db 이면 b부터 완화   (아니면 무시, 또는 동점만 재계산)
+비용 증가/down: tight인 y가 유일한 tight 선행자를 잃으면: 전체 SPF
+                아니고 링크가 tight였거나 tight가 되면: 다음 홉만 재계산 (SPF 없음)
+                그 외: 아무것도 안 함</pre>
+
+<h3><span class="id">C10</span> 학습 스위치 (7주차 T1)</h3>
+<pre>def handle(self, frame, in_port):
+    src, dst, now = frame
+    self._age(now)                         # seen &lt; now - 300 삭제
+    if src != BROADCAST: self.entries[src] = (in_port, now)  # 학습 / 이동
+    others = [p for p in range(self.ports) if p != in_port]
+    if dst == BROADCAST or dst not in self.entries: return others  # 플러딩
+    out = self.entries[dst][0]
+    return [] if out == in_port else [out]           # 필터링 / 전달</pre>
+
+<h3><span class="id">C11</span> Count-min sketch (7주차 T3)</h3>
+<pre>slots(mac) = [hash_r(mac) % WIDTH for r in range(ROWS)]  # 행마다 독립 해시
+count(mac): 각 행 r에서 sketch[r][slot_r] += 1
+estimate(mac) = min(sketch[r][slot_r] for r)   # 실제보다 작게 세지 않음
+표가 꽉 참: victim = 추정치 최소 항목; est(src) &gt; est(victim)일 때만 src 학습</pre>
+</div>
+</div>
+</section>
+
+<!-- ============================ X ============================ -->
+<section class="X">
+<h2>X · 명령어와 도구 <span class="ko">COMMANDS</span></h2>
+<div class="grid2">
+<div>
+<h3><span class="id">X1</span> DNS</h3>
+<table>
+<tr><td><code>dig @198.41.0.4 NAME +norecurse</code></td><td>반복 질의 1번</td></tr>
+<tr><td><code>dig +short NAME A</code></td><td>답만 출력</td></tr>
+<tr><td><code>dig +trace NAME</code></td><td>전체 탐색 (3주차 T1에서 금지)</td></tr>
+<tr><td><code>dig NAME NS / MX / CNAME</code></td><td>다른 타입</td></tr>
+<tr><td><code>dig @1.1.1.1 / @8.8.8.8 / @9.9.9.9</code></td><td>리졸버 바꾸기</td></tr>
+</table>
+<h3><span class="id">X2</span> 캡처와 읽기</h3>
+<table>
+<tr><td><code>tcpdump -i IF -w x.pcap port 53</code></td><td>캡처</td></tr>
+<tr><td><code>tshark -r x.pcap -F pcapng -w x.pcapng</code></td><td>형식 변환</td></tr>
+<tr><td><code>tshark -r f -Y "dns.flags.authoritative==1"</code></td><td>표시 필터</td></tr>
+<tr><td><code>-Y "tcp.flags.syn==1"</code></td><td>핸드셰이크</td></tr>
+<tr><td><code>-Y "dhcp"</code>, <code>-Y "arp"</code></td><td>DORA, ARP</td></tr>
+</table>
+<p>캡처 필터(BPF): <code>port 53</code>, <code>tcp port 443</code>, <code>port 67 or port 68</code>, <code>arp</code>. 표시 필터(Wireshark): <code>dns</code>, <code>tcp.analysis.retransmission</code>.</p>
+<h3><span class="id">X3</span> 실습 명령</h3>
+<pre>python3 task1_*.py --verify     python3 bench.py --yours
+python3 test_tasks.py --task N  python3 ../check.py w03
+bash w06-routing/scenario.sh up|routes|cut|restore|cost|down</pre>
+</div>
+<div>
+<h3><span class="id">X4</span> 주소, 경로, ARP</h3>
+<table>
+<tr><td><code>ip addr</code> / <code>ifconfig</code> / <code>ipconfig</code></td><td>인터페이스 주소, 마스크</td></tr>
+<tr><td><code>ip route</code> / <code>netstat -rn</code></td><td>기본 게이트웨이</td></tr>
+<tr><td><code>curl ifconfig.me</code></td><td>바깥에서 본 공인 주소</td></tr>
+<tr><td><code>arp -a</code>, <code>ip neigh</code></td><td>ARP 표</td></tr>
+<tr><td><code>sudo ip -s -s neigh flush all</code></td><td>ARP 표 비우기 (리눅스)</td></tr>
+<tr><td><code>traceroute HOST</code> / <code>tracert</code> / <code>tracepath</code></td><td>경로, 홉별 RTT</td></tr>
+<tr><td><code>iperf3 -c HOST</code></td><td>처리량</td></tr>
+<tr><td><code>tc qdisc add dev IF root netem delay 31ms</code></td><td>지연 추가</td></tr>
+<tr><td><code>tc ... netem loss 100%</code></td><td>조용한 고장</td></tr>
+<tr><td><code>vtysh -c "show ip route"</code></td><td>FRR 경로</td></tr>
+<tr><td><code>vtysh -c "show ip ospf neighbor"</code></td><td>OSPF 이웃</td></tr>
+</table>
+<h3><span class="id">X5</span> 측정 전 확인</h3>
+<ul>
+<li>VPN·터널(WARP, Tailscale)을 끈다. 경로와 처리량이 바뀐다.</li>
+<li>5번 잰다. 숫자 하나가 아니라 중앙값과 편차를 보고한다.</li>
+<li>제출 전 MAC, 호스트 이름, 내 IPv6를 가린다(<code>mask.py</code>).</li>
+</ul>
+</div>
+</div>
+</section>
+
+</body>
+
+</html>
